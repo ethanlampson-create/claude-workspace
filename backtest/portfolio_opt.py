@@ -24,7 +24,7 @@ class AlignedLegs:
             f = pd.DataFrame({f'low_{k}': b['eq_low'].values, f'close_{k}': b['eq_close'].values, f'sess_{k}': sess.values}, index=b['ts'].values)
             f = f[~f.index.duplicated()]
             frames.append(f); dailies.append(d.set_index('session'))
-        big = pd.concat(frames, axis=1).sort_index()
+        big = pd.concat(frames, axis=1, sort=True)
         sess_cols = [c for c in big.columns if c.startswith('sess_')]
         big['session'] = big[sess_cols].bfill(axis=1).iloc[:, 0]
         K = len(legs)

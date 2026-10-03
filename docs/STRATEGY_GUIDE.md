@@ -73,3 +73,14 @@ Register in `strategies/__init__.py` (`REGISTRY[id] = 'strategies.<module>'`). O
 ## Reporting
 Write `results/<id>/README.md`: rules as implemented, parameters tested, metrics table per period, diagnostics summary,
 what you tried, what failed and why, and the honest verdict. Keep `results/<id>/*.csv` from the batch runs.
+
+## Account-level tools (used after strategies exist)
+- `python3 -m backtest.campaign --strategy <id> --contract MNQ` (or `--legs '[...]'`): sequential evaluation attempts
+  (1 or 3) with sizing policies constant / room / cushion; reports P(funded), days to funded, P(first payout), fees,
+  expected net, and the minimum monthly P(funded).
+- `python3 -m backtest.portfolio_opt --legs '[{"strategy":"a","contract":"MNQ"},{"strategy":"b","contract":"MGC"}]'
+  --grid 0,5,10,15,20`: daily P&L correlation between legs and an exhaustive integer search of micros per leg with
+  EXACT combined intraday equity, ranked by campaign expected net.
+- `python3 -m backtest.scoreboard`: ranks every `results/<id>/final.json`.
+- `python3 -m backtest.walkforward --strategy <id> --contract MES --is_months 12 --oos_months 3 --start 2019-01-01`:
+  rolling in-sample parameter selection, concatenated out-of-sample result.

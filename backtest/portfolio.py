@@ -48,7 +48,7 @@ def combine(legs, start, end, slip_ticks=None):
     for k, f in enumerate(eq_low):
         f = f[~f.index.duplicated()]
         frames.append(f[['low', 'close']].add_suffix(f'_{k}').join(f[['session']].rename(columns={'session': f'session_{k}'})))
-    big = pd.concat(frames, axis=1).sort_index()
+    big = pd.concat(frames, axis=1, sort=True)
     sessions = big[[c for c in big.columns if c.startswith('session_')]].bfill(axis=1).iloc[:, 0]
     # the union session label per timestamp: take the first non-null
     big['session'] = sessions
