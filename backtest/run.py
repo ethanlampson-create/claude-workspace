@@ -65,6 +65,18 @@ def run_strategy(strategy_id, contract_name, start, end, params=None, slip_ticks
     return trades, daily, metrics(trades, daily)
 
 
+def run_strategy_bars(strategy_id, contract_name, start, end, params=None, slip_ticks=None, df1=None):
+    """Like run_strategy but also returns the per-bar intraday equity (ts, session, eq_low, eq_close) for the window."""
+    df1, it, contract = prepare(strategy_id, contract_name, start, end, params, df1)
+    trades, daily, bars = engine.run(it, contract, slip_ticks=slip_ticks, return_bars=True)
+    sessions = daily['session'].values
+    bars = bars.copy(); bars['session'] = sessions[bars['day_id'].values]
+    s0 = pd.Timestamp(start).date()
+    bars = bars[bars['session'] >= s0].reset_index(drop=True)[['ts', 'session', 'eq_low', 'eq_close']]
+    trades, daily = slice_window(trades, daily, start)
+    return trades, daily, bars, metrics(trades, daily)
+
+
 def micro_daily(daily, contract):
     """Convert a per-MINI daily table to per-MICRO: divide the price P&L by the micro ratio but re-charge the micro
     commission per trade (a micro round trip costs more than a tenth of a mini round trip). Prefer simulating the

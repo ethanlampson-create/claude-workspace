@@ -1,0 +1,48 @@
+MNQ 2025-01-01 2026-09-30
+    setup  side   n  hit_level  touch_mid
+       id  long   6      1.000      1.000
+       id short   4      0.750      1.000
+nr4_or_id  long  29      0.655      0.862
+nr4_or_id short  16      0.688      0.812
+      any  long 105      0.648      0.705
+      any short  71      0.648      0.718
+MNQ 2023-01-01 2024-12-31
+    setup  side   n  hit_level  touch_mid
+       id  long  12      0.500      0.750
+       id short   7      0.714      0.714
+nr4_or_id  long  31      0.645      0.774
+nr4_or_id short  22      0.636      0.727
+      any  long 110      0.591      0.645
+      any short  77      0.584      0.714
+MES 2025-01-01 2026-09-30
+    setup  side   n  hit_level  touch_mid
+       id  long   7      0.857      0.857
+       id short   5      0.800      0.600
+nr4_or_id  long  29      0.690      0.793
+nr4_or_id short  18      0.667      0.778
+      any  long 112      0.652      0.696
+      any short  81      0.593      0.753
+MES 2023-01-01 2024-12-31
+    setup  side   n  hit_level  touch_mid
+       id  long  12      0.583      0.750
+       id short   6      0.500      0.833
+nr4_or_id  long  28      0.571      0.750
+nr4_or_id short  20      0.600      0.850
+      any  long 105      0.619      0.667
+      any short  78      0.641      0.769
+MGC 2025-01-01 2026-09-30
+    setup  side  n  hit_level  touch_mid
+       id  long 11      0.364      0.818
+       id short  5      0.600      0.800
+nr4_or_id  long 17      0.529      0.765
+nr4_or_id short 18      0.833      0.778
+      any  long 79      0.532      0.722
+      any short 85      0.588      0.729
+MGC 2023-01-01 2024-12-31
+    setup  side   n  hit_level  touch_mid
+       id  long   8      0.500      0.875
+       id short  15      0.600      0.800
+nr4_or_id  long  19      0.474      0.947
+nr4_or_id short  28      0.607      0.714
+      any  long 106      0.566      0.774
+      any short  84      0.500      0.655

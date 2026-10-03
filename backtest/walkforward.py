@@ -7,7 +7,7 @@ import argparse, json, os, sys, time
 import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from backtest.batch import grid_search, _combos
-from backtest.run import run_strategy
+from backtest.run import run_strategy, run_strategy_bars
 from backtest.metrics import metrics, fmt
 import strategies
 
@@ -28,12 +28,12 @@ def subgrid(grid, max_combos):
     return g
 
 
-def walk_forward(strategy_id, contract, start, end, is_months=12, oos_months=3, grid=None, base=None, metric='sharpe_daily_ann', jobs=4, min_trades=30, max_combos=24):
+def walk_forward(strategy_id, contract, start, end, is_months=12, oos_months=3, grid=None, base=None, metric='sharpe_daily_ann', jobs=4, min_trades=30, max_combos=24, return_bars=False):
     mod = strategies.load(strategy_id)
     grid = grid if grid is not None else getattr(mod, 'GRID', {})
     grid = subgrid(grid, max_combos)
     t0 = pd.Timestamp(start); tend = pd.Timestamp(end)
-    oos_daily = []; oos_trades = []; path = []
+    oos_daily = []; oos_trades = []; oos_bars = []; path = []
     cur = t0 + pd.DateOffset(months=is_months)
     while cur < tend:
         is_s = (cur - pd.DateOffset(months=is_months)).strftime('%Y-%m-%d'); is_e = (cur - pd.Timedelta(days=1)).strftime('%Y-%m-%d')
@@ -45,14 +45,19 @@ def walk_forward(strategy_id, contract, start, end, is_months=12, oos_months=3, 
             cur = cur + pd.DateOffset(months=oos_months); continue
         best = df.sort_values(metric, ascending=False).iloc[0]
         params = json.loads(best['params'])
-        tr, d, m = run_strategy(strategy_id, contract, oos_s, oos_e, params)
+        if return_bars:
+            tr, d, bb, m = run_strategy_bars(strategy_id, contract, oos_s, oos_e, params); oos_bars.append(bb)
+        else:
+            tr, d, m = run_strategy(strategy_id, contract, oos_s, oos_e, params)
         oos_daily.append(d); oos_trades.append(tr)
         path.append({'is': f'{is_s}..{is_e}', 'oos': f'{oos_s}..{oos_e}', 'params': params, 'is_metric': float(best[metric]), 'is_net': float(best['net']),
                      'oos_net': float(d['pnl'].sum()), 'oos_trades': int(len(tr)), 'oos_pf': m.get('profit_factor')})
         cur = cur + pd.DateOffset(months=oos_months)
     if not oos_daily:
-        return None, None, path
+        return (None, None, None, path) if return_bars else (None, None, path)
     daily = pd.concat(oos_daily).reset_index(drop=True); trades = pd.concat(oos_trades).reset_index(drop=True)
+    if return_bars:
+        return trades, daily, pd.concat(oos_bars).reset_index(drop=True), path
     return trades, daily, path
 
 

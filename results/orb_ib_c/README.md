@@ -108,3 +108,35 @@ passes 34% of the time at 5 micros with an expected net that is positive only as
 zero-edge control. The published C-period confirmation rule (c_confirm) is dead on 2025-26 for all three instruments (target/stop
 payoff inverted). Possible use: a small, time-diversified portfolio leg (entries 10:30-12:00, uncorrelated with 09:30 ORB legs), not a
 standalone evaluation strategy. MNQ and MGC dead.
+
+## Walk-forward assessment (2026-10-03, the honest yardstick) -> verdict: DEAD
+
+`python3 -m backtest.final_select --ids orb_ib_c --jobs 2 --wf_start 2022-01-01 --max_combos 16` (`walkforward.json`, `wf_oos_2025_daily.csv`).
+Parameters are re-selected every quarter on the trailing 12 months (base = `final.json` params, search = module GRID: mode x stop_mode x
+tgt_ext x ib_max_atr x narrow_only, 32 cells capped at 16) and traded on the next 3 months. MES, per micro, after costs.
+
+| stream | trades | net $ | win | PF | Sharpe | maxDD intra | pos months |
+|---|---|---|---|---|---|---|---|
+| WF OOS 2025-01..2026-09 | 203 | -233 | 47.8% | 0.97 | -0.12 | -1,344 | 11/21 |
+| WF OOS 2023-01..2026-09 | 348 | -589 | 48.6% | 0.95 | -0.19 | -1,508 | 24/45 |
+| fixed final.json cell MAIN (in-sample) | 221 | +2,117 | 43.4% | 1.25 | 1.06 | -1,064 | 13/21 |
+| fixed final.json cell PRIOR | 213 | +648 | 43.2% | 1.11 | 0.47 | -868 | 11/24 |
+
+Lucid 50K Flex on the OOS 2025 stream (`lucid_wf_2025`): 5 micros pass rate 0.045 (zero-edge control 0.071), pass within 21 sessions 0.018,
+P(first payout) 0.00, expected net -$146 = the fee, bootstrap lower bound -$146, P(exp net > 0) 0.02; 10-40 micros expected net -$121..-$142,
+never beating the control. `recommended=False` at every size.
+
+What the walk-forward says:
+- The selector is unstable: the 7 folds covering 2025-26 pick 5 different cells (c_confirm/mid/0.5, narrow_break/atr/1.0/narrow_only,
+  narrow_break/mid/1.0/ib_max 1.0 (x3), c_confirm/mid/0.5/narrow_only, narrow_break/mid/0.5/narrow_only). In-sample Sharpe of the pick
+  (0.45-1.63) does not predict its OOS quarter (-$454..+$244). This is the signature of a grid with no persistent best cell, i.e. the MAIN
+  "plateau" was fitted on the window it was measured on.
+- Where the OOS P&L comes from: April 2025 alone is +$935; the other 20 months sum to -$1,168. Every quarter outside the tariff-crash
+  expansion is within +/- $450 of zero at 17-36 trades, which is noise at a $80 avg win / $80 avg loss payoff.
+- Structural flaws unchanged from the diagnosis above: avg trade is ~1-2.5x costs on the best in-sample cell and negative OOS; the
+  midpoint stop vs 0.5x target payoff of the published rule is inverted; the narrow-IB breakout only pays when range expansion follows
+  compression, which clusters in a few volatility events, so monthly consistency (the evaluation requirement) is impossible.
+- Gates: wf_2025 PF 0.97 < 1.03 (fails); fixed MAIN PF 1.25 < 1.3 (fails even though PRIOR 1.11 >= 1.1 and trades >= 60). proceed = False.
+
+Previous verdict 'marginal' is superseded: it rested on the in-sample MAIN cell. No further parameter work is warranted on this rule; the
+only positive OOS quarter outside April 2025 (Q3 2026, +$244, PF 1.25 on 34 trades) is not enough to reopen it.

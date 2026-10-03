@@ -36,7 +36,7 @@ PARAMS = {'gap_min': 0.10, 'gap_max': 0.50, 'atr_mult': 0.7, 'stop_mult': 1.0, '
           'outside_atr': 0.5, 'skip_mon_gapup': False, 'skip_beyond_stop': True, 'max_trades': 1,
           'stop_floor_atr': 0.0, 'entry': 'market', 'limit_frac': 0.25, 'limit_valid': 15, 'trend_filter': 'none',
           'trend_len': 20, 'trail_frac': 0.0, 'trail_act_frac': 0.0, 'max_hold': 0, 'daily_loss_stop': 0.0}
-GRID = {'gap_max': [0.35, 0.50, 0.70], 'stop_mult': [0.75, 1.0, 1.5], 'sides': ['both', 'long'], 'exit_time': ['11:00', '12:00']}
+GRID = {'gap_max': [0.35, 0.50], 'stop_mult': [0.75, 1.0], 'sides': ['both', 'long'], 'exit_time': ['11:00', '12:00']}   # 16 combos (walk-forward search space)
 
 
 def vix_regime(df1: pd.DataFrame, lb=100, q=0.75) -> pd.DataFrame:

@@ -104,3 +104,40 @@ volatility. With the stop re-expressed as 0.15 x ATR14 the MNQ strategy is posit
 drawdown ($2.1k) forces 5-micro sizing, the evaluation pass rate is 0.49 with a monthly pass rate between 0 and 1, and
 P(first payout) is only 0.20. Not a standalone Lucid candidate; possibly a portfolio leg (trend-day carry is its
 distinct feature) if a lower-correlation partner exists. No engine bugs found.
+
+## Walk-forward out-of-sample (final_select, 2026-10-03)
+`python3 -m backtest.final_select --ids orb_sma_rr --jobs 2 --wf_start 2022-01-01 --max_combos 16` -> `walkforward.json`,
+`wf_oos_2025_daily.csv`. Base = final.json params (OR15, SMA200, stop = min(range, 0.15 x ATR14), rr 2, no point cap).
+Module GRID replaced for this run (attempt 8): the old 48-combo grid coarsened to 16 dropped sma 200 and rr 2.0 (the
+published values), so it is now `{'max_stop_atr': [0.15, 0.25], 'rr': [1.4, 2.0, 3.0], 'or_minutes': [15, 30]}` (12 combos,
+the identified levers; sma_len stays 200 via the base). IS 12 months / OOS 3 months, selection by IS daily Sharpe, 15 windows
+2023-01..2026-09.
+
+| stream | trades | net | win | avg trade | PF | Sharpe | max DD intraday | pos days | pos months | worst day | worst month |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| WF OOS 2025-01..2026-09 | 304 | +4,684 | 47.0% | +15.4 | 1.17 | 0.96 | -2,422 | 47% | 71% (15/21) | -323 | -1,107 (2026-07) |
+| WF OOS 2023-01..2026-09 | 578 | +5,472 | 43.3% | +9.5 | 1.13 | 0.65 | -2,422 | 43% | 56% | -323 | -1,107 |
+| fixed params MAIN (current engine) | 304 | +3,377 | 39.8% | +11.1 | 1.15 | 0.81 | -2,135 | 40% | 57% | -246 | -849 |
+| fixed params PRIOR (current engine) | 274 | +1,961 | 38.3% | +7.2 | 1.15 | 0.75 | -1,689 | 38% | 46% | -144 | -567 |
+
+Parameter path: 2025-01..06 picked OR15 / 0.15 ATR / rr 2 (= the fixed config); from 2025-07 every window picked OR15 /
+0.25 ATR / rr 1.4 (wider stop, nearer target). 2023-24 windows alternated OR30/OR15, rr 1.4..3.0. 7 of 15 OOS windows
+are negative; window PF ranges 0.54 .. 3.17. OOS monthly: 2025 +1,245; 2026-01..06 +5,324 (113% of the 2025-26 net);
+2026-07..09 -1,884 (two consecutive -800/-1,100 months).
+
+Lucid on the 2025-26 OOS stream (`lucid_wf_2025`, bootstrap lower-bound sizing):
+
+| micros | pass | pass<=21d | P(first payout) | exp net / eval | exp net LB | zero-edge control |
+|---|---|---|---|---|---|---|
+| 5 | 0.40 | 0.31 | 0.10 | +224 | -146 | -138 |
+| 10 (selected by LB) | 0.22 | 0.22 | 0.01 | -89 | -135 | -134 |
+| 15 | 0.15 | 0.15 | 0.01 | -121 | -146 | -146 |
+
+`recommended = 0` at every size: the lower bound never clears zero and the strategy does not beat its demeaned control
+by $100. Per-micro intraday DD of $2.1-2.4k and $300+ worst days against the $2,000 trailing MLL mean even 5 micros breach
+before payout 94% of the time at 10 micros.
+
+Verdict after walk-forward: still **marginal**. The OOS stream confirms the in-sample story (thin, real-looking PF 1.15-1.17
+on both the fixed and the walk-forward params; no overfit signature) but the edge is too small and too drawdown-heavy for a
+50K evaluation; the money is one bull-trend half-year (2026 H1), and the most recent quarter is the worst in the sample.
+Attempt 8 (GRID narrowed to the identified levers for the walk-forward): kept — it is the search space, not a tuning.

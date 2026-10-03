@@ -109,3 +109,26 @@ plateau, but the Lucid 50K simulation on 2025-26 is not recommended at any size 
 and worst days (-$408) hold sizing to 5 micros, at which the $3k target needs ~25 average days. The research hypothesis
 (NR7 / inside-day setups raise the edge) is falsified on 2025-26. Possible portfolio leg (shorts and longs both work,
 low correlation with range-extreme ORBs expected), not a standalone candidate. No engine bugs found.
+
+## Walk-forward (honest yardstick; `final_select --wf_start 2022-01-01 --max_combos 16`, MNQ)
+IS 12 months / OOS 3 months, parameters chosen on trailing data only by daily Sharpe, base = final.json params (cap 0.25 x ATR
+fixed), search grid coarsened to mult [1.0, 2.0] x setup [none, nr4_or_id] x tgt_mode [eod, rr] x cutoff [10:30, 11:30].
+Files: `walkforward.json`, `wf_oos_2025_daily.csv`, `wf_oos_2025_bars.parquet`.
+
+| span | trades | net | PF | Sharpe | pos days | pos months | max DD intraday | worst month | largest day share |
+|---|---|---|---|---|---|---|---|---|---|
+| OOS 2025-01..2026-09 | 225 | +777 | 1.031 | 0.15 | 43% | 48% | -3,793 | -1,608 (2026-07) | 1.13 |
+| OOS 2023-01..2026-09 | 415 | +7,773 | 1.21 | 0.85 | 46% | 60% | -3,793 | -1,608 | 0.11 |
+| fixed params MAIN (in-sample) | 323 | +7,810 | 1.25 | 1.36 | 49% | 71% | -4,124 | -1,065 | 0.08 |
+| fixed params PRIOR | 277 | +6,708 | 1.39 | 1.81 | 48% | 54% | -1,005 | -583 | 0.05 |
+
+Lucid on the OOS 2025 stream (`lucid_wf_2025`): 5 micros, pass rate 0.117, pass within 21 sessions 0.11, P(first payout) 0.036,
+expected net +$31 per eval vs zero-edge control +$19, bootstrap lower bound -$146 -> not recommended at any size (10+ micros
+exp net -$126 to -$142).
+
+Reading: the in-sample story (PF 1.25 / 1.39, Sharpe 1.4 / 1.8) does not survive walk-forward. On 2025-26 the OOS average
+trade is +$3.5 (about the round-trip cost), net excluding 2026-01, 2026-02 and 2026-09 is -$3,079, and the 2023-24 folds
+carry the whole-span result. Per-fold picks oscillate between setup none / nr4_or_id and mult 1.0 / 2.0 (the folds with
+the highest IS Sharpe, 1.8-2.4, produced the worst OOS: 2025Q2 -506, 2025Q3 -395, 2026Q2 -1,590), i.e. the parameter
+surface is not a plateau the selector can lock onto. WF 2025 PF 1.031 clears the 1.03 proceed threshold by 0.001 on 225
+trades, so the strategy is kept as a *marginal* portfolio candidate only; as a standalone it is noise-compatible.

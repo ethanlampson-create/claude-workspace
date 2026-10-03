@@ -39,7 +39,8 @@ PARAMS = {'or_minutes': 30, 'sma_len': 200, 'rr': 2.0, 'stop_cap_pts': {'MNQ': 3
           # optional filters / exits, all off by default (= published rule)
           'max_vix': None, 'sides': 'both', 'trail_r': None, 'trail_act_r': 1.0, 'max_range_atr': None,
           'require_or_dir': False, 'max_hold': 0}
-GRID = {'sma_len': [150, 200, 250], 'rr': [1.4, 2.0, 2.4, 3.0], 'or_minutes': [15, 30], 'last_entry': ['11:00', '12:00']}
+# walk-forward grid (12 combos): the identified levers only; sma_len stays at the published 200 via the base params
+GRID = {'max_stop_atr': [0.15, 0.25], 'rr': [1.4, 2.0, 3.0], 'or_minutes': [15, 30]}
 
 DAILY_FILE = {'MNQ': 'NDX_1d.parquet', 'NQ': 'NDX_1d.parquet', 'MES': 'SPX_1d.parquet', 'ES': 'SPX_1d.parquet',
               'MGC': 'GC_1d.parquet', 'GC': 'GC_1d.parquet'}

@@ -23,8 +23,11 @@ MAIN = ('2025-01-01', '2026-09-30'); PRIOR = ('2023-01-01', '2024-12-31')
 def evaluate(id_, contract, params, jobs=4, wf_start='2021-01-01', is_months=12, oos_months=3, max_combos=24):
     out = {'id': id_, 'contract': contract, 'params': params}
     t0 = time.time()
-    tr, d, path = walk_forward(id_, contract, wf_start, MAIN[1], is_months, oos_months, None, params, 'sharpe_daily_ann', jobs, max_combos=max_combos)
+    tr, d, bars, path = walk_forward(id_, contract, wf_start, MAIN[1], is_months, oos_months, None, params, 'sharpe_daily_ann', jobs, max_combos=max_combos, return_bars=True)
     out['wf_path'] = path
+    if bars is not None and len(bars):
+        b25 = bars[bars['session'] >= pd.Timestamp(MAIN[0]).date()]
+        b25.to_parquet(os.path.join(ROOT, 'results', id_, 'wf_oos_2025_bars.parquet'), index=False)
     if d is not None and len(d):
         out['wf_all'] = {k: v for k, v in metrics(tr, d).items() if k != 'monthly'}
         d['session'] = pd.to_datetime(d['session']).dt.date

@@ -418,3 +418,83 @@ def zero_edge_control(daily, micros, funded_base=None, rules: Rules = None, **kw
     d['pnl'] = d['pnl'] - mu; d['min_eq'] = np.minimum(d['min_eq'] - mu, 0.0)
     starts, ev_out, ev_days, ev_end, fd_out, fd_np, fd_paid, fd_first, fd_cens = _run_nb(d, micros, funded_base, rules, **kw)
     return _fast_stats(ev_out, ev_days, fd_np, fd_paid, fd_out, fd_cens, rules)
+
+
+def campaign_from_arrays(starts, ev_out, ev_days, ev_end, fd_np, fd_paid, fd_first, fd_out, fd_cens, n, max_attempts=3, reset_fee=90.0, eval_fee=146.0, split_applied=True):
+    """Sequential evaluation attempts chained on the fast simulator's per-start arrays (start_every must be 1):
+    attempt k+1 starts the session after attempt k failed. Returns per-start dict arrays (funded flag, attempts,
+    fees, days to funded, n_payouts, paid, censored)."""
+    ns = len(starts)
+    funded = np.zeros(ns, bool); attempts = np.zeros(ns, np.int32); fees = np.zeros(ns); days = np.zeros(ns, np.int32)
+    npay = np.zeros(ns, np.int32); paid = np.zeros(ns); cens = np.zeros(ns, bool); cens_pay = np.zeros(ns, bool); first_pay = np.full(ns, np.nan)
+    idx_of = {int(s): i for i, s in enumerate(starts)}
+    for i in range(ns):
+        k = i; a = 0; fee = 0.0; dd = 0
+        while True:
+            a += 1; fee += eval_fee if a == 1 else reset_fee
+            o = ev_out[k]; dd += ev_days[k]
+            if o == 1:
+                funded[i] = True; npay[i] = fd_np[k]; paid[i] = fd_paid[k]; first_pay[i] = fd_first[k] if fd_first[k] >= 0 else np.nan
+                cens_pay[i] = bool(fd_cens[k]) and fd_np[k] == 0   # funded, but the payout question is unresolved
+                break
+            if o == 3:
+                cens[i] = True; break                               # evaluation unresolved at the data end
+            if o == 2 or a >= max_attempts:
+                break
+            nxt = int(ev_end[k]) + 1
+            if nxt not in idx_of:
+                cens[i] = True; break
+            k = idx_of[nxt]
+        attempts[i] = a; fees[i] = fee; days[i] = dd
+    return {'funded': funded, 'attempts': attempts, 'fees': fees, 'days': days, 'n_payouts': npay, 'paid': paid, 'censored': cens,
+            'payout_censored': cens_pay, 'first_payout_day': first_pay}
+
+
+def campaign_fast(daily, micros, funded_base=None, rules: Rules = None, max_attempts=3, **kw):
+    """Campaign (sequential attempts) statistics using the fast simulator. Returns a summary dict."""
+    rules = rules or Rules()
+    starts, ev_out, ev_days, ev_end, fd_out, fd_np, fd_paid, fd_first, fd_cens = _run_nb(daily, micros, funded_base, rules, start_every=1, **kw)
+    c = campaign_from_arrays(starts, ev_out, ev_days, ev_end, fd_np, fd_paid, fd_first, fd_out, fd_cens, len(daily), max_attempts, rules.reset_fee, rules.eval_fee)
+    res = ~c['censored']
+    out = {'n_starts': int(len(starts)), 'n_resolved': int(res.sum())}
+    if res.sum():
+        f = c['funded'] & res
+        out['p_funded'] = float(f.sum() / res.sum())
+        out['mean_attempts_given_funded'] = float(c['attempts'][f].mean()) if f.any() else np.nan
+        out['median_days_to_funded'] = float(np.median(c['days'][f])) if f.any() else np.nan
+        out['p90_days_to_funded'] = float(np.percentile(c['days'][f], 90)) if f.any() else np.nan
+        out['mean_fees'] = float(c['fees'][res].mean())
+        fr = f & ~c['payout_censored']        # funded runs whose payout question resolved
+        out['n_funded_resolved'] = int(fr.sum())
+        out['p_first_payout_given_funded'] = float((c['n_payouts'][fr] >= 1).mean()) if fr.any() else np.nan
+        out['p_first_payout_overall'] = out['p_funded'] * out['p_first_payout_given_funded'] if fr.any() else np.nan
+        out['mean_paid_given_funded'] = float(c['paid'][fr].mean()) if fr.any() else np.nan
+        out['median_days_to_first_payout'] = float(np.nanmedian(c['first_payout_day'][fr])) if fr.any() and np.isfinite(c['first_payout_day'][fr]).any() else np.nan
+        out['expected_net'] = out['p_funded'] * out['mean_paid_given_funded'] - out['mean_fees'] if fr.any() else -out['mean_fees']
+        sess = pd.to_datetime(daily['session'].values[starts[res]]).to_period('M').astype(str)
+        g = pd.Series(f[res].astype(float)).groupby(sess)
+        out['monthly_p_funded'] = {k: round(float(v), 2) for k, v in g.mean().items()}
+        out['monthly_n'] = {k: int(v) for k, v in g.size().items()}
+        out['min_monthly_p_funded'] = float(min(out['monthly_p_funded'].values()))
+    return out
+
+
+def campaign_bootstrap(daily, micros, funded_base=None, rules: Rules = None, max_attempts=3, reps=200, block=20, seed=0, **kw):
+    """Block-bootstrap percentiles for the campaign statistics (p_funded, p_first_payout_overall, expected_net)."""
+    rules = rules or Rules(); rng = np.random.default_rng(seed)
+    base = daily.reset_index(drop=True); n = len(base)
+    acc = {'p_funded': [], 'p_first_payout_overall': [], 'expected_net': []}
+    for r in range(reps):
+        idx = block_bootstrap_indices(n, block, rng)
+        d = base.iloc[idx].reset_index(drop=True); d['session'] = base['session'].values
+        s = campaign_fast(d, micros, funded_base, rules, max_attempts, **kw)
+        for k in acc:
+            acc[k].append(s.get(k, np.nan))
+    out = {'reps': reps}
+    for k, v in acc.items():
+        a = np.array(v, dtype=float); a = a[~np.isnan(a)]
+        if len(a):
+            out[k + '_p05'] = float(np.percentile(a, 5)); out[k + '_p50'] = float(np.percentile(a, 50)); out[k + '_p95'] = float(np.percentile(a, 95))
+    a = np.array(acc['expected_net'], dtype=float); a = a[~np.isnan(a)]
+    out['p_expected_net_positive'] = float((a > 0).mean()) if len(a) else np.nan
+    return out

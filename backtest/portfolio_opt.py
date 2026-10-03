@@ -100,3 +100,42 @@ if __name__ == '__main__':
     res = search(al, tuple(int(x) for x in a.grid.split(',')), a.max_total, a.objective)
     with pd.option_context('display.width', 250, 'display.max_rows', 200):
         print(res.round(3).to_string(index=False))
+
+
+class OOSLegs(AlignedLegs):
+    """AlignedLegs built from saved walk-forward OUT-OF-SAMPLE files (results/<id>/wf_oos_2025_bars.parquet and
+    wf_oos_2025_daily.csv), so the portfolio evaluation is honest: every leg's parameters were chosen on trailing data."""
+
+    def __init__(self, ids, root=None):
+        import os
+        root = root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.legs = [{'strategy': i, 'contract': 'oos'} for i in ids]
+        frames = []; dailies = []
+        for k, id_ in enumerate(ids):
+            b = pd.read_parquet(os.path.join(root, 'results', id_, 'wf_oos_2025_bars.parquet'))
+            d = pd.read_csv(os.path.join(root, 'results', id_, 'wf_oos_2025_daily.csv'))
+            d['session'] = pd.to_datetime(d['session']).dt.date
+            b['session'] = pd.to_datetime(b['session']).dt.date
+            ts = pd.DatetimeIndex(b['ts'])
+            f = pd.DataFrame({f'low_{k}': b['eq_low'].values, f'close_{k}': b['eq_close'].values, f'sess_{k}': b['session'].values}, index=ts)
+            f = f[~f.index.duplicated()]
+            frames.append(f); dailies.append(d.set_index('session'))
+        big = pd.concat(frames, axis=1, sort=True)
+        sess_cols = [c for c in big.columns if c.startswith('sess_')]
+        big['session'] = big[sess_cols].bfill(axis=1).iloc[:, 0]
+        K = len(ids)
+        L = np.zeros((len(big), K)); C = np.zeros((len(big), K))
+        for k in range(K):
+            lo = big[f'low_{k}']; cl = big[f'close_{k}']; has = lo.notna()
+            cl_f = cl.groupby(big['session']).ffill().fillna(0.0)
+            lo_f = lo.where(has, cl_f).groupby(big['session']).ffill().fillna(0.0)
+            L[:, k] = lo_f.values; C[:, k] = cl_f.values
+        self.sessions_bar = big['session'].values
+        self.session_ids, self.sess_codes = np.unique(self.sessions_bar, return_inverse=True)
+        self.L = L; self.C = C
+        D = len(self.session_ids)
+        self.P = np.zeros((D, K)); self.T = np.zeros((D, K))
+        for k, d in enumerate(dailies):
+            d = d[~d.index.duplicated()].reindex(self.session_ids)
+            self.P[:, k] = d['pnl'].fillna(0.0).values; self.T[:, k] = d['trades'].fillna(0).values
+        self.daily_corr = pd.DataFrame(self.P, columns=ids).corr()

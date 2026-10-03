@@ -94,3 +94,34 @@ pass. The constraint is the loss size per trade (far-side stop), not the hit rat
 
 Files: `final.json`, `final_MNQ_{main,prior}_{trades,daily}.csv`, `grid_main_MNQ.csv`, `grid_main_MES.csv`, `grid_pass2_MNQ.csv`,
 `grid_pass3_MNQ.csv`, `grid_MGC.csv` (+ `.log` batch printouts).
+
+## Walk-forward assessment (2026-10-03, honest yardstick)
+`python3 -m backtest.final_select --ids orb_close30 --jobs 2 --wf_start 2022-01-01 --max_combos 16` -> `walkforward.json`, `wf_oos_2025_daily.csv`.
+Parameters re-selected every quarter on the trailing 12 months from GRID (or_minutes 15/30 x direction both/long/trend x stop
+opposite/mid x tgt 0.5/0.75) with the final.json params as base; tested on the next 3 months. No module change in this round.
+
+| stream | trades | net $ | win | PF | Sharpe | maxDD intra | pos months |
+|---|---|---|---|---|---|---|---|
+| WF OOS 2025-01..2026-09 (`wf_2025`) | 140 | +3,870 | 71% | 1.45 | 1.42 | -1,076 | 15/21 |
+| WF OOS 2023-01..2026-09 (`wf_all`) | 353 | +5,555 | 67% | 1.28 | 1.01 | -1,260 | 26/45 |
+| fixed params MAIN (in-sample) | 142 | +6,217 | 73% | 1.72 | 2.12 | -1,212 | 13/21 |
+| fixed params PRIOR | 117 | +1,301 | 64% | 1.22 | 0.69 | -984 | 10/24 |
+
+Lucid 50K Flex on the OOS 2025 stream (`lucid_wf_2025`, bootstrap lower-bound sizing): 5 micros, pass rate 0.50, pass-within-21
+0.13, median 43.5 days to pass, P(first payout) 0.20 unconditional, expected net +$445/eval, **exp_net_lb -146 = zero-edge control
+-146 -> not recommended** at any size (10 micros: exp net +617, lb -146).
+
+Diagnosis:
+- The OOS edge is real but roughly 40% thinner than the in-sample story (PF 1.45 vs 1.72, net 3,870 vs 6,217). Since 2025 the WF
+  settles on or15/trend/opposite with tgt alternating 0.5/0.75; before 2025 the chosen cell flips (OR30/both, mid stop), i.e. the
+  selected parameters are not a stable optimum over the whole history.
+- Concentration: 82% of OOS net comes from Jan-Jun 2026 (Jun-26 +1,084 = 28%); calendar 2025 OOS is +1,342 on 84 trades. The last
+  three OOS quarters are PF 1.07 / 1.03 / 0.64 (2026Q3 -662). The 2023-2024 OOS folds total +1,684 but 5/8 are negative and the
+  sum is -694 without the single 2024Q3 fold (+2,378).
+- Partial contamination: `trend_fast=50`, `max_range_atr=0.5`, `max_stop_atr=0.6` were chosen on MAIN and are not in GRID, so the
+  walk-forward only re-selects four parameters; the OOS numbers are optimistic to that extent.
+- Structure: far-side OR stop gives avg loss -$214 vs avg win +$124 (break-even win rate 63%, realised 71%); 0.31 trades/day and
+  +$28 avg trade are too slow for a 21-session pass, which is what kills the Lucid lower bound.
+
+Gate: wf_2025 PF 1.45 >= 1.03 with 140 trades (and fixed MAIN 1.72 / PRIOR 1.22 with >= 60 trades) -> proceed = true. Verdict
+stays `survivor`: a thin, slow portfolio leg; not a stand-alone evaluation strategy.

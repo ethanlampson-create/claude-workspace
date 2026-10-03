@@ -153,3 +153,31 @@ micros, which gives a 41% pass rate, a 15% unconditional first-payout probabilit
 bootstrap lower bound; 32% positive days fight the payout rule (5 days >= $150). It is a reasonable diversifying leg for the "safe"
 portfolio (short-biased profits, morning-only exposure, no outsized days: largest day 6.6% of net) rather than a core engine.
 Files: `final.json`, `final_MNQ_{main,prior}_{trades,daily}.csv`, `final_MNQ_lucid_scan.csv`, `grid_{main,prior}.csv/.log`.
+
+## Walk-forward assessment (honest yardstick, 2026-10-03; `walkforward.json`, `wf_oos_2025_daily.csv`)
+`python3 -m backtest.final_select --ids orb_reclaim --jobs 2 --wf_start 2022-01-01 --max_combos 16` on MNQ: IS 12 months / OOS 3 months, parameters
+chosen on trailing data only from the module `GRID` (rr 2.0/2.5/3.5, cap 30/45, am_only/am_pm, PD levels on/off), 15 folds 2023-01..2026-09.
+
+| stream | trades | net $ | PF | Sharpe | win | pos days | pos months | maxDD intra | largest day share |
+|---|---|---|---|---|---|---|---|---|---|
+| WF OOS 2023-01..2026-09 (all) | 784 | +6,421 | 1.19 | 0.96 | 28.1% | 31% | 25/45 | -1,948 | 8.8% |
+| WF OOS 2025-01..2026-09 (`wf_2025`) | 309 | +2,669 | 1.17 | 0.84 | 28.2% | 29% | 13/21 | -1,948 | 20.0% |
+| fixed final params, MAIN (in-sample) | 340 | +6,433 | 1.33 | 1.59 | 30.9% | 32% | 14/21 | -1,949 | 6.6% |
+| fixed final params, PRIOR | 324 | +2,814 | 1.18 | 0.84 | 27.2% | 29% | 12/24 | -1,268 | 14.6% |
+
+Fold path: 2023 folds picked `am_pm` / cap 30 (OOS PF 2.07, 1.21, 0.73, 0.84); 2024 folds `am_only` + PD levels / cap 45 (1.27, 0.80, 1.63, 1.38);
+Q1-2025 still with PD levels (0.96); from Q2-2025 `am_only`, London only, cap 45, rr 3.5 (1.28, 1.15, 1.29, 1.41, 1.73, then 0.51 for Jul-Sep 2026).
+The final cap 60 is not in the grid, so the walk-forward validates the cap-45 version (MAIN in-sample PF 1.24).
+
+OOS 2025 monthly: 5 months (Nov-25 +1,042, Jan-26 +649, Feb-26 +1,158, Apr-26 +779, May-26 +1,068 = +4,697) exceed the whole net; the other 16 sum to
+-2,028; Mar-26 -988; Jul/Aug/Sep-26 all negative (-980 in total, fold PF 0.51). Largest OOS day = 20% of the net.
+
+Lucid 50K Flex on the OOS 2025 stream (`lucid_wf_2025`, bootstrap lower-bound sizing): 5 micros, pass rate 0.38, pass within 21 d 0.26, P(first payout)
+0.044, P(breach before payout) 0.67, expected net +29/eval, lower bound -146 = zero-edge control -146, **not recommended** (10 micros: +73 point estimate,
+same -146 lower bound). The in-sample MAIN scan (+655/eval at 5 micros) was the optimistic half of the story.
+
+Reading: the OOS 2025 stream reproduces PRIOR (PF 1.17-1.18, Sharpe 0.84, avg trade ~$8.6/micro), not MAIN; the edge is real but thin, lumpy (five
+months carry it, 29% positive days vs 3.5R targets), and currently in a 3-month losing run. Max DD -1,948/micro ties the size at 5 micros, where the
+expected net per evaluation is indistinguishable from a demeaned stream. Gate: OOS PF 1.17 >= 1.03 on 309 trades, so the strategy formally proceeds as a
+diversifying portfolio leg; verdict stays **marginal**, not a stand-alone Lucid candidate. No parameter change attempted (nothing in the grid beats the
+current cell on both periods, see the attempts log above). `final.json` now carries `wf_2025` and the `lucid` block from `lucid_wf_2025`.
