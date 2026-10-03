@@ -20,7 +20,7 @@ REASON = {1: 'stop', 2: 'target', 3: 'trail', 4: 'max_hold', 5: 'flat', 6: 'exit
 
 @njit(cache=True)
 def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
-              sig, entry_px, valid_bars, stop_px, tgt_px, stop_pts, tgt_pts,
+              sig, entry_px, entry_kind, valid_bars, stop_px, tgt_px, stop_pts, tgt_pts,
               trail_pts, trail_act_pts, max_hold, exit_flag,
               tick, slip_ticks, point_value, commission_rt, through_ticks,
               daily_loss_stop, daily_profit_stop, max_trades_day):
@@ -32,22 +32,30 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
     t_reason = np.empty(maxt, np.int8); t_day = np.empty(maxt, np.int64)
     nt = 0
     d_pnl = np.zeros(ndays); d_min = np.zeros(ndays); d_max = np.zeros(ndays); d_trades = np.zeros(ndays, np.int32)
+    b_low = np.zeros(n); b_close = np.zeros(n)  # per-bar intraday equity (realized today + unrealized), worst point and at close
     slip = slip_ticks * tick; thr = through_ticks * tick
     pos = 0; ep = 0.0; sp = np.nan; tp = np.nan; trl = np.nan; trla = 0.0; mh = 0; held = 0; ei = 0; mae = 0.0; mfe = 0.0
-    pend = 0; ppx = 0.0; pexp = 0; psp = np.nan; ptp = np.nan; pspts = np.nan; ptpts = np.nan; ptrl = np.nan; ptrla = 0.0; pmh = 0
+    pend = 0; pkind = 1; ppx = 0.0; pexp = 0; psp = np.nan; ptp = np.nan; pspts = np.nan; ptpts = np.nan; ptrl = np.nan; ptrla = 0.0; pmh = 0
     cur_day = -1; realized = 0.0; trades_today = 0; halted = False
     for i in range(n):
         d = day_id[i]
         if d != cur_day:
             if pos != 0:
-                # position carried across a session boundary (should be rare: data gap) -> close at open
-                xpx = o[i] - slip if pos > 0 else o[i] + slip
+                # the session ended (early close / holiday / feed stop) before the forced-flat time: a trader would
+                # flatten before the close, so exit at the last bar of the ending session (its close, with slippage)
+                j = i - 1
+                xpx = c[j] - slip if pos > 0 else c[j] + slip
                 pnl = (xpx - ep) * pos * point_value - commission_rt
-                t_ei[nt] = ei; t_xi[nt] = i; t_side[nt] = pos; t_ep[nt] = ep; t_xp[nt] = xpx; t_pnl[nt] = pnl
+                t_ei[nt] = ei; t_xi[nt] = j; t_side[nt] = pos; t_ep[nt] = ep; t_xp[nt] = xpx; t_pnl[nt] = pnl
                 t_mae[nt] = mae; t_mfe[nt] = mfe; t_reason[nt] = 7; t_day[nt] = cur_day; nt += 1
-                d_pnl[cur_day] += pnl; d_trades[cur_day] += 1
-                if d_pnl[cur_day] < d_min[cur_day]:
-                    d_min[cur_day] = d_pnl[cur_day]
+                realized += pnl; d_pnl[cur_day] = realized; d_trades[cur_day] += 1
+                if realized < d_min[cur_day]:
+                    d_min[cur_day] = realized
+                if realized > d_max[cur_day]:
+                    d_max[cur_day] = realized
+                if realized < b_low[j]:
+                    b_low[j] = realized
+                b_close[j] = realized
                 pos = 0
             cur_day = d; realized = 0.0; trades_today = 0; halted = False; pend = 0
         if pos != 0:
@@ -105,6 +113,7 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                 d_min[d] = eq_low
             if eq_high > d_max[d]:
                 d_max[d] = eq_high
+            b_low[i] = eq_low
             if exit_now:
                 pnl = (xpx - ep) * pos * point_value - commission_rt
                 t_ei[nt] = ei; t_xi[nt] = i; t_side[nt] = pos; t_ep[nt] = ep; t_xp[nt] = xpx; t_pnl[nt] = pnl
@@ -114,12 +123,16 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                     d_min[d] = realized
                 if realized > d_max[d]:
                     d_max[d] = realized
+                if realized < b_low[i]:
+                    b_low[i] = realized
+                b_close[i] = realized
                 pos = 0
                 if daily_loss_stop > 0 and realized <= -daily_loss_stop:
                     halted = True
                 if daily_profit_stop > 0 and realized >= daily_profit_stop:
                     halted = True
             else:
+                b_close[i] = realized + (c[i] - ep) * pos * point_value - commission_rt
                 held += 1
                 if trl == trl:
                     if pos > 0:
@@ -134,6 +147,7 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                                 sp = ns
             continue
         # ---------------- flat
+        b_low[i] = realized; b_close[i] = realized
         if (not allow_entry[i]) or halted or (max_trades_day > 0 and trades_today >= max_trades_day):
             pend = 0
             continue
@@ -142,10 +156,17 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
             if i > pexp:
                 pend = 0
             else:
-                if pend > 0 and h[i] >= ppx:
-                    fill = max(o[i], ppx) + slip; filled = True; side = 1
-                elif pend < 0 and l[i] <= ppx:
-                    fill = min(o[i], ppx) - slip; filled = True; side = -1
+                if pkind == 1:
+                    if pend > 0 and h[i] >= ppx:
+                        fill = max(o[i], ppx) + slip; filled = True; side = 1
+                    elif pend < 0 and l[i] <= ppx:
+                        fill = min(o[i], ppx) - slip; filled = True; side = -1
+                else:
+                    # limit entry: needs price to trade through the level; no slippage; better fill if the open gaps through
+                    if pend > 0 and l[i] <= ppx - thr:
+                        fill = min(o[i], ppx); filled = True; side = 1
+                    elif pend < 0 and h[i] >= ppx + thr:
+                        fill = max(o[i], ppx); filled = True; side = -1
                 if filled:
                     entry_is_stop = True
                     sp = psp; tp = ptp; trl = ptrl; trla = ptrla; mh = pmh
@@ -163,13 +184,19 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                 if tp != tp and tgt_pts[i] == tgt_pts[i]:
                     tp = fill + tgt_pts[i] * side
             else:
-                pend = sig[i]; ppx = entry_px[i]; pexp = i + valid_bars[i]
+                pend = sig[i]; pkind = entry_kind[i]; ppx = entry_px[i]; pexp = i + valid_bars[i]
                 psp = stop_px[i]; ptp = tgt_px[i]; pspts = stop_pts[i]; ptpts = tgt_pts[i]
                 ptrl = trail_pts[i]; ptrla = trail_act_pts[i]; pmh = max_hold[i]
-                if pend > 0 and h[i] >= ppx:
-                    fill = max(o[i], ppx) + slip; filled = True; side = 1
-                elif pend < 0 and l[i] <= ppx:
-                    fill = min(o[i], ppx) - slip; filled = True; side = -1
+                if pkind == 1:
+                    if pend > 0 and h[i] >= ppx:
+                        fill = max(o[i], ppx) + slip; filled = True; side = 1
+                    elif pend < 0 and l[i] <= ppx:
+                        fill = min(o[i], ppx) - slip; filled = True; side = -1
+                else:
+                    if pend > 0 and l[i] <= ppx - thr:
+                        fill = min(o[i], ppx); filled = True; side = 1
+                    elif pend < 0 and h[i] >= ppx + thr:
+                        fill = max(o[i], ppx); filled = True; side = -1
                 if filled:
                     entry_is_stop = True
                     sp = psp; tp = ptp; trl = ptrl; trla = ptrla; mh = pmh
@@ -217,6 +244,8 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                 d_min[d] = eq_low
             if eq_high > d_max[d]:
                 d_max[d] = eq_high
+            b_low[i] = eq_low
+            b_close[i] = realized + (c[i] - ep) * pos * point_value - commission_rt
             if force_flat[i]:
                 # should not happen (allow_entry false at flat time) but be safe: exit at close
                 xpx = c[i] - slip if pos > 0 else c[i] + slip; exit_now = True; reason = 5
@@ -229,6 +258,9 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                     d_min[d] = realized
                 if realized > d_max[d]:
                     d_max[d] = realized
+                if realized < b_low[i]:
+                    b_low[i] = realized
+                b_close[i] = realized
                 pos = 0
                 if daily_loss_stop > 0 and realized <= -daily_loss_stop:
                     halted = True
@@ -254,7 +286,7 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
         t_mae[nt] = mae; t_mfe[nt] = mfe; t_reason[nt] = 5; t_day[nt] = cur_day; nt += 1
         d_pnl[cur_day] += pnl; d_trades[cur_day] += 1
     return (t_ei[:nt], t_xi[:nt], t_side[:nt], t_ep[:nt], t_xp[:nt], t_pnl[:nt], t_mae[:nt], t_mfe[:nt], t_reason[:nt], t_day[:nt],
-            d_pnl, d_min, d_max, d_trades)
+            d_pnl, d_min, d_max, d_trades, b_low, b_close)
 
 
 class Intents:
@@ -266,6 +298,7 @@ class Intents:
         self.n = n
         self.sig = np.zeros(n, np.int8)
         self.entry_px = np.full(n, np.nan)
+        self.entry_kind = np.ones(n, np.int8)   # 1 = stop entry, 2 = limit entry (only used when entry_px is set)
         self.valid_bars = np.zeros(n, np.int32)
         self.stop_px = np.full(n, np.nan); self.tgt_px = np.full(n, np.nan)
         self.stop_pts = np.full(n, np.nan); self.tgt_pts = np.full(n, np.nan)
@@ -295,14 +328,18 @@ class Intents:
         self.allow_entry &= ~self.force_flat
 
     def place(self, idx, side, entry_px=np.nan, valid_bars=0, stop_px=np.nan, tgt_px=np.nan, stop_pts=np.nan,
-              tgt_pts=np.nan, trail_pts=np.nan, trail_act_pts=0.0, max_hold=0):
-        """Place entries at 1-minute indices `idx` (array). `side` scalar or array (+1/-1). Other args scalar or array."""
+              tgt_pts=np.nan, trail_pts=np.nan, trail_act_pts=0.0, max_hold=0, kind='stop'):
+        """Place entries at 1-minute indices `idx` (array). `side` scalar or array (+1/-1). Other args scalar or array.
+        entry_px NaN => market at the open of bar idx. Otherwise a pending order live from the open of bar idx for
+        `valid_bars` bars: kind='stop' (buy above / sell below, filled at max(open, level)+slip) or kind='limit'
+        (buy below / sell above, filled at the level only when price trades through it by through_ticks)."""
         idx = np.asarray(idx)
         idx = idx[idx >= 0]
         if len(idx) == 0:
             return
         self.sig[idx] = side
         self.entry_px[idx] = entry_px
+        self.entry_kind[idx] = 2 if kind == 'limit' else 1
         self.valid_bars[idx] = valid_bars
         self.stop_px[idx] = stop_px; self.tgt_px[idx] = tgt_px
         self.stop_pts[idx] = stop_pts; self.tgt_pts[idx] = tgt_pts
@@ -314,23 +351,27 @@ class Intents:
         self.exit_flag[idx] = which
 
 
-def run(intents: Intents, contract, slip_ticks=None, through_ticks=1.0, commission_rt=None):
+def run(intents: Intents, contract, slip_ticks=None, through_ticks=1.0, commission_rt=None, return_bars=False):
     df1 = intents.df1
     o = df1['open'].values.astype(np.float64); h = df1['high'].values.astype(np.float64)
     l = df1['low'].values.astype(np.float64); c = df1['close'].values.astype(np.float64)
     day_id = df1['day_id'].values.astype(np.int64)
     res = _simulate(o, h, l, c, day_id, intents.allow_entry, intents.force_flat,
-                    intents.sig, intents.entry_px, intents.valid_bars, intents.stop_px, intents.tgt_px,
+                    intents.sig, intents.entry_px, intents.entry_kind, intents.valid_bars, intents.stop_px, intents.tgt_px,
                     intents.stop_pts, intents.tgt_pts, intents.trail_pts, intents.trail_act_pts, intents.max_hold,
                     intents.exit_flag, float(contract.tick),
                     float(contract.slip_ticks if slip_ticks is None else slip_ticks), float(contract.point_value),
                     float(contract.commission_rt if commission_rt is None else commission_rt), float(through_ticks),
                     float(intents.daily_loss_stop), float(intents.daily_profit_stop), int(intents.max_trades_day))
-    (t_ei, t_xi, t_side, t_ep, t_xp, t_pnl, t_mae, t_mfe, t_reason, t_day, d_pnl, d_min, d_max, d_trades) = res
-    ts = df1['ts'].values
-    trades = pd.DataFrame({'entry_ts': ts[t_ei], 'exit_ts': ts[t_xi], 'side': t_side, 'entry_px': t_ep, 'exit_px': t_xp,
+    (t_ei, t_xi, t_side, t_ep, t_xp, t_pnl, t_mae, t_mfe, t_reason, t_day, d_pnl, d_min, d_max, d_trades, b_low, b_close) = res
+    ts = pd.DatetimeIndex(df1['ts'])  # keeps the America/New_York tz (``.values`` would silently convert to naive UTC)
+    trades = pd.DataFrame({'entry_ts': ts.take(t_ei), 'exit_ts': ts.take(t_xi), 'side': t_side, 'entry_px': t_ep, 'exit_px': t_xp,
                            'pnl': t_pnl, 'mae_pts': t_mae, 'mfe_pts': t_mfe, 'reason': [REASON.get(int(r), str(r)) for r in t_reason],
                            'day_id': t_day, 'bars': t_xi - t_ei})
     sessions = df1.groupby('day_id')['session'].first()
     daily = pd.DataFrame({'session': sessions.values, 'pnl': d_pnl, 'min_eq': d_min, 'max_eq': d_max, 'trades': d_trades})
+    if return_bars:
+        bars = pd.DataFrame({'ts': ts, 'day_id': day_id, 'eq_low': b_low, 'eq_close': b_close})
+        bars['ts'] = ts
+        return trades, daily, bars
     return trades, daily

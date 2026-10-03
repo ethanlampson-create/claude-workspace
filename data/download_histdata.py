@@ -1,6 +1,6 @@
 """Download free 1-minute bar data from histdata.com for index/commodity CFD proxies.
 
-Timestamps on histdata are EST (UTC-5) *without* DST. We convert to America/New_York.
+Timestamps are US Eastern time with DST (verified empirically, see download_symbol); localised to America/New_York.
 Volume column is always 0 on histdata (no volume available).
 Usage: python3 data/download_histdata.py [SYMBOL ...]
 """
@@ -73,8 +73,12 @@ def download_symbol(pair, today):
     if not frames:
         print(pair, 'NO DATA'); return
     df = pd.concat(frames).drop_duplicates('ts').sort_values('ts').reset_index(drop=True)
-    # histdata is EST without DST -> fixed UTC-5. 'Etc/GMT+5' == UTC-5.
-    df['ts'] = df['ts'].dt.tz_localize('Etc/GMT+5').dt.tz_convert('America/New_York')
+    # histdata documents its stamps as EST without DST, but for these index/metal files the stamps empirically follow
+    # US Eastern time WITH DST for every year (Sunday Globex open is stamped 18:00 in summer and winter, and the
+    # 09:30 ET cash-open bar is the widest bar in both seasons). Localise directly; DST transition hours fall on
+    # Sunday 02:00 when the market is closed, so no bars are lost.
+    df['ts'] = df['ts'].dt.tz_localize('America/New_York', ambiguous='NaT', nonexistent='NaT')
+    df = df.dropna(subset=['ts'])
     df = df.drop(columns=['vol'])
     out = os.path.join(PQ, f"{pair.upper()}_1m.parquet")
     df.to_parquet(out, index=False)
