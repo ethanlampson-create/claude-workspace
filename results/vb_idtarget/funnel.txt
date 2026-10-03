@@ -1,0 +1,3 @@
+MNQ sessions 428 ID 40 +inside_open 14 +side 14 +dist>=0.08atr 10 +dist<=0.6atr 10 | ID rng/atr median 0.51 | any-day inside_open 235
+MES sessions 430 ID 37 +inside_open 14 +side 14 +dist>=0.08atr 12 +dist<=0.6atr 12 | ID rng/atr median 0.54 | any-day inside_open 250
+MGC sessions 443 ID 54 +inside_open 22 +side 22 +dist>=0.08atr 16 +dist<=0.6atr 16 | ID rng/atr median 0.51 | any-day inside_open 202

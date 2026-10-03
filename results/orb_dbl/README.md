@@ -89,3 +89,28 @@ DD -$728 per micro) and just holds on PRIOR (1.13), but (a) every combo of the p
 (b) ~3.4 trades per month is too slow for the $3k eval (median 43 sessions to pass, 9% pass within 21 sessions), (c) the Lucid bootstrap
 lower bound is negative at every size and the edge is concentrated in VIX > 20 months. Possible use: a small, negatively-correlated
 satellite leg next to a breakout strategy (it trades the days orb_close30 loses), not a stand-alone eval strategy.
+
+## Walk-forward assessment (2026-10-03, `walkforward.json`; `final_select --wf_start 2022-01-01 --max_combos 16`)
+Rolling IS 12 months / OOS 3 months, parameters re-selected each quarter from the GRID (or_minutes x stop_mode x tgt_frac x require_fail)
+around the final.json base. No module or parameter change was made in this pass; this is the honest yardstick for the final config.
+
+| stream | trades | net $ | PF | Sharpe | DD intraday | pos months |
+|---|---|---|---|---|---|---|
+| WF OOS 2025-01..2026-09 (wf_2025) | 75 | +2,282 | 1.46 | 1.02 | -1,250 | 13 / 20 active |
+| WF OOS 2023-01..2026-09 (wf_all) | 167 | +1,699 | 1.18 | 0.44 | -1,335 | 23 / 45 |
+| WF OOS 2023-24 only (derived) | 92 | -584 | <1 | | | |
+| fixed MAIN (final params) | 71 | +2,621 | 1.67 | 1.40 | -728 | 11 / 21 |
+| fixed PRIOR (final params) | 72 | +377 | 1.13 | 0.32 | -816 | 9 / 24 |
+
+Lucid on the OOS stream (lucid_wf_2025), 5 micros: pass 45%, pass-within-21 8%, P(first payout) 17%, exp net +$159, bootstrap LB -$146,
+zero-edge control -$146, **not recommended**. 10+ micros: expected net negative.
+
+Reading:
+- The WF picked the fixed params (or30 / mid / 0.5 / require_fail) for 2025-Q1..2026-Q1, so 5 of 7 OOS quarters are the same trades as the
+  in-sample MAIN run (monthly P&L identical 2025-01..2026-03). The OOS evidence that is genuinely new is 2026-Q2 (selected extreme / no-fail:
+  -$207, one -$703 day, -$923 month) and 2026-Q3 (or15 / mid / 1.0: +$14). last_entry 13:30 is not in the GRID and was chosen using MAIN
+  diagnostics, so that tuning sits inside every WF window.
+- The selection path is unstable (or15/or30, mid/extreme, tgt 0.5/1.0 all appear) because each IS window has only 40-70 trades; the
+  2023-24 OOS loses with every selection. The 2025+ edge is concentrated in 2025-02..05 (+$1,739, 76% of OOS net, VIX > 20) and 2026-06.
+- Formal proceed rule (OOS PF >= 1.03 with >= 40 trades) is met, as is the fixed rule (MAIN 1.67 / PRIOR 1.13 / 71 trades), so the strategy
+  is not declared dead; the verdict stays **marginal**: too few trades (~3.5/month), Lucid LB equals the zero-edge control, edge regime-dependent.

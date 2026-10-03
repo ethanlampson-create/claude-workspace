@@ -1,1 +1,12 @@
 === MNQ 2025-01-01..2026-09-30
+[vb_idtarget MNQ 2025-01-01..2026-09-30] trades=10 | net=-365.600 | win_rate=0.300 | avg_trade=-36.560 | profit_factor=0.470 | max_dd_closed=-423.328 | max_dd_intraday=-509.934 | sharpe_daily_ann=-0.601 | pct_pos_days=0.300 | largest_day=208.000 | worst_day=-313.953 | largest_day_share=nan | pct_pos_months=0.095 | worst_month=-313.953  (7.7s)
+=== MNQ 2023-01-01..2024-12-31
+[vb_idtarget MNQ 2023-01-01..2024-12-31] trades=19 | net=-95.987 | win_rate=0.421 | avg_trade=-5.052 | profit_factor=0.893 | max_dd_closed=-481.215 | max_dd_intraday=-544.055 | sharpe_daily_ann=-0.149 | pct_pos_days=0.421 | largest_day=168.110 | worst_day=-176.560 | largest_day_share=nan | pct_pos_months=0.250 | worst_month=-183.270  (6.7s)
+=== MES 2025-01-01..2026-09-30
+[vb_idtarget MES 2025-01-01..2026-09-30] trades=12 | net=-131.027 | win_rate=0.417 | avg_trade=-10.919 | profit_factor=0.727 | max_dd_closed=-399.802 | max_dd_intraday=-460.000 | sharpe_daily_ann=-0.339 | pct_pos_days=0.417 | largest_day=145.950 | worst_day=-173.745 | largest_day_share=nan | pct_pos_months=0.190 | worst_month=-173.745  (5.0s)
+=== MES 2023-01-01..2024-12-31
+[vb_idtarget MES 2023-01-01..2024-12-31] trades=18 | net=-17.030 | win_rate=0.444 | avg_trade=-0.946 | profit_factor=0.954 | max_dd_closed=-167.390 | max_dd_intraday=-179.610 | sharpe_daily_ann=-0.061 | pct_pos_days=0.444 | largest_day=86.130 | worst_day=-83.268 | largest_day_share=nan | pct_pos_months=0.250 | worst_month=-45.815  (5.1s)
+=== MGC 2025-01-01..2026-09-30
+[vb_idtarget MGC 2025-01-01..2026-09-30] trades=16 | net=-421.410 | win_rate=0.312 | avg_trade=-26.338 | profit_factor=0.449 | max_dd_closed=-473.460 | max_dd_intraday=-473.460 | sharpe_daily_ann=-0.908 | pct_pos_days=0.312 | largest_day=138.270 | worst_day=-193.650 | largest_day_share=nan | pct_pos_months=0.095 | worst_month=-155.950  (7.0s)
+=== MGC 2023-01-01..2024-12-31
+[vb_idtarget MGC 2023-01-01..2024-12-31] trades=23 | net=-284.800 | win_rate=0.304 | avg_trade=-12.383 | profit_factor=0.482 | max_dd_closed=-328.515 | max_dd_intraday=-334.015 | sharpe_daily_ann=-1.041 | pct_pos_days=0.304 | largest_day=67.900 | worst_day=-81.380 | largest_day_share=nan | pct_pos_months=0.208 | worst_month=-191.085  (6.6s)

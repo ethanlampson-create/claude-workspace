@@ -37,3 +37,12 @@ automated fetches, so these are secondary sources; where they disagreed the more
   simulator keeps trading until the ratio is satisfied, which means the big-day account then has to grind.
 - Funded: the sensible payout policy is to wait until profit >= $4,000 (full $2,000 payout) so that after the lock
   at $50,100 the balance ($52,000) still has ~$1,900 of room. `min_profit_to_request` is a simulator parameter.
+
+## Interpretation choices flagged by the audit (unconfirmed with Lucid directly)
+| Choice | Encoded | Alternative | Effect if the alternative is true |
+|---|---|---|---|
+| Payout base | 50% of (balance - 50,000), i.e. remaining total profit (`Rules.payout_base='total'`) | 50% of profit since the last payout (`'cycle'`) | later payouts smaller; first payout unchanged |
+| Evaluation fee | one-time $146 per attempt, $90 reset | monthly subscription | slow passes cost more; expected net lower |
+| MLL after a payout request | set to max(MLL, 50,100) immediately | unchanged until EOD | encoded version is the harsher one |
+| Minimum trading days | 2 days with at least one trade | none | encoded version is the harsher one |
+| Funded contract cap | 20 micros until +$1,000, 30 until +$2,000, then 40 | 40 only at +$4,500 | encoded version is the looser one for 30-40 micro books; the final configurations use <= 20 micros funded |

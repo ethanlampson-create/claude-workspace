@@ -1,7 +1,7 @@
 # mr_gapfade - small opening-gap fade toward the prior RTH close
 
 Family: intraday_mean_reversion (research: `research/families/intraday_mean_reversion.md`, item 7).
-Module: `strategies/mr_gapfade.py`. Verdict: **marginal** (MNQ only; thin, infrequent, holds on PRIOR; MES dead).
+Module: `strategies/mr_gapfade.py`. Verdict: **marginal** (MNQ only; thin, infrequent, holds on PRIOR and in walk-forward OOS, but dead as a standalone Lucid vehicle; MES dead).
 
 ## Rules as implemented
 - `prior_close` = last 1-min close with tod < 16:00 ET of the previous session (`prior_day_stats`, RTH 09:30-16:00).
@@ -68,6 +68,39 @@ payout (profit too slow). Monthly pass rate at 10 micros is bimodal: 0 in 2025-0
 - MES follow-up (`followup_MES.csv`): entry_delay 1 / long-only lifts MAIN to PF 0.95 (77 trades, net -$134), still
   negative; MES rejected.
 
+## Walk-forward out-of-sample (the honest yardstick) - 2026-10-03
+`python3 -m backtest.final_select --ids mr_gapfade --jobs 2 --wf_start 2022-01-01 --max_combos 16` -> `walkforward.json`,
+`wf_oos_2025_daily.csv`. IS 12 months / OOS 3 months, parameters chosen on trailing IS by daily Sharpe, base = final.json
+params (gap_max 0.35, entry_delay 1), search space = module GRID (trimmed this round from 36 to 16 combos:
+gap_max {0.35, 0.50} x stop_mult {0.75, 1.0} x sides {both, long} x exit_time {11:00, 12:00}; the automatic coarsening of
+the old 36-combo grid would have kept only gap_max {0.35, 0.70} and stop_mult {0.75, 1.5}, i.e. the two values shown
+above to break the strategy on both periods, and dropped the published default stop_mult 1.0).
+
+| stream (MNQ, 1 micro) | trades | net $ | PF | Sharpe | pos months | maxDD intra |
+|---|---|---|---|---|---|---|
+| WF OOS 2025-01..2026-09 (**wf_2025**) | 65 | +1367 | 1.51 | 1.07 | 0.67 | -587 |
+| WF OOS 2023-01..2026-09 (all) | 203 | +1066 | 1.14 | 0.41 | 0.53 | -1012 |
+| fixed params MAIN 2025-01..2026-09 | 109 | +2051 | 1.61 | 1.58 | 0.57 | -585 |
+| fixed params PRIOR 2023-24 | 104 | +571 | 1.17 | 0.48 | 0.42 | -847 |
+
+Parameter path (OOS quarter -> chosen): 2023: gap_max 0.35/0.50, stop 0.75/1.0, both, 11:00 (OOS net -333 on 66 trades);
+2024: gap_max 0.35, stop 1.0, both, 12:00 (OOS +32 on 72 trades, of which Q3 +829 and Q4 -670); 2025-Q1..2026-Q1:
+gap_max 0.50, stop 0.75, **long only**, 11:00/12:00 (OOS +690 on 38 trades); 2026-Q2/Q3: gap_max 0.35, stop 0.75/1.0,
+both, 11:00 (OOS +678 on 27 trades). OOS 2025 monthly: 14 of 21 months positive, worst -325 (2025-03), best +374
+(2025-04); 2026-07..09 alone = +888 (65% of the OOS 2025 net); without that last window: +479 on 50 trades.
+
+Lucid on the OOS 2025 stream (bootstrap lower-bound sizing, `lucid_wf_2025`): best size 5 micros, pass rate 0.34 but
+median 85 sessions to pass, **pass_within_21 = 0.00, P(first payout) = 0.00, expected net per eval -$146 = exp_net_lb =
+zero-edge control (-$146)** at every size 5..40; recommended = False. ~3 trades/month at +$21/trade/micro is $100/month
+per micro: an evaluation needs $3,000 in a reasonable window and the strategy cannot get there before the fee clock does.
+
+Reading: the in-sample story (PF 1.56-1.61 on MAIN) does survive out of sample in direction and magnitude (PF 1.51 on
+65 OOS trades), which is more than most candidates manage. What does not survive is the account-level case: too few
+trades, P&L concentrated in two or three quarters (2024-Q3, 2026-Q3), 2023-24 OOS negative, and a parameter path that
+flips between sides=long/both and 11:00/12:00 exits, i.e. the selection is choosing among noise-level alternatives.
+Gate: proceed = True (wf_2025 PF 1.51 >= 1.03 on 65 >= 40 trades; fixed MAIN 1.61 / PRIOR 1.17 on 109 trades), as a
+portfolio-leg candidate only. Standalone verdict unchanged: marginal, not an eval vehicle.
+
 ## Attempts log
 1. Faithful implementation; first run had the pre-fill check inverted (0 trades) - fixed.
 2. Added `skip_beyond_stop` (do not enter when the stop is already breached by the 09:34 close): a trader would not
@@ -75,6 +108,9 @@ payout (profit too slow). Monthly pass rate at 10 micros is bimodal: 0 in 2025-0
 3. Prescribed grid on MES and MNQ (MAIN); PRIOR check of the MNQ plateau; prescribed fill_frac x vix_gate follow-up;
    entry_delay hypothesis (from the raw fill statistics) on both contracts and periods.
 4. Not tried (would be curve-fitting without a new reason): weekday filters, VIX bucket filters, per-side stop sizes.
+5. 2026-10-03 walk-forward round: trimmed GRID 36 -> 16 combos (dropped gap_max 0.70 and stop_mult 1.5, both shown to
+   break the strategy on MAIN and PRIOR) so the walk-forward searches a meaningful space; no rule or default changed.
+   Result kept as the reference OOS evidence (wf_2025 PF 1.51 / Sharpe 1.07 / 65 trades; lucid not recommended).
 
 ## Verdict
 MNQ gap fade with gap_max 0.35 and 09:31 entry is a real but thin edge (PF 1.56 on 114 trades MAIN, 1.22 on 130
