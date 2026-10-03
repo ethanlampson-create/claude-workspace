@@ -1,0 +1,45 @@
+     start                                                                                                                          params  trades         net  win_rate  profit_factor  max_dd_intraday  sharpe_daily_ann  pct_pos_days  largest_day_share  best_micros  pass_rate  p_first_payout_uncond  exp_net_per_eval
+2023-01-01   {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.3, "max_range_atr": 0.8}     191 2148.764843  0.617801       1.221368     -1383.083246          0.897973      0.617801           0.140136            5   0.373444               0.173755        400.161826
+2023-01-01   {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.3, "max_range_atr": 0.5}     186 1845.023323  0.618280       1.195264     -1383.083246          0.790646      0.618280           0.163206            5   0.379668               0.077483         21.363875
+2023-01-01   {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.6, "max_range_atr": 0.8}     191 1558.004500  0.633508       1.146138     -1468.297000          0.594787      0.633508           0.193273           10   0.248031               0.061024         27.622047
+2023-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.3, "max_range_atr": 0.5}     181 1459.371128  0.607735       1.154501     -1383.083246          0.628254      0.607735           0.206335            5   0.377593               0.077588         21.589382
+2023-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.45, "max_range_atr": 0.8}     191 1440.871575  0.633508       1.133682     -1414.994714          0.549623      0.633508           0.208984            5   0.298947               0.082012        130.195622
+2023-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.3, "max_range_atr": 0.8}     186 1421.589502  0.602151       1.144283     -1383.083246          0.597992      0.602151           0.211819            5   0.350622               0.176629        409.196081
+2023-01-01   {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.6, "max_range_atr": 0.5}     186 1267.848000  0.634409       1.122029     -1519.485000          0.496427      0.634409           0.237504           15   0.232283               0.066929        -25.527559
+2023-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.45, "max_range_atr": 0.5}     186 1264.277545  0.634409       1.121644     -1466.182714          0.495689      0.634409           0.238175           15   0.232283               0.066929         87.858268
+2023-01-01 {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.45, "max_range_atr": 0.5}     181  845.138687  0.624309       1.081079     -1597.695603          0.332136      0.624309           0.356296           15   0.228346               0.066929         87.858268
+2023-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.6, "max_range_atr": 0.5}     181  818.852000  0.624309       1.078360     -1685.967000          0.320617      0.624309           0.367734           15   0.228346               0.066929        -25.527559
+2023-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.6, "max_range_atr": 0.8}     186  620.066206  0.618280       1.056277     -1982.605294          0.234855      0.618280           0.485625           10   0.234252               0.061024         27.622047
+2023-01-01 {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.45, "max_range_atr": 0.8}     186  606.499997  0.618280       1.054978     -1820.624323          0.231370      0.618280           0.496487            5   0.288421               0.082788        132.807018
+2025-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.6, "max_range_atr": 0.5}     190 6065.234000  0.694737       1.432640     -1371.136500          1.641009      0.694737           0.064990            5   0.469108               0.194508        710.750572
+2025-01-01 {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.45, "max_range_atr": 0.5}     190 5793.716891  0.689474       1.408170     -1371.136500          1.566971      0.689474           0.068036            5   0.455378               0.155606        591.299771
+2025-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.6, "max_range_atr": 0.8}     206 5763.648035  0.684466       1.340039     -1615.249115          1.377008      0.684466           0.071454           10   0.253363               0.063933        284.480701
+2025-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.3, "max_range_atr": 0.5}     190 5278.893658  0.668421       1.378704     -1150.444408          1.499001      0.668421           0.074671            5   0.423341               0.118993        517.157895
+2025-01-01 {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.45, "max_range_atr": 0.8}     206 4912.103560  0.669903       1.287352     -1371.136500          1.205410      0.669903           0.083841           10   0.248879               0.052146        114.256246
+2025-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "trend", "max_stop_atr": 0.3, "max_range_atr": 0.8}     206 4909.095082  0.645631       1.304616     -1395.979715          1.295937      0.645631           0.083892           10   0.278027               0.077753        184.804895
+2025-01-01   {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.6, "max_range_atr": 0.8}     209 4154.824035  0.665072       1.225732     -1615.249115          0.966368      0.665072           0.109805           10   0.228700               0.071469        351.421525
+2025-01-01   {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.3, "max_range_atr": 0.8}     209 3926.407290  0.631579       1.229596     -1510.337266          1.014420      0.631579           0.116193           10   0.253363               0.075772        348.413478
+2025-01-01   {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.6, "max_range_atr": 0.5}     191 3680.034500  0.670157       1.237802     -1371.136500          0.979977      0.670157           0.107113            5   0.395881               0.116705        327.684211
+2025-01-01   {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.3, "max_range_atr": 0.5}     191 3519.830366  0.649215       1.235834     -1165.595949          0.995267      0.649215           0.111989            5   0.395881               0.093822        298.851259
+2025-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.45, "max_range_atr": 0.5}     191 3408.517391  0.664921       1.217790     -1371.136500          0.907515      0.664921           0.115646           10   0.233184               0.061865        273.730942
+2025-01-01  {"or_minutes": 15, "stop_mode": "opposite", "tgt_frac": 0.75, "direction": "long", "max_stop_atr": 0.45, "max_range_atr": 0.8}     209 3303.279560  0.650718       1.178070     -1618.738296          0.788270      0.650718           0.138112           10   0.224215               0.059632        313.402729
+{
+ "2023-01-01..2024-12-31": {
+  "n": 12,
+  "pct_profitable": 1.0,
+  "median_net": 1344.7187508306226,
+  "best_net": 2148.7648433671275,
+  "median_pf": 1.1278556318891544,
+  "best_pass_rate": 0.3796680497925311
+ },
+ "2025-01-01..2026-09-30": {
+  "n": 12,
+  "pct_profitable": 1.0,
+  "median_net": 4531.959558333521,
+  "best_net": 6065.2339999999385,
+  "median_pf": 1.2625772144127643,
+  "best_pass_rate": 0.4691075514874142
+ },
+ "rank_corr_first_two_periods": -0.5174825174825175
+}
+24 runs in 19s

@@ -1,0 +1,37 @@
+     start                                                                                                                                   params  trades         net  win_rate  profit_factor  max_dd_intraday  sharpe_daily_ann  pct_pos_days  largest_day_share  best_micros  pass_rate  pass_within_21  p_first_payout_uncond  exp_net_per_eval  exp_net_lb  zero_edge_exp_net  recommended
+2023-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 1.0, "exit_time": "12:00", "stop_valid_until": "10:30"}      39  -98.731182  0.538462       0.895955      -283.331780         -0.203708      0.538462                NaN            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2023-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 1.0, "exit_time": "13:00", "stop_valid_until": "11:30"}      47 -110.726182  0.510638       0.901099      -268.829540         -0.212208      0.510638                NaN            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2023-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 0.5, "exit_time": "12:00", "stop_valid_until": "10:30"}      39 -110.956482  0.538462       0.883072      -283.331780         -0.231867      0.538462                NaN            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2023-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 0.5, "exit_time": "13:00", "stop_valid_until": "11:30"}      47 -122.951482  0.510638       0.890179      -281.054840         -0.238237      0.510638                NaN            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2023-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 1.0, "exit_time": "12:00", "stop_valid_until": "11:30"}      47 -149.091182  0.489362       0.859808      -352.951780         -0.300759      0.489362                NaN            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2023-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 1.0, "exit_time": "13:00", "stop_valid_until": "10:30"}      39 -160.706182  0.487179       0.842021      -310.771780         -0.320746      0.487179                NaN            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2023-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 0.5, "exit_time": "12:00", "stop_valid_until": "11:30"}      47 -161.316482  0.489362       0.848312      -352.951780         -0.329408      0.489362                NaN            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2023-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 0.5, "exit_time": "13:00", "stop_valid_until": "10:30"}      39 -172.931482  0.487179       0.830003      -310.771780         -0.349284      0.487179                NaN            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2025-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 1.0, "exit_time": "12:00", "stop_valid_until": "10:30"}      45  206.467367  0.533333       1.150524      -523.526027          0.279901      0.533333           1.166891            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2025-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 1.0, "exit_time": "13:00", "stop_valid_until": "10:30"}      45  169.667368  0.511111       1.122195      -546.996027          0.230296      0.511111           1.419984            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2025-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 1.0, "exit_time": "12:00", "stop_valid_until": "11:30"}      55  163.332367  0.563636       1.096112      -547.706027          0.203399      0.563636           1.475060            5   0.006079             0.0                    NaN               NaN      -146.0             -146.0        False
+2025-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 1.0, "exit_time": "13:00", "stop_valid_until": "11:30"}      55  140.552368  0.527273       1.081139      -571.176027          0.173529      0.527273           1.714130            5   0.006079             0.0                    NaN               NaN      -146.0             -146.0        False
+2025-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 0.5, "exit_time": "12:00", "stop_valid_until": "10:30"}      45  121.677107  0.533333       1.088708      -523.526027          0.175775      0.533333           1.706762            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2025-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 0.5, "exit_time": "13:00", "stop_valid_until": "10:30"}      45   84.877107  0.511111       1.061129      -546.996027          0.122789      0.511111           2.446760            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2025-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 0.5, "exit_time": "12:00", "stop_valid_until": "11:30"}      55   78.542107  0.563636       1.046218      -547.706027          0.103142      0.563636           2.644109            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+2025-01-01 {"entry": "stop", "max_dist": 0.5, "stop_mult": 1.0, "sides": "both", "tgt_atr": 0.5, "exit_time": "13:00", "stop_valid_until": "11:30"}      55   55.762107  0.527273       1.032191      -571.176027          0.072530      0.527273           3.724283            5   0.000000             0.0                    NaN               NaN      -146.0             -146.0        False
+{
+ "2023-01-01..2024-12-31": {
+  "n": 8,
+  "pct_profitable": 0.0,
+  "median_net": -136.0213323817343,
+  "best_net": -98.73118249998977,
+  "median_pf": 0.8714399204437646,
+  "best_pass_rate": 0.0
+ },
+ "2025-01-01..2026-09-30": {
+  "n": 8,
+  "pct_profitable": 1.0,
+  "median_net": 131.11473714217925,
+  "best_net": 206.46736749999843,
+  "median_pf": 1.0849236346364792,
+  "best_pass_rate": 0.0060790273556231
+ },
+ "rank_corr_first_two_periods": 0.4285714285714286
+}
+16 runs in 27s

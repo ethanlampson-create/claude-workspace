@@ -1,0 +1,37 @@
+     start                                                                                   params  trades         net  win_rate  profit_factor  max_dd_intraday  sharpe_daily_ann  pct_pos_days  largest_day_share  best_micros  pass_rate  p_first_payout_uncond  exp_net_per_eval
+2023-01-01  {"max_dist": 0.5, "require_eth_touch": true, "allow_day3": false, "min_stop_pct": 0.15}      31 -344.432087  0.516129       0.641729      -714.367087         -0.645437      0.516129                NaN            5   0.000000                    NaN               NaN
+2023-01-01   {"max_dist": 0.5, "require_eth_touch": true, "allow_day3": false, "min_stop_pct": 0.3}      31 -404.480790  0.548387       0.612100      -774.415790         -0.726768      0.548387                NaN            5   0.000000                    NaN               NaN
+2023-01-01   {"max_dist": 0.5, "require_eth_touch": true, "allow_day3": true, "min_stop_pct": 0.15}      34 -406.782087  0.500000       0.608480      -714.367087         -0.753455      0.500000                NaN            5   0.000000                    NaN               NaN
+2023-01-01  {"max_dist": 0.5, "require_eth_touch": false, "allow_day3": true, "min_stop_pct": 0.15}      57 -476.727920  0.473684       0.699494      -858.247920         -0.741441      0.473684                NaN           40   0.029880               0.000000       -146.000000
+2023-01-01    {"max_dist": 0.5, "require_eth_touch": true, "allow_day3": true, "min_stop_pct": 0.3}      34 -509.748145  0.529412       0.561798      -790.243145         -0.893886      0.529412                NaN            5   0.000000                    NaN               NaN
+2023-01-01   {"max_dist": 0.5, "require_eth_touch": false, "allow_day3": true, "min_stop_pct": 0.3}      57 -510.336005  0.508772       0.698395      -926.996250         -0.756979      0.508772                NaN           15   0.169492               0.000000       -146.000000
+2023-01-01 {"max_dist": 0.5, "require_eth_touch": false, "allow_day3": false, "min_stop_pct": 0.15}      54 -521.712920  0.462963       0.664536      -934.452920         -0.819805      0.462963                NaN           30   0.110883               0.000000       -146.000000
+2023-01-01  {"max_dist": 0.5, "require_eth_touch": false, "allow_day3": false, "min_stop_pct": 0.3}      54 -536.820065  0.500000       0.673138     -1003.201250         -0.806470      0.500000                NaN           15   0.169492               0.000000       -146.000000
+2025-01-01  {"max_dist": 0.5, "require_eth_touch": false, "allow_day3": false, "min_stop_pct": 0.3}      35  773.903240  0.714286       2.046173      -323.567570          1.384726      0.714286           0.142130           15   0.497500               0.040557        -72.997283
+2025-01-01 {"max_dist": 0.5, "require_eth_touch": false, "allow_day3": false, "min_stop_pct": 0.15}      35  736.445945  0.657143       2.094234      -258.165000          1.413931      0.657143           0.149359           10   0.373913               0.000000       -146.000000
+2025-01-01  {"max_dist": 0.5, "require_eth_touch": false, "allow_day3": true, "min_stop_pct": 0.15}      41  735.189410  0.634146       1.975996      -258.165000          1.381091      0.634146           0.149615           30   0.253659               0.012843        -99.763507
+2025-01-01   {"max_dist": 0.5, "require_eth_touch": false, "allow_day3": true, "min_stop_pct": 0.3}      41  627.528085  0.682927       1.650213      -344.227460          1.057389      0.682927           0.175283           10   0.309859               0.000000       -146.000000
+2025-01-01   {"max_dist": 0.5, "require_eth_touch": true, "allow_day3": true, "min_stop_pct": 0.15}      33  450.066102  0.606061       1.677210      -281.606463          0.948001      0.606061           0.244397           10   0.095652               0.000000       -146.000000
+2025-01-01  {"max_dist": 0.5, "require_eth_touch": true, "allow_day3": false, "min_stop_pct": 0.15}      25  432.489100  0.640000       1.797574      -239.520000          0.958475      0.640000           0.254330           10   0.034783               0.000000       -146.000000
+2025-01-01   {"max_dist": 0.5, "require_eth_touch": true, "allow_day3": false, "min_stop_pct": 0.3}      25  378.168240  0.680000       1.591297      -304.922570          0.771826      0.680000           0.290863           10   0.086957               0.000000       -146.000000
+2025-01-01    {"max_dist": 0.5, "require_eth_touch": true, "allow_day3": true, "min_stop_pct": 0.3}      33  339.313085  0.666667       1.392305      -401.442460          0.630419      0.666667           0.324170           30   0.214458               0.055463        -46.166182
+{
+ "2023-01-01..2024-12-31": {
+  "n": 8,
+  "pct_profitable": 0.0,
+  "median_net": -493.23803249998866,
+  "best_net": -344.4320874999859,
+  "median_pf": 0.6531323172359337,
+  "best_pass_rate": 0.1694915254237288
+ },
+ "2025-01-01..2026-09-30": {
+  "n": 8,
+  "pct_profitable": 1.0,
+  "median_net": 538.7970937500081,
+  "best_net": 773.9032400000153,
+  "median_pf": 1.737391792244578,
+  "best_pass_rate": 0.4975
+ },
+ "rank_corr_first_two_periods": -0.6904761904761906
+}
+16 runs in 8s

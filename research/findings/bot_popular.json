@@ -1,0 +1,458 @@
+{
+ "family": "Popular automated/bot and indicator strategies and their actual tested results",
+ "notes": "Report: /home/user/claude-workspace/research/families/bot_popular_indicators.md. Method: 11 web searches completed before the session-wide WebSearch budget (200/200) was exhausted; remainder of the sweep done by ~35 direct page fetches (TradingView/LuxAlgo script pages, vendor pages, independent test write-ups, QuantConnect backtest caches, Trustpilot) plus GitHub code search to pull exact Pine formulas/defaults. quantifiedstrategies.com main site, SSRN and Medium were bot-blocked (403); substack/mirror equivalents used. Headline: no popular TradingView indicator strategy has credible independent after-cost evidence of an intraday edge on ES/NQ; independent intraday tests show 35-45% win rates and PF 0.86-1.10 outside strong trend regimes; synthetic-bar (Heikin-Ashi/Renko/range) backtests are documented as inflated by NinjaTrader support, EliteTrader and pine maintainers; LuxAlgo/Nadaraya-Watson repaint. The one strategy in scope with real evidence on ES/NQ 1-minute data with explicit futures costs is the intraday noise-area momentum breakout (Zarattini et al.; Quantitativo replication: NQ Sharpe 1.67, 24.3%/yr, DD 24%, 38% win, payoff 2.25, 65% positive months, edge concentrated 2018-2025). Vendor bots: Goldilocks (only verifiable live track) PF 1.32, 48% win, $45/trade on 2 MGC, max DD $8,368 (4.2x Lucid's $2,000 room); Vector Algorithmics shut down with Trustpilot reports of 50% losses and Apex closing accounts for bot use. Prop-fit rule used: any system whose 1-mini max DD exceeds ~$1,200-1,500 or whose typical big day exceeds ~$1,200 fails Lucid's $2,000 EOD-trailing DD or 50% consistency rule. Engine must: fill at real 1-min OHLC with >=1 tick slippage/side + $2.25-2.50/side mini commission, evaluate only confirmed bars, force flat by 15:55 ET, and walk-forward through 2022 and 2023 H2 chop, not just 2025-2026.",
+ "strategies": [
+  {
+   "name": "Supertrend (10,3) trend-flip, always in",
+   "origin": "Olivier Seban; TradingView built-in; most-used webhook bot indicator (PickMyTrade/TradersPost)",
+   "entry": "hl2=(H+L)/2; upper=hl2+mult*ATR(len); lower=hl2-mult*ATR(len); bands ratchet (lower only rises while close stays above, upper only falls); direction flips up when close > prior final upper band, down when close < prior final lower band. Long on flip up, short on flip down.",
+   "exit": "Opposite flip (always in). Prop variants add fixed $ stop and 15:55 ET flat.",
+   "parameters": "ATR 10 / mult 3 default (Wilder ATR); 14/3 (LST test); 7/2 for 1-5m MNQ scalping; 14/2.5 5-min and 10/3 15-min (prop vendor). Multiplier outside 2.5-3.5 degrades sharply.",
+   "filters": "None in canonical form.",
+   "instruments": "Tested on Gold/NZDUSD tick data, Dow 30 stocks 5-min and daily, S&P weekly, NQ and Gold daily futures",
+   "timeframe_session": "5-min to weekly; no session filter in canonical form",
+   "claimed_performance": "dev.to tick test 2020-2026 after spread+$3.50/lot/side: Gold H4 267 trades 43.4% win PF 1.97 (PF 3.19 in 2024-26 rally, 1.02 in 2022-23); NZDUSD H1 1,115 trades 35.6% win PF 0.86. LST Dow30 14/3: 5-min 2,597 trades 42% win avg +0.8%/-0.4% DD -7%; daily 1,455 trades 43% win DD -39%, 'not profitable'. Quantified Strategies S&P weekly 10/3 1960-2026: 41 trades 68% win DD 25%. Algomatic daily NQ 2005-2026: 93 trades 52.69% win CAGR 4.59% DD -14.22%; Gold 91 trades 47.25% win CAGR 5.72% DD -15.10%.",
+   "evidence_quality": 3,
+   "prop_fit": "Poor stand-alone intraday: 35-45% win with multi-day losing strings in chop will consume $2,000 EOD-trailing DD on 1 mini. Use only as trailing exit or HTF direction filter.",
+   "data_requirements": "1-minute OHLC only; fully codeable.",
+   "sources": [
+    "https://dev.to/moonthetrain/tradingview-supertrend-strategy-backtest-6-years-of-ticks-1ela",
+    "https://www.liberatedstocktrader.com/supertrend-indicator/",
+    "https://quantifiedstrategies.substack.com/p/the-supertrend-indicator-backtested",
+    "https://algomatictrading.substack.com/p/strategy-18-the-supertrend-crossover",
+    "https://blog.pickmytrade.trade/supertrend-automation-for-mnq-es-futures-2026-guide/"
+   ]
+  },
+  {
+   "name": "Supertrend prop-firm session variant (RTH filter, fixed $ stop, daily kill switch)",
+   "origin": "propfirmpinescripts.com and similar prop-bot vendors (2024-2026)",
+   "entry": "Supertrend 14/2.5 on 5-min MES/MNQ (or 10/3 on 15-min) flip, taken only 09:30-16:00 ET (preferred 09:30-11:30 ET), direction must agree with VWAP side and opening bias; bar-close execution.",
+   "exit": "Opposite flip or fixed dollar stop ($50-100 MES, $30-60 MNQ 5-min; $75-150 / $50-100 15-min); flat before close.",
+   "parameters": "ATR 14 mult 2.5 (5m); ATR 10 mult 3.0 (15m); kill switch at 80% of firm daily limit; no entries within 30 min of NFP/CPI/FOMC.",
+   "filters": "RTH session, VWAP agreement, news blackout, daily loss buffer.",
+   "instruments": "MES/ES, MNQ/NQ",
+   "timeframe_session": "5-min or 15-min; entries 09:30-11:30 ET",
+   "claimed_performance": "Vendor claim, NQ 15-min 2024-2026: 48-55% win, avg winner 2.0-2.5x avg loser, 1-3 trades/session, strings of 3-5 losers. No trade log, no cost statement.",
+   "evidence_quality": 1,
+   "prop_fit": "Scaffolding (session filter, $ stop, kill switch, news blackout) is correct for Lucid and should be reused around any strategy; the signal itself is unproven. Run as a baseline only.",
+   "data_requirements": "OHLC; VWAP needs volume (approximate with hl2 time-weighted average).",
+   "sources": [
+    "https://propfirmpinescripts.com/strategies/supertrend-pine-script.html"
+   ]
+  },
+  {
+   "name": "UT Bot Alerts (ATR trailing stop, QuantNomad/Yo_adriiiiaan)",
+   "origin": "TradingView open-source script; basis of 'ULTIMATE scalping' YouTube strategies",
+   "entry": "nLoss=a*ATR(c). stop: if src>stop[1] and src[1]>stop[1] then max(stop[1], src-nLoss); elif src<stop[1] and src[1]<stop[1] then min(stop[1], src+nLoss); else src>stop[1] ? src-nLoss : src+nLoss. Buy when src>stop and crossover(EMA(src,1), stop); Sell when src<stop and crossover(stop, EMA(src,1)). Strategy: long on Buy, short on Sell.",
+   "exit": "Opposite signal (always in); combos add TP ladders / swing stops.",
+   "parameters": "Defaults a=1 (Key Value), c=10 (ATR period), Heikin Ashi source off. Popular: a=2,c=1 on 5-min; a=1.5-2,c=5-10 for 1-5m; a=3-4,c=10-14 for 1H-4H; a=2,c=6 in Ultimate-scalping combo.",
+   "filters": "None canonical; combos add STC/Hull.",
+   "instruments": "Community backtests mostly crypto/stocks; no ES/NQ test with costs found",
+   "timeframe_session": "1-min to daily; no session filter",
+   "claimed_performance": "TradeSearcher aggregate of 105 community backtests: avg PF 1.0, avg max DD 65%. Anecdotes: EUR/USD 4H ~60% win over ~25 trades; BTC 15m 8 of 12 signals hit 1:2R in two weeks; Freqtrade crypto port '3202%' with no costs. No independent index-futures intraday evidence.",
+   "evidence_quality": 1,
+   "prop_fit": "Poor stand-alone: a=2/c=1 on 5-min NQ flips several times per hour in chop; negative expectancy after $5/tick costs in every honest comparable test. Trailing-stop formula is a usable exit.",
+   "data_requirements": "OHLC; Heikin-Ashi option must be off for honest fills.",
+   "sources": [
+    "https://github.com/unikonkon/NextJS_Bot_Crypto_trading-indicator_Pro",
+    "https://pineify.app/resources/blog/ut-bot-alerts-guide-best-settings-strategy-and-how-to-use-on-tradingview",
+    "https://tradesearcher.ai/strategies/1594-ut-bot-strategy",
+    "https://tradesearcher.ai/blog/ut-bot-alerts-strategy-guide-backtest-examples"
+   ]
+  },
+  {
+   "name": "Chandelier Exit trend-flip (everget) with optional 200 EMA filter",
+   "origin": "Charles Le Beau; TradingView port by everget (GPL-3)",
+   "entry": "longStop=highest(close,len)-mult*ATR(len) ratcheted up (longStop:=close[1]>longStop[1]?max(longStop,longStop[1]):longStop); shortStop=lowest(close,len)+mult*ATR(len) ratcheted down; dir=close>shortStop[1]?1:close<longStop[1]?-1:dir[1]. Buy on dir flip to 1 (optionally only if close>EMA200), sell on flip to -1 (close<EMA200).",
+   "exit": "Opposite flip.",
+   "parameters": "length 22, mult 3.0, useClose=true (everget defaults); StockCharts variants 22x1 and 22x2 (tighter 22x1 performed better).",
+   "filters": "EMA(200) direction filter in common bot variants.",
+   "instruments": "No independent intraday futures test; daily ETF use as exit only",
+   "timeframe_session": "Any; no session filter",
+   "claimed_performance": "No published metrics for the flip system. As an exit in StockCharts RSI(5) system (SPY/QQQ/IJR daily 2000-2016) the tighter 22x1 improved CAR and drawdown everywhere.",
+   "evidence_quality": 2,
+   "prop_fit": "Same object as Supertrend/UT Bot (ratcheting ATR stop); fine as exit, unproven as entry.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://github.com/everget/tradingview-pinescript-indicators",
+    "https://www.tradingview.com/script/T7c4n0Qu/"
+   ]
+  },
+  {
+   "name": "RSI(5) dip-buy with Chandelier Exit (StockCharts SystemTrader)",
+   "origin": "Arthur Hill, StockCharts SystemTrader, Dec 2016",
+   "entry": "Regime: S&P 500 50-day SMA > 200-day SMA. Buy next open when RSI(5) crosses below 30 (variant A) or crosses back above 30 (variant B). Long only.",
+   "exit": "Close below Chandelier Exit (22,1) or (22,2); sell next open. $10 commission.",
+   "parameters": "RSI 5, threshold 30; CE 22 period, 1 or 2 ATR; $100k capital.",
+   "filters": "50/200 SMA golden-cross regime filter on S&P 500.",
+   "instruments": "SPY, QQQ, IJR daily",
+   "timeframe_session": "Daily, multi-day holds",
+   "claimed_performance": "2000-12 to 2016-12: SPY (22,1) variant B CAR 4.8% 62% win DD -20.8%; QQQ (22,1) B CAR 6.1% 60% win DD -25.6%; IJR (22,1) B CAR 10.8% 83% win DD -12.6%, 80 trades, 35% exposure. Tighter exit better everywhere.",
+   "evidence_quality": 3,
+   "prop_fit": "Not usable as published (overnight holds). Intraday translation (RSI(5) on 5-min < 30 in up-trending session, exit on 22-bar 1-ATR chandelier or 15:55 ET) is a standard interpretation, untested.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://articles.stockcharts.com/article/articles-arthurhill-2016-12-systemtrader---testing-a-mean-reverion-system-with-the-chandelier-exit-spy-qqq-ijr---rsi5/"
+   ]
+  },
+  {
+   "name": "Hull MA slope flip / Hull Suite (InSilico)",
+   "origin": "Alan Hull (2005); TradingView Hull Suite by InSilico",
+   "entry": "HMA(n)=WMA(2*WMA(src,n/2)-WMA(src,n), round(sqrt(n))); EHMA same with EMA; THMA(n)=WMA(3*WMA(src,n/3)-WMA(src,n/2)-WMA(src,n), n). Up when HULL>HULL[2], down when HULL<HULL[2]; long on up flip, short on down flip. Alt: price crosses HMA(40) on 30-min bars (QuantConnect).",
+   "exit": "Opposite flip (always in); Oxford Strat adds 6xATR(20) stop.",
+   "parameters": "Hull Suite default length 55 (180-200 for floating S/R); Oxford Strat slow length 250 base, 750 best, fast index 1.0 (second HMA redundant); QC HMA 40 on 30-min.",
+   "filters": "None.",
+   "instruments": "42 US futures 1980-2016 (Oxford Strat); SPY 30-min 2015-present (QuantConnect)",
+   "timeframe_session": "30-min to daily; no session filter",
+   "claimed_performance": "Oxford Strat (no costs): length 250 CAGR 11.5% Sharpe 0.60 DD 58% win 30.8% PF 1.10; length 750 CAGR 18.9% Sharpe 0.93 DD 49.9%; only lengths >500 viable, rated C. QuantConnect SPY 30-min HMA40 cross: CAGR 5.45% Sharpe 0.43 DD 9.3% win rate 5% with P/L ratio 22.4, 200 trades, $240 fees.",
+   "evidence_quality": 3,
+   "prop_fit": "Poor: 5% win / 95% small losses trips a $2,000 EOD-trailing DD before the rare big winner, which then trips the 50% consistency rule.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://oxfordstrat.com/?p=16347",
+    "https://quantconnect.com/terminal/cache/embedded_backtest_175f86ff5679b080571133e72b58799c.html",
+    "https://github.com/g-moe/Trading-Indicators"
+   ]
+  },
+  {
+   "name": "Hull Suite + LSMA 'best 1-minute scalping' (YouTube; Myth-Busting #9)",
+   "origin": "YouTube 'I Tested The Best 1 Minute Scalping Strategy'; automated by myncrypto Strategy Myth-Busting #9",
+   "entry": "1-min chart. Long when Hull Suite(55) is red and LSMA(25) crosses above the Hull line; short when Hull Suite is green and LSMA crosses below.",
+   "exit": "Stop at latest swing low/high; target 1:4 R; optional ADX>25 filter off by default.",
+   "parameters": "LSMA 25; Hull 55; commission 0.075%; $1,000 capital.",
+   "filters": "Optional ADX 25.",
+   "instruments": "Unspecified (crypto/forex context)",
+   "timeframe_session": "1-minute; no session filter",
+   "claimed_performance": "No results published by the automator; YouTube claim unverified.",
+   "evidence_quality": 1,
+   "prop_fit": "Counter-trend 1:4R needs ~25% win just to break even; on 1-min NQ with $5/tick costs a long shot. Not recommended.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://github.com/hasnocool/tradingview-pine-scripts"
+   ]
+  },
+  {
+   "name": "Squeeze Momentum (LazyBear / TTM Squeeze) breakout",
+   "origin": "John Carter 'Mastering the Trade'; LazyBear SQZMOM_LB open-source script",
+   "entry": "BB(20,2.0), KC(20,1.5,true range). sqzOn=lowerBB>lowerKC and upperBB<upperKC; sqzOff=lowerBB<lowerKC and upperBB>upperKC. val=linreg(close-avg(avg(highest(high,20),lowest(low,20)),sma(close,20)),20,0). Long on first sqzOff bar after a squeeze when val>0 and rising; short when val<0 and falling.",
+   "exit": "val fades toward zero / histogram colour change, or fixed stop at opposite KC band and 2R target; 15:55 ET flat in prop variant.",
+   "parameters": "BB length 20 mult 2.0; KC length 20 mult 1.5; momentum linreg 20; source ohlc4 in Bitduke port.",
+   "filters": "None canonical.",
+   "instruments": "XBTUSD/ETHUSD 1H-4H (Bitduke); AAPL 3-min/2H anecdote; no ES/NQ test",
+   "timeframe_session": "3-min to 4H",
+   "claimed_performance": "Bitduke: ~12% max DD on BTC/ETH 1H-4H, no profit/win figures. AAPL 3-min 14 trades 50% then 38%; 2H 4/4 then 70%. LuxAlgo: 'squeezes can fire into failed moves'.",
+   "evidence_quality": 2,
+   "prop_fit": "Low signal frequency helps consistency, but no evidence of edge after costs. Research variant: 5-min ES/NQ release 09:45-14:30 ET, stop opposite KC band, 2R or 15:55 ET.",
+   "data_requirements": "OHLC (Carter's original wants volume; LazyBear's does not).",
+   "sources": [
+    "https://github.com/masdanil/TA",
+    "https://www.tradingview.com/script/5tuGpzpd-Squeeze-Momentum-Strategy-based-on-Indicator-LazyBear-Bitduke/",
+    "https://www.luxalgo.com/library/indicator/qp9BoNyS-strategy-for-squeeze-momentum-indicator/"
+   ]
+  },
+  {
+   "name": "Nadaraya-Watson Envelope mean reversion (LuxAlgo, endpoint mode)",
+   "origin": "LuxAlgo open-source; viral on YouTube 2022-2024",
+   "entry": "Endpoint (non-repainting) mode: w(i)=exp(-(i^2)/(2h^2)), basis=sum(src[i]*w(i))/sum(w(i)) over window; dev=SMA(|src-basis|,window)*mult; upper=basis+dev, lower=basis-dev. Long when close crosses back above lower band; short when it crosses back below upper band.",
+   "exit": "At basis, or %-stop / %-target (strategy port uses slPercent/tpPercent).",
+   "parameters": "h (bandwidth) 8.0; mult 3.0; window 500 bars; repainting smoothing must be OFF.",
+   "filters": "None canonical.",
+   "instruments": "No independent test on any instrument found",
+   "timeframe_session": "Any",
+   "claimed_performance": "LuxAlgo: 'extremity crossings describe stretch, not guaranteed reversals, and nothing suggests this envelope outperforms traditional band tools.' All viral hit-rate claims come from the repainting default mode.",
+   "evidence_quality": 1,
+   "prop_fit": "Mean-reversion at 3x MAD on 1-5 min ES/NQ fires mostly on trend days. Not recommended; if tested use endpoint mode, regime filter, hard stop.",
+   "data_requirements": "OHLC; must use non-repainting endpoint mode.",
+   "sources": [
+    "https://www.luxalgo.com/library/indicator/Nadaraya-Watson-Envelope",
+    "https://github.com/geraked/tradingview",
+    "https://github.com/DmitryJbanov/TradingAPP"
+   ]
+  },
+  {
+   "name": "LuxAlgo Signals & Overlays (paid, closed source)",
+   "origin": "LuxAlgo Premium/Ultimate ($27.99-32.99/mo annual)",
+   "entry": "Closed source: confirmation signals are a smoothed trend-flip family with a 'sensitivity' input; contrarian signals are oscillator extremes. Not reproducible.",
+   "exit": "Opposite signal / user-defined.",
+   "parameters": "Sensitivity; not disclosed.",
+   "filters": "Proprietary.",
+   "instruments": "Company examples BTC/AAPL/EURUSD",
+   "timeframe_session": "5-min, 15-min, 1H in vendor backtester",
+   "claimed_performance": "Company-shared: 55% win, PF 1.4, 18% max DD (ad hoc). Community: signals shift on same bar, 55% becomes ~50/50 live; 'even with a 60% win rate you will lose money' with their backtester; independent comparison score 4.3 vs competitors.",
+   "evidence_quality": 1,
+   "prop_fit": "Not codeable from OHLC; repainting reports; no futures evidence. Exclude.",
+   "data_requirements": "Proprietary; FLAG cannot be replicated.",
+   "sources": [
+    "https://www.quantvps.com/blog/luxalgo-review",
+    "https://lunefi.com/blog/best-luxalgo-alternatives-tradingview"
+   ]
+  },
+  {
+   "name": "MACD (12,26,9) zero-line / signal-cross trend",
+   "origin": "Gerald Appel; universal default; LiberatedStockTrader test",
+   "entry": "Long when MACD histogram > 0 and MACD > 0 and MACD > signal; executed next open or HL2.",
+   "exit": "When signal > MACD.",
+   "parameters": "12, 26, 9.",
+   "filters": "None.",
+   "instruments": "Dow 30 stocks",
+   "timeframe_session": "Daily (20 yrs) and 5-min (3 months)",
+   "claimed_performance": "606,422 test trades. Daily OHLC: 40% win, avg +7.6%/-3.6%, 1 of 30 beat B&H. 5-min OHLC: 40% win, +0.42%/-0.21%, 8 of 30 beat B&H; Heikin-Ashi 44% win and 15 of 30 (synthetic fills). 'Consistently underperforms buy-and-hold.'",
+   "evidence_quality": 3,
+   "prop_fit": "Poor stand-alone; 40% win with ~2:1 payoff is break-even before futures costs.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://www.liberatedstocktrader.com/macd-indicator/"
+   ]
+  },
+  {
+   "name": "RSI(14) 30/70 cross mean reversion",
+   "origin": "Wilder; LiberatedStockTrader multi-timeframe test",
+   "entry": "Buy when RSI(14) crosses above 30.",
+   "exit": "Sell when RSI(14) crosses below 70.",
+   "parameters": "RSI 14; 30/70.",
+   "filters": "None.",
+   "instruments": "Dow 30, S&P 500 stocks, Visa, IBM",
+   "timeframe_session": "1-min (20 days), 5-min (1 month), 1-hour (4 yrs), daily (27 yrs)",
+   "claimed_performance": "23,487 trades: 1-min 20% win; 5-min 23% win; 1-hour 53% win (best); daily 20% win. S&P 500 daily 26 yrs +1,282% vs +881% B&H (long-only bull market); Visa 1H 3 yrs +53% vs +11.75%, 65% win.",
+   "evidence_quality": 3,
+   "prop_fit": "1- and 5-minute RSI cross systems lose; 60-min yields a handful of trades/week. Not core; RSI(2)/RSI(5) on 5-min with session trend filter worth one pass.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://www.liberatedstocktrader.com/rsi-indicator/"
+   ]
+  },
+  {
+   "name": "MACD + RSI + 200 EMA combo (standard interpretation)",
+   "origin": "Ubiquitous YouTube/TradingView scalp; no canonical source",
+   "entry": "5-min, 09:35-15:30 ET. Long: close > EMA(200), RSI(14) < 30 within last 5 bars and now rising, MACD(12,26,9) line crosses above signal. Short mirrored (RSI > 70, close < EMA200).",
+   "exit": "Stop 1.5x ATR(14); target 2x stop; flat 15:55 ET.",
+   "parameters": "EMA 200; RSI 14 (30/70); MACD 12/26/9; ATR 14.",
+   "filters": "EMA(200) trend side; RTH session.",
+   "instruments": "None tested on ES/NQ with costs",
+   "timeframe_session": "5-min RTH",
+   "claimed_performance": "No independent after-cost ES/NQ test found; components (MACD, RSI) test negative intraday. Myth-Busting #7 MACDBB+SSL+VSF script publishes no results.",
+   "evidence_quality": 1,
+   "prop_fit": "0-2 signals/day so slow to blow up, but no evidence of edge.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://www.liberatedstocktrader.com/macd-indicator/",
+    "https://www.liberatedstocktrader.com/rsi-indicator/",
+    "https://github.com/hasnocool/tradingview-pine-scripts"
+   ]
+  },
+  {
+   "name": "Heikin-Ashi colour-flip trend + 50 EMA",
+   "origin": "Generic; PickMyTrade automation guide; NinjaTrader/EliteTrader backtest-integrity threads",
+   "entry": "haClose=(O+H+L+C)/4; haOpen=(haOpen[1]+haClose[1])/2. Long when HA turns green (haClose>haOpen) and real close > EMA(50); short mirrored.",
+   "exit": "First opposite-colour HA candle or fixed target (vendor example 20 ES points); must execute at real OHLC.",
+   "parameters": "EMA 50 (or 1H HA trend confirmation for 5-min entries); RSI>50 variant.",
+   "filters": "EMA(50) side; optional higher-timeframe HA agreement.",
+   "instruments": "ES 5-min (vendor), BTC",
+   "timeframe_session": "5-min; no session filter stated",
+   "claimed_performance": "Vendor: 65% backtested win on ES 5-min in 2024 bull runs, 55% live after fees; TradingView results overstated 10-15%. NinjaTrader forum: 46,000-trade ES HA backtest showed a '10% edge' that was 'too massive to be real' because fills were at synthetic HA prices; pine maintainers: synthetic-bar fills are 'reliably flattering, never reproducible'. LST MACD test: HA raised apparent win 40%->44%.",
+   "evidence_quality": 2,
+   "prop_fit": "Only acceptable with fills at real OHLC and >=1 tick slippage; the HA flip is then a lagging 2-bar average cross with no evidence of edge.",
+   "data_requirements": "OHLC; FLAG must fill on real bars, never HA prices.",
+   "sources": [
+    "https://blog.pickmytrade.io/heikin-ashi-charts-trading-strategy-automation-guide.md",
+    "https://elitetrader.com/et/threads/ninjascript-backtesting-data-series-heiken-ashi-vs-others.375746/",
+    "https://github.com/casoon/pine-scripts"
+   ]
+  },
+  {
+   "name": "Smoothed Heikin-Ashi Trend (TraderHalai BACKTEST)",
+   "origin": "TraderHalai TradingView open-source strategy",
+   "entry": "HA computed on SMA(10)-smoothed OHLC; script computes the real close needed to flip HA colour; long on green flip, short on red flip.",
+   "exit": "1% stop (long/short); opposite flip. Market orders; 0.1% commission; 10 ticks slippage; repainting off; 10% equity sizing.",
+   "parameters": "Smoothing SMA 10.",
+   "filters": "None.",
+   "instruments": "Bitcoin",
+   "timeframe_session": "8H, 1D, 5D",
+   "claimed_performance": "BTC 8H: 1,046 trades +249%, CAGR 14.0%, DD 7.9%, win 28%, PF 2.02; 1D: 429 trades +458%, PF 2.80; 5D: 69 trades +1,615%, PF 10.45 (self-reported, long-bias era).",
+   "evidence_quality": 2,
+   "prop_fit": "28%-win multi-hour trend following; not transferable to intraday flat-by-close ES/NQ.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://de.tradingview.com/script/Is0LQdiz-Smoothed-Heikin-Ashi-Trend-on-Chart-TraderHalai-BACKTEST/"
+   ]
+  },
+  {
+   "name": "Ichimoku Cloud breakout (9,26,52)",
+   "origin": "Goichi Hosoda; LiberatedStockTrader, QuantConnect, Wooster independent study tests",
+   "entry": "Long when close > Senkou A and close > Senkou B (above cloud); QuantConnect variant: long when Chikou crosses above cloud, short when below.",
+   "exit": "Close < both spans (below cloud); or opposite Chikou cross.",
+   "parameters": "9, 26, 26, 52.",
+   "filters": "None.",
+   "instruments": "Dow 30 daily 20 yrs; SPY weekly 2019-2020; top-10 US energy stocks 2015-2020",
+   "timeframe_session": "Daily/weekly",
+   "claimed_performance": "Dow 30: 90% of stocks underperform B&H, ~60% of trades lose; QQQ +175% vs +815% B&H (66 trades, R/R 2.85); SPY +118% vs +294% (59 trades, R/R 3.01). QuantConnect energy: Sharpe -0.31 vs XLE -0.08 (2015-2020). Wooster: SPY weekly underperforms B&H.",
+   "evidence_quality": 3,
+   "prop_fit": "Exclude: slow, low win rate, consistently negative vs benchmark, no intraday evidence.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://www.liberatedstocktrader.com/?p=54",
+    "https://www.quantconnect.com/research/9031/ichimoku-clouds-in-the-energy-sector/",
+    "https://openworks.wooster.edu/independentstudy/9433"
+   ]
+  },
+  {
+   "name": "Renko / range-bar brick-reversal scalp",
+   "origin": "Generic NinjaTrader/TradingView scalping lore; no canonical tested source",
+   "entry": "Renko brick = k*ATR(14) (NQ 10-20 pts, ES 2-4 pts) or fixed range bars (NQ 8-12 pts); long after 2 consecutive up bricks following a down brick (or colour flip with EMA(20) of brick closes rising); short mirrored.",
+   "exit": "First opposite brick or N-brick profit target.",
+   "parameters": "Brick/range size; EMA 20 of bricks.",
+   "filters": "None.",
+   "instruments": "None with independent after-cost evidence",
+   "timeframe_session": "Tick-based; intraday",
+   "claimed_performance": "No independent after-cost test found; vendor 'best settings based on data' article contains no data. NinjaTrader support, EliteTrader and pine maintainers document that Renko/range-bar backtests fill at synthetic prices and are 'reliably flattering'.",
+   "evidence_quality": 1,
+   "prop_fit": "Exclude as entry engine.",
+   "data_requirements": "FLAG: exact bricks need tick data; only approximable from 1-minute OHLC; fills must be at real prices.",
+   "sources": [
+    "https://www.liberatedstocktrader.com/renko-charts/",
+    "https://github.com/casoon/pine-scripts",
+    "https://elitetrader.com/et/threads/ninjascript-backtesting-data-series-heiken-ashi-vs-others.375746/"
+   ]
+  },
+  {
+   "name": "UT Bot + STC + Hull Suite 'ULTIMATE scalping' (YouTube; Myth-Busting #1)",
+   "origin": "YouTube 'The ULTIMATE Scalping Trading Strategy'; automated by myncrypto",
+   "entry": "Long when STC(80,27,50) green, below 25 and rising; Hull Suite(55) green; UT Bot (key 2, ATR 6) in buy state. Short mirrored (STC red above 75 falling, Hull red, UT Bot sell).",
+   "exit": "Stop 15% (effectively off); four TP levels (100% default).",
+   "parameters": "UT Bot a=2 c=6; STC 80/27/50; Hull 55; commission 0.075%; $500 capital.",
+   "filters": "None.",
+   "instruments": "Unspecified (crypto context)",
+   "timeframe_session": "Scalping timeframes; none stated",
+   "claimed_performance": "No results published; built to test the claim.",
+   "evidence_quality": 1,
+   "prop_fit": "Three lagging trend tools in agreement = late entries and few signals; untested.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://github.com/hasnocool/tradingview-pine-scripts"
+   ]
+  },
+  {
+   "name": "PSAR + MA(50/200) + Squeeze Momentum + HawkEye Volume '7% per day' (Myth-Busting #6)",
+   "origin": "YouTube 'I Tested 7% Profit Per Day Scalping'; automated by myncrypto",
+   "entry": "Long when PSAR(0.02,0.02) flips below price and prior bar breaches above last dot; price above 50 and 200 MA with 50>200; Squeeze Momentum green; HawkEye Volume(200) green. Short mirrored.",
+   "exit": "Stop 999% (off); four TP levels.",
+   "parameters": "PSAR 0.02/0.02; MA 50/200; SqzMom BB20 KC1.5; HawkEye 200.",
+   "filters": "MA stack.",
+   "instruments": "Unspecified",
+   "timeframe_session": "Scalping",
+   "claimed_performance": "None; '7% per day' is the YouTube title.",
+   "evidence_quality": 1,
+   "prop_fit": "Exclude or approximate without the volume leg.",
+   "data_requirements": "FLAG: HawkEye Volume needs volume (not available).",
+   "sources": [
+    "https://github.com/hasnocool/tradingview-pine-scripts"
+   ]
+  },
+  {
+   "name": "BB_BUY (EMA10 cross of BB(42,2) basis + AO) + Supertrend(10,3) (Myth-Busting #3)",
+   "origin": "YouTube 'The Best 3 Buy and Sell Indicators'; automated by myncrypto",
+   "entry": "Long when EMA(10) crosses above BB(42,2.0) basis, close above basis, AO(77,10) agrees, Supertrend(10,3) green; short mirrored.",
+   "exit": "TP levels (100% default); stop 99.9% (off).",
+   "parameters": "BB 42/2.0; EMA 10; AO 77/10; Supertrend 10/3; optional ADX 25.",
+   "filters": "Optional ADX.",
+   "instruments": "Unspecified",
+   "timeframe_session": "Unspecified",
+   "claimed_performance": "None published.",
+   "evidence_quality": 1,
+   "prop_fit": "Untested; low frequency.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://github.com/hasnocool/tradingview-pine-scripts"
+   ]
+  },
+  {
+   "name": "OSGFC (one-sided Gaussian filter channel) + Supertrend(10,3) (Myth-Busting #12)",
+   "origin": "YouTube 'The Most Powerful TradingView Buy Sell Indicator'; automated by myncrypto",
+   "entry": "15-min. Long when OSGFC (depth 10, ATR 21 x 0.628) and Supertrend(10,3) both signal buy on the same bar; short when both signal sell.",
+   "exit": "When the Gaussian filter flips; TP ladder; stop 999% (off).",
+   "parameters": "Gaussian depth 10; ATR 21 mult 0.628; Supertrend 10/3.",
+   "filters": "None.",
+   "instruments": "Forex/crypto",
+   "timeframe_session": "15-min",
+   "claimed_performance": "None published.",
+   "evidence_quality": 1,
+   "prop_fit": "Untested.",
+   "data_requirements": "OHLC.",
+   "sources": [
+    "https://github.com/hasnocool/tradingview-pine-scripts"
+   ]
+  },
+  {
+   "name": "Vendor bot: Aeromir Goldilocks (NinjaTrader, 2x Micro Gold)",
+   "origin": "Aeromir Futures (vendor); live-streamed track record",
+   "entry": "Proprietary; 2 MGC on a 4-minute chart; starts shortly after the European open (~03:00 ET).",
+   "exit": "Flattens by end of RTH; 'steady low-volatility' logic.",
+   "parameters": "Not disclosed. Pricing $348-435/quarter, $1,276/year; VPS required.",
+   "filters": "Session window European open to RTH close.",
+   "instruments": "MGC (micro gold)",
+   "timeframe_session": "4-min; ~03:00 ET to RTH close",
+   "claimed_performance": "Live Oct 14 2024-Feb 13 2026: 479 trades, net $21,378, 48.0% win, PF 1.32, avg trade $45, max DD $8,368, Calmar 2.55 (gold rally regime, unaudited).",
+   "evidence_quality": 2,
+   "prop_fit": "Max DD $8,368 is 4.2x Lucid's $2,000 room even at 2 micros; cannot run in a 50K Flex. Useful as a realistic ceiling for what a working retail bot looks like.",
+   "data_requirements": "FLAG: proprietary, cannot be replicated.",
+   "sources": [
+    "https://futures.aeromir.com/goldilocks",
+    "https://blog.pickmytrade.trade/ninjatrader-prop-bots-vs-pickmytrade-apex-topstep/"
+   ]
+  },
+  {
+   "name": "Vendor bot: Vector Algorithmics (NinjaTrader/IBKR, 30+ algos)",
+   "origin": "Vector Algorithmics (vendor; website and Discord now closed)",
+   "entry": "Proprietary.",
+   "exit": "Proprietary.",
+   "parameters": "$497-2,497 one-time plus $60-299/month VPS.",
+   "filters": "Unknown.",
+   "instruments": "CME futures, US equities, crypto",
+   "timeframe_session": "24/7 'minimal intervention'",
+   "claimed_performance": "Marketing: 70-80% win rates, 5-15% monthly, 85% first-attempt prop pass rate, +174% since launch. Trustpilot (159 reviews): some 3-14.5%/month; others 'lost 50%', 'consistent losses May-June 2026', 'small wins and HUGE losses'; one user passed Apex evals for $4k then had all PA accounts closed for algo use; refund disputes.",
+   "evidence_quality": 1,
+   "prop_fit": "Exclude; also a warning that some firms close funded accounts for unattended bots.",
+   "data_requirements": "FLAG: proprietary.",
+   "sources": [
+    "https://www.trustpilot.com/review/vectoralgorithmics.com",
+    "https://blog.pickmytrade.trade/ninjatrader-prop-bots-vs-pickmytrade-apex-topstep/"
+   ]
+  },
+  {
+   "name": "Intraday noise-area momentum breakout (Zarattini-Aziz-Barbon; Quantitativo ES/NQ replication)",
+   "origin": "SSRN 4824172 'Beat the Market: An Effective Intraday Momentum Strategy for S&P500 ETF (SPY)' (2024); Quantitativo replication on ES/NQ with Databento 1-min data (Jan 2025)",
+   "entry": "For each time-of-day t compute sigma_t = mean over last L days of |close_t/open_day - 1|. UB_t = max(open_day, prev_close)*(1+sigma_t); LB_t = min(open_day, prev_close)*(1-sigma_t). Long when price crosses above UB_t, short when it crosses below LB_t; one position, reversals allowed; paper checks every 30 min, 1-min bars work.",
+   "exit": "Trailing stop = the crossed band (paper variant: VWAP); stopped if price re-enters the noise area; flat 15:50-15:55 ET.",
+   "parameters": "L = 14 days (paper) or 90 days (Quantitativo optimized); size = target daily vol / realized 14-day vol, cap 4x (2% target) or 8x (3% target).",
+   "filters": "Vol-targeted sizing; intraday only.",
+   "instruments": "ES, NQ (and SPY in paper)",
+   "timeframe_session": "1-min to 30-min checks; RTH, flat by 15:55 ET",
+   "claimed_performance": "Quantitativo 2010-Jan 2025, $0.85+$1.40/side, 0.25 tick/side slippage: ES L=14 2%vol 8.1%/yr Sharpe 0.91 DD 24% win 36% payoff 2.09; ES L=90 3%vol 16.8%/yr Sharpe 1.25 DD 21%; NQ L=90 3%vol 24.3%/yr Sharpe 1.67 DD 24% win 38% payoff 2.25 +6bps/trade; portfolio 50%NQ/25%ES/25%NQ-long 22.4%/yr Sharpe 1.57 DD 15%, 65% positive months, worst month -6.6%, 2 negative years of 16. Flat 2010-2017, edge 2018-2025; 'highly sensitive' to slippage. SPY paper 2007-2024: 19.6%/yr, Sharpe 1.33, +1,985% net.",
+   "evidence_quality": 4,
+   "prop_fit": "Best in family: day-trade only, OHLC only, objective, 1-3 trades/day. At 1 NQ / 10 MNQ typical day is +/-$300-900 so eval needs 6-8+ days for 50% consistency; worst-week DD at that size can approach $2,000, so use 1 NQ / 2 ES or 5-10 micros with $600-800 daily stop; band trailing stop and 15:55 ET flat are already compliant. Verify with 1 tick/side slippage and walk-forward over 2022 and 2023 H2.",
+   "data_requirements": "1-minute OHLC only (VWAP variant needs volume; use band stop instead).",
+   "sources": [
+    "https://www.quantitativo.com/p/intraday-momentum-for-es-and-nq",
+    "https://www.concretumgroup.com/beat-the-market-an-effective-intraday-momentum-strategy-for-sp500-etf-spy/",
+    "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4824172"
+   ]
+  },
+  {
+   "name": "Automated Trading Strategies multi-strategy pack on ES vs NQ (reality-check only)",
+   "origin": "automatedtradingstrategies.substack.com (NinjaTrader vendor)",
+   "entry": "Proprietary 34+ intraday strategies (breakout/pullback); rules not published.",
+   "exit": "Proprietary.",
+   "parameters": "Not published.",
+   "filters": "Unknown.",
+   "instruments": "ES, NQ (also RTY, GC)",
+   "timeframe_session": "Intraday",
+   "claimed_performance": "Backtest Nov 2020-Nov 2021: ES $1.1M total, avg PF 1.41, avg DD -5.5% ($11k), ~3 trades/day; NQ $3.1M, avg PF 1.50, avg DD -6.85% ($19k), ~12 trades/day; best ES strategy 175 trades/yr PF 2.28 $92k; most consistent 2,259 trades/yr PF 1.21 $44k worst day -$1,887.",
+   "evidence_quality": 1,
+   "prop_fit": "Not codeable; included because per-strategy drawdowns of $11-19k on full-size contracts in a bull year show even 'good' NQ bots draw down 5-10x Lucid's room at 1 mini.",
+   "data_requirements": "FLAG: proprietary.",
+   "sources": [
+    "https://automatedtradingstrategies.substack.com/p/do-our-strategies-work-on-the-e-mini"
+   ]
+  }
+ ]
+}

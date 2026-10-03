@@ -1,0 +1,127 @@
+{
+ "id": "mr_volband",
+ "family": "intraday_mean_reversion",
+ "contract": "MGC",
+ "params": {
+  "divisor": 16,
+  "hold": 30,
+  "stop_mult": 0.5,
+  "tgt_mode": "none",
+  "gate": true,
+  "vix_low": 20,
+  "vix_high": 30,
+  "vol_mult": 1.0,
+  "vol_src": "rv20",
+  "entry_start": "08:25",
+  "entry_end": "13:00",
+  "flat": "15:55",
+  "sides": "both",
+  "max_trades": 2,
+  "allow_open_outside": false
+ },
+ "period_main": {
+  "trades": 104,
+  "net": 1923.071516040795,
+  "days": 448,
+  "trading_days": 104,
+  "win_rate": 0.5,
+  "avg_trade": 18.49107226962303,
+  "avg_win": 122.78999999999641,
+  "avg_loss": -85.80785546075036,
+  "profit_factor": 1.4309878663284175,
+  "expectancy_R": 0.2154939331642088,
+  "trades_per_day": 0.23214285714285715,
+  "max_dd_closed": -1755.031576144761,
+  "max_dd_intraday": -1792.2814863673113,
+  "mean_day": 4.292570348305347,
+  "std_day": 78.814219622543,
+  "sharpe_daily_ann": 0.8645957809078473,
+  "pct_pos_days": 0.5,
+  "largest_day": 915.4099999999937,
+  "worst_day": -327.6186446199552,
+  "largest_day_share": 0.47601453839045604,
+  "months": 21,
+  "pct_pos_months": 0.47619047619047616,
+  "worst_month": -566.6241487329085,
+  "best_month": 928.7833540656615
+ },
+ "period_prior": {
+  "trades": 158,
+  "net": -1088.191765548629,
+  "days": 516,
+  "trading_days": 157,
+  "win_rate": 0.43037974683544306,
+  "avg_trade": -6.88728965537107,
+  "avg_win": 40.03720588235458,
+  "avg_loss": -42.34135295054158,
+  "profit_factor": 0.7144394598979776,
+  "expectancy_R": -0.16266106714672132,
+  "trades_per_day": 0.3062015503875969,
+  "max_dd_closed": -1261.6117655486373,
+  "max_dd_intraday": -1327.011765548637,
+  "mean_day": -2.1088987704430795,
+  "std_day": 30.499466132634947,
+  "sharpe_daily_ann": -1.097649708858082,
+  "pct_pos_days": 0.43312101910828027,
+  "largest_day": 250.27000000000152,
+  "worst_day": -164.8482846357536,
+  "largest_day_share": NaN,
+  "months": 24,
+  "pct_pos_months": 0.375,
+  "worst_month": -296.66821603763344,
+  "best_month": 181.02000000002317
+ },
+ "lucid": {
+  "micros": 15,
+  "pass_rate": 0.17954545454545454,
+  "p_first_payout_unconditional": 0.018899521531100475,
+  "expected_net_per_eval": 24.09569377990428,
+  "median_days_to_pass": 70.0
+ },
+ "verdict": "marginal",
+ "notes": "Paper rule (Seeck 2026) implemented faithfully with VIX (x1.25 for MNQ) or 20d realised vol (MGC) bands. MAIN positive on all instruments (MNQ PF 1.13/88 trades, MES 1.09/61, MGC 1.43/104) but PRIOR 2023-24 negative on all three and on 70/72 grid points (PF 0.59-0.98). MAIN edge concentrated in a few high-vol sessions (2025-04-07 on MNQ, 2026 gold rally on MGC). Band-target variant halves DD / doubles PF on MAIN only; MNQ band+long-only is the sole two-period-positive variant and is too small (~26 trades/yr, $5/trade). Lucid: MGC defaults best, +$24/eval at 15 micros, pass 18%, P(first payout) 1.9%; MNQ -146/eval. Not a standalone leg; possible low-DD long-only filler.",
+ "alt": {
+  "MGC:{}": {
+   "main_pf": 1.4309878663284175,
+   "main_trades": 104,
+   "main_net": 1923.071516040795,
+   "prior_pf": 0.7144394598979776,
+   "prior_trades": 158,
+   "lucid": {
+    "micros": 15.0,
+    "pass_rate": 0.17954545454545454,
+    "p_first_payout_unconditional": 0.018899521531100475,
+    "expected_net_per_eval": 24.09569377990428,
+    "median_days_to_pass": 70.0
+   }
+  },
+  "MNQ:{}": {
+   "main_pf": 1.1273768467725287,
+   "main_trades": 88,
+   "main_net": 768.7640948416472,
+   "prior_pf": 0.8317720373310021,
+   "prior_trades": 126,
+   "lucid": {
+    "micros": 5.0,
+    "pass_rate": 0.10430839002267574,
+    "p_first_payout_unconditional": 0.0,
+    "expected_net_per_eval": -146.0,
+    "median_days_to_pass": 30.5
+   }
+  },
+  "MNQ:{\"divisor\": 14, \"hold\": 30, \"stop_mult\": 0.5, \"tgt_mode\": \"band\"}": {
+   "main_pf": 2.093343175475685,
+   "main_trades": 76,
+   "main_net": 848.0936380290325,
+   "prior_pf": 0.8254590135757375,
+   "prior_trades": 100,
+   "lucid": {
+    "micros": 40.0,
+    "pass_rate": 0.07635467980295567,
+    "p_first_payout_unconditional": 0.030541871921182268,
+    "expected_net_per_eval": -91.02463054187191,
+    "median_days_to_pass": 23.0
+   }
+  }
+ }
+}

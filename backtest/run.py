@@ -15,22 +15,45 @@ import strategies
 WARMUP_DAYS = 45  # calendar days of extra history loaded before `start` so indicators are warm on the first day
 
 
-def prepare(strategy_id, contract_name, start, end, params=None, df1=None):
-    """Load data with warm-up, generate intents and forbid entries before `start`. Returns (df1, intents, contract)."""
+def thin_sessions(df1, contract):
+    """day_ids of sessions with fewer than 80% of the typical number of RTH bars (holiday / early-close / feed gaps).
+    Fills on those sessions are at holiday liquidity, so entries are skipped there by default."""
+    from backtest.data import hm
+    o, c = hm(contract.rth_open), hm(contract.rth_close)
+    rth = df1[(df1['tod'] >= o) & (df1['tod'] < c)].groupby('day_id').size()
+    rth = rth.reindex(range(int(df1['day_id'].max()) + 1)).fillna(0)
+    typical = rth[rth > 0].median() if (rth > 0).any() else 0
+    return rth.index.values[rth.values < 0.8 * typical]
+
+
+def prepare(strategy_id, contract_name, start, end, params=None, df1=None, skip_thin_sessions=True):
+    """Load data with warm-up, generate intents, forbid entries before `start` and (by default) on thin sessions.
+    Returns (df1, intents, contract)."""
     contract = CONTRACTS[contract_name]
     if df1 is None:
         df1 = load_1m(contract.data_symbol, (pd.Timestamp(start) - pd.Timedelta(days=WARMUP_DAYS)).strftime('%Y-%m-%d'), end)
     mod = strategies.load(strategy_id)
     it = mod.generate(df1, contract, params or {})
     it.allow_entry &= (df1['session'].values >= pd.Timestamp(start).date())
+    if skip_thin_sessions:
+        thin = thin_sessions(df1, contract)
+        if len(thin):
+            it.allow_entry &= ~np.isin(df1['day_id'].values, thin)
     return df1, it, contract
 
 
 def slice_window(trades, daily, start):
+    """Keep sessions >= start in both tables; trades are filtered by their SESSION (an evening trade of the first
+    session belongs to the window), falling back to entry date when no session column is present."""
     s = pd.Timestamp(start).date()
     daily = daily[daily['session'] >= s].reset_index(drop=True)
     if len(trades):
-        keep = pd.to_datetime(trades['entry_ts']).dt.tz_convert('America/New_York').dt.date >= s if len(trades) else []
+        if 'session' in trades:
+            keep = trades['session'].values >= s
+        elif 'day_id' in trades and 'session' in daily and len(daily):
+            keep = np.ones(len(trades), bool)
+        else:
+            keep = pd.to_datetime(trades['entry_ts']).dt.tz_convert('America/New_York').dt.date >= s
         trades = trades[keep].reset_index(drop=True)
     return trades, daily
 

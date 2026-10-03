@@ -1,0 +1,413 @@
+{
+ "family": "Volatility-based breakout and compression/expansion strategies",
+ "notes": "Report: /home/user/claude-workspace/research/families/volatility_breakout.md. 12 searches ran before the session search budget closed; ~30 pages fetched including full text of Holmberg-Lonnbark-Lundstrom (FRL 2013, crude ORB) and Mesfin (arXiv 2605.04004, 2026, MNQ walk-forward). quantifiedstrategies.com, SSRN, ScienceDirect, medium, forexfactory blocked fetches (abstract/snippet only). Headline findings: (1) raw volatility breakouts do not clear futures friction in any cost-aware 2023-2026 test (Fetna 2026: 0/225 ORB cells net-positive at $25/RT; Mesfin 2026: 11/14 OHLCV families below the 2-pt MNQ friction floor; Oxford Strat 1980-2016: Crabel stretch ORB / NR7 / 2-bar-NR all rated C, wide-range breakout rated D with PF 0.74). (2) Entering after a completed 5-min expansion bar is actively negative (T=-11.52, N=1,955); entries must be resting stops at pre-computed levels filled from 1-min data, 09:30-11:30 ET. (3) The only peer-reviewed positive threshold-breakout result (Holmberg, crude 1983-2011, open*(1+/-rho), EOD exit, no costs) has 61-71% hit rates at tight thresholds with the whole edge in the high-vol 2001-2011 decade. (4) Compression predicts expansion (inside days broke prior range 87.8% ES / 88.4% NQ in 2025) but not direction; direction must come from open-vs-prior-midpoint (67%/58% target hits on NQ) or trend filters. (5) ATR regime does not change continuation probability (<1.8pp across regimes, 6,142 ES/NQ sessions) so volatility should set size, not permission. (6) Median post-break extension is 36-43% of the prior bar range on ES/NQ, so a 0.4x-range capped target with 0.5x-range stop fits the Lucid 50% consistency and 5x$150 payout rules far better than EOD-only exits. Squeeze indicators (TTM/Bollinger/Keltner) have no credible intraday futures evidence. Candidates for backtest: VB-1 Williams open+k*range (k 0.3-0.5) conditioned on open-vs-midpoint and no wide-spread day; VB-2 ID/NR4/NR7 stretch ORB; VB-3 inside-day range-target trade; VB-4 ATR-unit breakout with 0.33-ATR stop; all micros, one attempt/day, daily loss cap $300-400, flat 15:55 ET. The family suits the \"safe\" configuration (steady $100-300 days) more than the \"fast\" one.",
+ "strategies": [
+  {
+   "name": "Larry Williams volatility breakout (open + k x prior-day range), NanoTrader/WH SelfInvest spec",
+   "origin": "Larry Williams (Long-Term Secrets to Short-Term Trading, 1999; 1987 Robbins Cup); WH SelfInvest/NanoTrader free system",
+   "entry": "Range_y = H[y]-L[y] daily. Buy stop at Open_today + 0.25*Range_y; sell stop at Open_today - 0.25*Range_y (Williams' own text uses k 0.5-0.7). First stop filled is the position. Run on 5-min (or 1-min) bars.",
+   "exit": "Profit target and stop both 2x the k-range (= 0.5*Range_y) from entry; time exit 15:59 ET (21:59 CET). Williams book variant: exit first profitable open.",
+   "filters": "Book variants: trade-day-of-week filters; prefer longs after a down close. None in the NanoTrader default.",
+   "parameters": "k in {0.25, 0.5, 0.7}; stop/target 2x k-range (0.5x range); exit 15:59 ET; one trade/day",
+   "instruments": "DAX, Dow, NASDAQ, S&P 500, CAC 40, Bund (vendor charts); TradingView audit mostly single stocks/crypto",
+   "timeframe_session": "Daily range unit, intraday 5-min/1-min execution, RTH, flat 15:59 ET",
+   "claimed_performance": "Vendor: 'profits variable but none negative', no numbers/costs. TradeSearcher audit of 2,036 TradingView runs: 185 with >15 trades, 10 pass quality gate, avg t 2.63 but p 0.14, robustness 18/100, 'cannot be told apart from chance'. QS SPY 1993-2026 Williams volatility-channel breakout: trend version poor; MR version 0.69%/trade, MDD 33%, PF<1.75.",
+   "evidence_quality": 2,
+   "prop_fit": "Acceptable shape (one trade/day, bracket, flat by close). Stop 0.5x range = 25-35 ES pts in 2025 => micros only (2-4 MES). Cap target at 0.4-0.5x range for the 50% consistency rule; EOD-only exit gives fat right tail.",
+   "data_requirements": "Daily OHLC + 1-min OHLC; no volume",
+   "sources": [
+    "https://www.whselfinvest.com/en-lu/trading-platform/free-trading-strategies/tradingsystem/56-volatility-break-out-larry-williams-free",
+    "https://www.best-trading-platforms.com/trading-platform-futures-forex-cfd-stocks-nanotrader/larry-williams-volatility-break-out-strategy",
+    "https://tradesearcher.ai/strategies/1666-volatility-breakout-strategy",
+    "https://www.quantifiedstrategies.com/larry-williams-volatility-strategy/"
+   ]
+  },
+  {
+   "name": "Williams breakout, mql5 Market Secrets automation (prior-range, swing-range, structure+time filters)",
+   "origin": "mql5.com article series 2026 (Parts 5, 6, 8), MQL5 EAs on XAUUSD",
+   "entry": "Part 5: buy level = Open + Range_y*BuyMult, sell = Open - Range_y*SellMult, detected by 1-min crossover. Part 6: range = max(|H[3d ago]-L[1d ago]|, |H[1d ago]-L[3d ago]|) (dominant swing). Part 8: longs only when last 3 daily bars form a Williams short-term swing low (bar 2 extreme, no inside/outside bars); optional TDW and time-of-day windows.",
+   "exit": "Stop = entry -/+ range*StopMult; target = stop distance * RewardMult. Daily bars, multi-day holds as published.",
+   "filters": "Swing-structure filter, trade-day-of-week, time-of-day; long-only in tests",
+   "parameters": "BuyMult/SellMult/StopMult/RewardMult (values not disclosed); 1-2% risk per trade",
+   "instruments": "Gold XAUUSD (daily)",
+   "timeframe_session": "Daily bars, 1-min detection; 2025 full-year tests",
+   "claimed_performance": "XAUUSD $10k, long-only, 2025: Part 5 Jan-Nov net +$6,203 (~60%); Part 6 Jan-Dec net +$4,450 (44%), win 48.39%; Part 8 Jan-Dec net +$3,711 (35%), win 54.55%. No PF/DD/trade counts/costs; gold rose ~60% in 2025 (beta).",
+   "evidence_quality": 2,
+   "prop_fit": "Published as multi-day daily system (violates no-overnight). Convertible to intraday with a 15:55 ET exit; swing-range unit is a useful alternative volatility unit for MGC/ES/NQ.",
+   "data_requirements": "Daily OHLC + 1-min OHLC",
+   "sources": [
+    "https://www.mql5.com/en/articles/20745",
+    "https://www.mql5.com/en/articles/20862",
+    "https://www.mql5.com/en/articles/21003"
+   ]
+  },
+  {
+   "name": "Williams VBO with SMA20 trend filter and 11:30 ET entry cutoff (open-source variant)",
+   "origin": "rusty_trader stratlab vbo.py (GitHub 2026, SPY/QQQ/megacaps 5-min 2021-2026); freqtrade LWBreakout (nateemma)",
+   "entry": "trigger_long = Open_today + k*(H[y]-L[y]), k default 0.5; enter on first 5-min bar with high >= trigger if bar time <= 11:30 ET; long only if Open_today > SMA20(daily closes, lagged 1), short mirror. freqtrade: open + 0.66*ATR(60 bars), close-cross entry.",
+   "exit": "Hold to EOD, flatten on 15:55 bar; no stop in published code (add 0.5x range or 1 ATR). freqtrade: close crossing below open - 0.15*ATR(60).",
+   "filters": "SMA20 daily trend; entry cutoff 11:30 ET; one entry/day/name",
+   "parameters": "k in {0.3,0.5,0.7}; cutoff in {11:00,11:30,12:00} ET; IBKR tiered + 1bp slippage",
+   "instruments": "SPY, QQQ, 41 megacaps (equities); crypto (freqtrade)",
+   "timeframe_session": "5-min RTH, flat 15:55 ET",
+   "claimed_performance": "Docstring cites unverified 'PF 1.15-1.35 raw, 1.35-1.60 with trend filter, Sharpe 0.85-1.25' from QS archives; result files not accessible.",
+   "evidence_quality": 1,
+   "prop_fit": "Good shape for Lucid (one trade/day, trend-directed, morning-only entries, EOD flat). Needs a stop.",
+   "data_requirements": "Daily + intraday OHLC",
+   "sources": [
+    "https://github.com/RyanTYT/rusty_trader",
+    "https://github.com/nateemma/strategies"
+   ]
+  },
+  {
+   "name": "Holmberg-Lonnbark-Lundstrom normal-quantile threshold breakout (open x (1 +/- rho))",
+   "origin": "Finance Research Letters 10 (2013); Umea University working paper ues845",
+   "entry": "rho_alpha = mean + SD of log(Close/Open) x standard-normal quantile q_alpha (alpha 10%,5%,1%,0.5%,0.1%). Long filled at Open*(1+rho) if High exceeds it; short at Open*(1-rho) if Low breaks it.",
+   "exit": "Close of the same day; no stop, no target; perfect fill, zero costs",
+   "filters": "None (threshold estimated ex post on full sample)",
+   "parameters": "alpha 1% => rho 1.69% full sample (2.32% in 2001-2011); 10% => 0.94%",
+   "instruments": "US crude oil futures (CSI continuous)",
+   "timeframe_session": "Daily OHLC 1983-03-30 to 2011-01-26, 6,976 days; EOD exit",
+   "claimed_performance": "Full sample long alpha=1%: N 188, 61.2% winners, +0.258%/trade, p=0.0001; alpha=0.1%: N 80, 71.3%, +0.403%. 2001-2011 alpha=1% long: N 50, 80% winners, +0.516%, p=0.006; short N 64, 64.1%, +0.388%. 1992-2001 alpha=1% long: 58.1%, +0.084%, p=0.036; short n.s. Hit rate and mean rise as threshold tightens; edge concentrated in high-vol decade.",
+   "evidence_quality": 4,
+   "prop_fit": "Mechanically ideal (known level, EOD exit) but no stop and gross of costs; crude not available 2024-26. Transfer to ES/NQ/GC with rolling 250-day rho, 5-10% quantile for trade count, stop at open, exit 15:55 ET.",
+   "data_requirements": "Daily OHLC + 1-min for fills; crude 2024-2026 not available so test on ES/NQ/GC",
+   "sources": [
+    "http://www.econ.umu.se/ueslpnr/ues845.pdf",
+    "https://www.sciencedirect.com/science/article/abs/pii/S1544612312000438"
+   ]
+  },
+  {
+   "name": "Generic ATR breakout from prior close with 0.33-ATR stop (Kaufman-style / Intraday Volatility Breakout Blueprint)",
+   "origin": "Perry Kaufman, Trading Systems and Methods (volatility breakout); crackingmarkets.com blueprint (2025); StockSharp ATR Range Breakout",
+   "entry": "Levels = prior close +/- k*ATR (k 0.33 example; Kaufman daily k 1-3). Long above upper, short below lower. One breakout attempt per market per day.",
+   "exit": "Fixed stop 0.33*ATR; exit at end of day",
+   "filters": "Trade only after a narrow day / low-vol contraction with a trend filter (claimed 3x expectancy, 6x fewer trades)",
+   "parameters": "ATR length unspecified (use 14); k 0.33-0.5; stop 0.33 ATR",
+   "instruments": "SPY, QQQ, IWM, GLD, TLT (blog); StockSharp generic",
+   "timeframe_session": "Daily ATR unit, intraday execution, EOD exit",
+   "claimed_performance": "Blog: unfiltered 'not bad', filtered 3x expectancy; no win rate/PF/DD. StockSharp vendor claim ~169%/yr (ignore).",
+   "evidence_quality": 1,
+   "prop_fit": "Small bounded loss (0.33 ATR14 on ES ~20 pts = $100/MES); one attempt/day; good micro candidate (VB-4).",
+   "data_requirements": "Daily + 1-min OHLC",
+   "sources": [
+    "https://www.crackingmarkets.com/intraday-volatility-breakout-blueprint/",
+    "https://www.nuget.org/packages/StockSharp.Strategies.0044_ATR_Range.py"
+   ]
+  },
+  {
+   "name": "Crabel stretch ORB and ORBP (one-sided preference with price-channel or momentum filter)",
+   "origin": "Toby Crabel, Day Trading with Short Term Price Patterns and ORB (1990); S&C 1988-89 ORB series; Oxford Strat independent tests",
+   "entry": "Noise_i = min(H_i-O_i, O_i-L_i); Stretch = SMA10(Noise) x multiple (1.0 Crabel, 2.0 tested). Buy stop Open+Stretch, sell stop Open-Stretch; first fill is the trade, other is the stop; no same-day reversal. ORBP: take only one side when biased (price channel: High > highest high of L days; momentum: Close > Close[L]); cancel if opposite stretch hit first.",
+   "exit": "Crabel: same-day close or first profitable close. Oxford Strat: Nth-day close (1-50), stretch exit, ATR(20)x6 stop.",
+   "filters": "Earlier fill better (within 10 min of open); best after inside day, NR day, hooks, ID-NR; never after a wide-spread day; S&P ORB II: wide directional first 5-min bar, cancel unfilled orders after 5-10 min",
+   "parameters": "Stretch_Length 10, multiple 1.0-2.0, filter lookback 2-100, ATR stop 6x",
+   "instruments": "42 US futures (commodities, currencies, rates, equity indexes)",
+   "timeframe_session": "Daily bars with intraday stop entries; 1980-2015/16",
+   "claimed_performance": "Positive gross; with $50/RT 'not currently tradeable without additional rules'; rating C. Trend filters improve; longer holds preferred. Mirror wide-range-N-day pattern: net -$873,375, Sharpe -1.45, PF 0.74, CAGR -5.09%, MDD 88.3%, win 23.8%, rating D.",
+   "evidence_quality": 3,
+   "prop_fit": "Codeable to the tick from 1-min data; stretch on ES 2025 ~10-15 pts so 1x-stretch stop $50-75/MES. ~45% both-stop days; use ORBP one-sided version with open-vs-midpoint bias.",
+   "data_requirements": "1-min OHLC + daily series; no volume",
+   "sources": [
+    "https://oxfordstrat.com/?p=8118",
+    "https://oxfordstrat.com/trading-strategies/orbp-with-price-channel-filter/",
+    "https://oxfordstrat.com/trading-strategies/orbp-trend/",
+    "https://oxfordstrat.com/trading-strategies/wide-range-pattern/",
+    "https://www.x-trader.net/descubriendo-a-toby-crabel-ii/",
+    "https://www.x-trader.net/descubriendo-a-toby-crabel-iii/",
+    "https://store.traders.com/-v06-c09-playing-pdf.html",
+    "https://store.traders.com/-v07-c04-orb-pdf.html"
+   ]
+  },
+  {
+   "name": "NR7 + stretch ORB / NR7 + prior-day-range breakout",
+   "origin": "Crabel (1990); Oxford Strat NR7 (Setup & Exit) and Price Breakout with NR7 (Connors/Raschke entry)",
+   "entry": "Setup: today's range narrower than each of previous six days (NR_Length 6). Next day A: buy stop Open+Stretch (SMA10 noise x2), sell stop Open-Stretch. B: buy stop 1 tick above NR7 high, sell stop 1 tick below NR7 low; other side is the stop; no reversal.",
+   "exit": "Nth-day close (1-40), stretch exit, ATR(20)x6 stop; Crabel: same-day close",
+   "filters": "NR_Length >= 6 better; longer holds preferred",
+   "parameters": "NR_Length 1-20 (6 best), N 1-40, stretch multiple 2.0",
+   "instruments": "42 US futures",
+   "timeframe_session": "Daily setup, intraday stop entry; 1980-2016",
+   "claimed_performance": "Without costs viable; with $50/RT 'not currently tradeable without some additional rules'; rating C both variants. QS snippet: NR4 next-day tests 60%+ in all but two, none above 70%. rusty_trader docstring (unverified): SPY NR7+200SMA+Donchian 75-77% win, PF 2.30-2.35, 3-5 day hold; its own intraday note: 87% win but PF<1 due to large losers until a stop at NR7 low is added.",
+   "evidence_quality": 3,
+   "prop_fit": "NR7 ~15-20% of days => 3-4 setups/month/instrument; fine as safe overlay across ES/NQ/GC. Hard stop and capped target mandatory.",
+   "data_requirements": "Daily OHLC + 1-min",
+   "sources": [
+    "https://oxfordstrat.com/trading-strategies/nr7/",
+    "https://oxfordstrat.com/trading-strategies/price-breakout-nr7/",
+    "https://www.quantifiedstrategies.com/nr7-trading-strategy-toby-crabel/",
+    "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/narrow-range-day-nr7",
+    "https://github.com/RyanTYT/rusty_trader"
+   ]
+  },
+  {
+   "name": "2-bar NR (xBNR) + stretch ORB",
+   "origin": "Crabel (1990) x-bar narrow range; Oxford Strat 2-Bar NR Pattern",
+   "entry": "2-day range (HH-LL of last 2 days) narrowest of any 2-day range in prior 20 days. Next day buy stop Open+Stretch, sell stop Open-Stretch (stretch = SMA10 noise x 2.0).",
+   "exit": "Nth-day close (1-40), target = Target_Index x initial risk (1-10), stretch exit, ATR(20)x6 stop",
+   "filters": "None beyond setup",
+   "parameters": "Look_Back 20, NR_Size 2, stretch multiple 2.0",
+   "instruments": "42 US futures",
+   "timeframe_session": "Daily setup, intraday stop entry; 1980-2013",
+   "claimed_performance": "Rating C; degradation with $50/RT illustrated; no tables",
+   "evidence_quality": 3,
+   "prop_fit": "Rare (~5-8% of days); use as sizing tier (2x micros) on top of VB-2",
+   "data_requirements": "Daily OHLC + 1-min",
+   "sources": [
+    "https://oxfordstrat.com/?p=8118",
+    "https://oxfordstrat.com/trading-strategies/toby-crabel-narrow-range-2/"
+   ]
+  },
+  {
+   "name": "ID/NR4 breakout (Connors & Raschke Street Smarts)",
+   "origin": "Connors & Raschke, Street Smarts (1995), building on Crabel's IDnr4",
+   "entry": "Setup day is an inside day (H<H[1], L>L[1]) and NR4 (range < each of prior 3 days). Next day buy stop 1 tick above setup high, sell stop 1 tick below setup low; opposite stop is stop-and-reverse (standard interpretation of the book).",
+   "exit": "Exit if not profitable within 2 days; trail stop. Lucid version: one-sided, stop at opposite extreme or 1x stretch, target prior-day high/low, flat 15:55 ET",
+   "filters": "Direction from open-vs-prior-day midpoint (one-sided version)",
+   "parameters": "Entry 1 tick beyond setup bar; 2-day time stop",
+   "instruments": "Book examples (S&P, bonds, currencies); statistics on SPY/ES/NQ",
+   "timeframe_session": "Daily setup, next-day intraday execution",
+   "claimed_performance": "No book statistics. Quantifiable Edges SPY: 215 inside days 2001-2008 closed lower next day 54%, net -0.2%; inside days with down close (104) closed down 58%, losses 2.1x gains; edges flat after 2009. Edgeful 2025 (6 months, NY session): inside day followed by break of prior range 87.84% ES (65/74), 88.41% NQ (61/69).",
+   "evidence_quality": 2,
+   "prop_fit": "Avoid stop-and-reverse (two losses/day on trailing DD). One-sided version with small stop/target on compressed ranges is a good many-small-green-days candidate.",
+   "data_requirements": "Daily OHLC + 1-min",
+   "sources": [
+    "https://www.luxalgo.com/library/concept/nr4-nr7-narrow-range-bars.md",
+    "https://quantifiableedges.blogspot.com/search?q=inside+day",
+    "https://www.edgeful.com/blog/posts/inside-day-in-trading-breakout-data"
+   ]
+  },
+  {
+   "name": "Inside-day range-target trade with open-vs-midpoint bias",
+   "origin": "edgeful.com inside-day breakout data (2025); consistent with session-midpoint statistics",
+   "entry": "Yesterday inside day. If 09:30 ET open > yesterday's midpoint, long at/after open (first 1-min close above open); if below, short mirror.",
+   "exit": "Target yesterday's high (long) / low (short); stop at yesterday's midpoint or 0.5x yesterday's range; flat 15:55 ET",
+   "filters": "Inside day only; open-vs-midpoint direction",
+   "parameters": "Target = prior extreme (~0.3-0.6x prior range away); stop midpoint",
+   "instruments": "ES, NQ (also TSLA, NVDA in source)",
+   "timeframe_session": "NY session 09:30-16:00 ET; six months to mid-2025",
+   "claimed_performance": "NQ: open above midpoint -> prior high reached 67%; open below -> prior low 58%; range broken 87.8% ES / 88.4% NQ; no P&L; N 69-74 sessions",
+   "evidence_quality": 2,
+   "prop_fit": "Very good shape: defined target/stop both small on compressed days ($100-300/lot), high hit rate, flat by close \u2014 matches 5x$150 payout profile",
+   "data_requirements": "Daily OHLC + 1-min",
+   "sources": [
+    "https://www.edgeful.com/blog/posts/inside-day-in-trading-breakout-data"
+   ]
+  },
+  {
+   "name": "WR7-down then NR7 next-day long bias",
+   "origin": "Rob Hanna, Quantifiable Edges (2008-2009)",
+   "entry": "Day1 wide-range-7 with lower close; Day2 NR7; long at Day2 close (or use as next-day long-only ORBP bias)",
+   "exit": "1, 3 or 5 days later (not a day trade)",
+   "filters": "None",
+   "parameters": "WR7/NR7 lookback 7",
+   "instruments": "NDX since 1986; S&P 500",
+   "timeframe_session": "Daily",
+   "claimed_performance": "Next-day average >10x a normal day (+0.06%), 3-day >5x; high win rate; sample sizes not stated",
+   "evidence_quality": 2,
+   "prop_fit": "Direction input only for the following day's breakout",
+   "data_requirements": "Daily OHLC",
+   "sources": [
+    "https://quantifiableedges.blogspot.com/search?q=NR7"
+   ]
+  },
+  {
+   "name": "TTM Squeeze (Bollinger inside Keltner, momentum histogram fire)",
+   "origin": "John Carter, Mastering the Trade (2005); thinkorswim TTM_Squeeze; TradingView NA-GPT strategy",
+   "entry": "BB = SMA20 +/- 2 SD; KC = EMA20 +/- 1.5 ATR20. Squeeze ON when both BBs inside KC; fire on first bar BBs exit KC; enter in direction of momentum histogram = linreg(20) of close minus avg(Donchian20 midpoint, SMA20).",
+   "exit": "Histogram fades toward zero; or 21-SMA cross (TradingView long-only variant)",
+   "filters": "Pair with structure/higher-timeframe filter (luxalgo caveat)",
+   "parameters": "20/2.0 BB, 20/1.5 KC, 20 linreg",
+   "instruments": "Any; no futures evidence",
+   "timeframe_session": "Any; intraday 5-min usable",
+   "claimed_performance": "No credible intraday futures backtest. QS Bollinger squeeze: 'doesn't do particularly well for any asset'; PEP 1975-2026 12.5% CAGR vs 14.8% B&H, 61% exposure, MDD 26%. GitHub PSX ensemble 66.7% win/106.7% 10yr (not applicable).",
+   "evidence_quality": 1,
+   "prop_fit": "Compression flag only (e.g., require 5-min squeeze ON at 09:30-10:00 before stretch ORB); not a primary entry",
+   "data_requirements": "Intraday OHLC only",
+   "sources": [
+    "https://www.luxalgo.com/library/concept/ttm-squeeze.md",
+    "https://toslc.thinkorswim.com/center/reference/Tech-Indicators/studies-library/T-U/TTM-Squeeze",
+    "https://www.tradingview.com/script/9pbRIoJQ-NA-GPT-TTM-Squeeze-Strategy/",
+    "https://www.quantifiedstrategies.com/bollinger-band-squeeze-strategy/",
+    "https://github.com/FatalEmperor/psx-squeeze-ensemble"
+   ]
+  },
+  {
+   "name": "Bollinger bandwidth vs ATR squeeze (bbs = 2*SD20/(1.6*ATR20) < 1) breakout",
+   "origin": "ProRealCode screener; luxalgo volatility percentile convention",
+   "entry": "Squeeze when 2*SD(close,20)/(1.6*ATR20) < 1 for several bars (or bandwidth 252-bar percentile < 20); breakout = close outside Bollinger band in direction of trend filter (SMA50 > SMA200)",
+   "exit": "Not specified (use ATR stop / EOD)",
+   "filters": "Trend filter; persistence of squeeze",
+   "parameters": "20-period SD, ATR20 x 1.6, percentile lookback 252, <20 compression, >80 stress",
+   "instruments": "Generic",
+   "timeframe_session": "Daily screener; adaptable intraday",
+   "claimed_performance": "None quantitative",
+   "evidence_quality": 1,
+   "prop_fit": "Compression flag only",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://www.prorealcode.com/prorealtime-market-screeners/bollinger-bands-squeeze-screener-daily-volatility-compression-with-atr-ratio/",
+    "https://www.luxalgo.com/library/concept/volatility-percentile-rank.md"
+   ]
+  },
+  {
+   "name": "Keltner channel breakout (EMA20 +/- 2 ATR14, 5-min)",
+   "origin": "Keltner/Raschke; StockSharp Keltner Channel Breakout; mql5 EAs",
+   "entry": "Long on close above EMA20 + 2*ATR14; short below EMA20 - 2*ATR14 on 5-min bars",
+   "exit": "Price crosses back through EMA20, or stop",
+   "filters": "None",
+   "parameters": "EMA 20, ATR 14, multiplier 2, 5-min",
+   "instruments": "Vendor: stocks, EURUSD; nothing on ES/NQ/GC",
+   "timeframe_session": "5-min intraday",
+   "claimed_performance": "Vendor claims ~58%/yr; no tables",
+   "evidence_quality": 1,
+   "prop_fit": "Late entry (2 ATR from mean) \u2014 the 'move completed inside the signal bar' problem; not recommended as entry",
+   "data_requirements": "Intraday OHLC",
+   "sources": [
+    "https://doc.stocksharp.com/en/api-examples/0007_Keltner_Channel_Breakout",
+    "https://www.mql5.com/en/market/product/63119"
+   ]
+  },
+  {
+   "name": "ATR-channel / ATR-compression breakout (NQ 60-min; FMZ squeeze with momentum)",
+   "origin": "medium coding-nexus (NQ 60-min), FMZ Quant, tradingcode.net (pages 403; standard interpretation)",
+   "entry": "Compression = ATR14 at N-bar low or ATR14/ATR100 < ~0.7; buy break of compression-window high, sell break of low; FMZ adds momentum confirmation and SMA +/- m*ATR channel",
+   "exit": "Stop 1x ATR14 or opposite side of window; target k x ATR",
+   "filters": "Momentum sign (FMZ)",
+   "parameters": "ATR 14, compression lookback N, k",
+   "instruments": "NQ (60-min) per source",
+   "timeframe_session": "60-min (multi-day holds); adaptable to 5-15 min RTH",
+   "claimed_performance": "Not verifiable (pages blocked); no numbers in summaries",
+   "evidence_quality": 1,
+   "prop_fit": "Too few setups on 60-min; intraday version codeable but no evidence it beats daily NR/ID conditioning",
+   "data_requirements": "Intraday OHLC",
+   "sources": [
+    "https://medium.com/coding-nexus/atr-volatility-compression-a-winning-breakout-strategy-with-python-8aba9008a65b",
+    "https://medium.com/@FMZQuant/atr-channel-squeeze-breakout-strategy-volatility-breakout-trading-system-with-momentum-indicator-be10b8784ee9",
+    "https://www.tradingcode.net/tradingview/atr-channel-breakout/"
+   ]
+  },
+  {
+   "name": "Volatility Contraction Pattern (VCP) intraday (StockSharp)",
+   "origin": "Minervini VCP concept; StockSharp strategy 0043",
+   "entry": "Sequence of narrowing ranges (lookback 20, 5-min); break above highest high / below lowest low of contraction",
+   "exit": "Cross of MA20 or stop",
+   "filters": "None",
+   "parameters": "MA 20, lookback 20, 5-min",
+   "instruments": "Stocks (vendor)",
+   "timeframe_session": "5-min intraday",
+   "claimed_performance": "Vendor claim ~166%/yr; no details",
+   "evidence_quality": 1,
+   "prop_fit": "Not a candidate as published",
+   "data_requirements": "Intraday OHLC",
+   "sources": [
+    "https://stocksharp.com/store/strategies.0043_vcp/"
+   ]
+  },
+  {
+   "name": "Session volatility-bands breakout (HunterBreakOut NQ)",
+   "origin": "huntersalgo.com vendor",
+   "entry": "Close beyond volatility bands around the 09:30 ET session open range during the session window",
+   "exit": "Fixed stop and target (values undisclosed)",
+   "filters": "Session window",
+   "parameters": "Undisclosed",
+   "instruments": "NQ",
+   "timeframe_session": "RTH open window",
+   "claimed_performance": "533 trades, 66% win, ~$34,000 net; period/costs/DD undisclosed",
+   "evidence_quality": 1,
+   "prop_fit": "Unverifiable vendor claim",
+   "data_requirements": "Intraday OHLC",
+   "sources": [
+    "https://huntersalgo.com/guides/best-nq-breakout-strategy"
+   ]
+  },
+  {
+   "name": "Expansion-bar continuation on 5-min bars (Mesfin 2026, Asia session) \u2014 NEGATIVE",
+   "origin": "Mesfin, arXiv 2605.04004 (May 2026), MNQ falsification study",
+   "entry": "Asia session 20:00-02:00 ET: 5-min bar range > 1.5x/2.0x/2.5x rolling 20-bar average; enter next bar open in bar direction",
+   "exit": "Hold 1 or 6 bars",
+   "filters": "None",
+   "parameters": "Threshold 1.5/2.0/2.5; horizon b+1/b+6; friction 2.0 MNQ pts RT",
+   "instruments": "MNQ",
+   "timeframe_session": "5-min, Asia session, Dec 2021-Aug 2025, walk-forward OOS 2023/2024/2025",
+   "claimed_performance": "1.5x b+1: N 1,955, net -2.27 pts, T=-11.52; 1.5x b+6 T=-4.86; 2.0x b+1 N 778 T=-7.42; 2.5x b+6 N 340 gross +1.06 net -0.94 T=-0.90. Move exists (+32.24 pts open-to-next-open) but is consumed within the signal bar (-0.17 close-to-next-open).",
+   "evidence_quality": 4,
+   "prop_fit": "Do not enter after completed expansion bars; use resting stops at pre-computed levels filled from 1-min data",
+   "data_requirements": "5-min OHLC (volume not needed for this family)",
+   "sources": [
+    "https://arxiv.org/abs/2605.04004",
+    "https://arxiv.org/pdf/2605.04004"
+   ]
+  },
+  {
+   "name": "Volatility-regime classifier days (VVG): fade vs follow the opening move",
+   "origin": "Mesfin 2026 (arXiv 2605.04004) and companion Mesfin 2026b",
+   "entry": "Fires (~4.4% of days) when |first-30-min return|, |overnight gap| and first-bar volume deviation (20-day baseline) are all top-tercile of expanding-window distributions. Reversal = fade opening direction; continuation = follow; close-fade at 15:30 ET",
+   "exit": "Fixed horizon (bars); net of 2 pts",
+   "filters": "Three-condition classifier",
+   "parameters": "Top tercile each condition",
+   "instruments": "MNQ",
+   "timeframe_session": "RTH 5-min, 2021-2025 walk-forward",
+   "claimed_performance": "Reversal: N 35, net +13.49 pts, T=1.26, 2023 -11.45 / 2024 +8.35 / 2025 -22.76. Continuation: -17.49 pts, T=-1.64, 2023 -49.00 / 2024 +37.00 / 2025 +18.76. Days are distinct (25.6bp next-day spread, 77.6% peak-reversal) but no fixed direction survives.",
+   "evidence_quality": 3,
+   "prop_fit": "Regime flag only: reduce size / apply daily loss cap on top-tercile gap and first-30-min days",
+   "data_requirements": "NEEDS VOLUME (first-bar volume deviation); approximate with the two price conditions only",
+   "sources": [
+    "https://arxiv.org/abs/2605.04004"
+   ]
+  },
+  {
+   "name": "Pre-registered 225-cell ORB cost study (Fetna 2026) \u2014 family cost floor",
+   "origin": "Mulham Fetna, SSRN 7428398 (2026)",
+   "entry": "225 fully specified ORB variants (range lengths x entry types x exits) across nine liquid US futures",
+   "exit": "Per cell",
+   "filters": "Per cell",
+   "parameters": "$25 per round trip; 16 years",
+   "instruments": "Nine liquid US futures",
+   "timeframe_session": "Intraday, 16 years",
+   "claimed_performance": "Gross +$1.57M on confirmation window, net -$6.49M; 0 of 225 cells positive; median gross edge -0.01 tick/trade",
+   "evidence_quality": 4,
+   "prop_fit": "Any candidate must show >= ~1.5-2 ES pts gross edge per trade in our 1-min test or it is noise",
+   "data_requirements": "None (abstract only accessible)",
+   "sources": [
+    "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7428398"
+   ]
+  },
+  {
+   "name": "ATR / VIX / realized-vol percentile regime filter (sizing overlay)",
+   "origin": "tradingstats ORB research (ES/NQ 2014-2025); Holmberg 2013 sub-samples; luxalgo percentile convention; Zarattini replication",
+   "entry": "Overlay: contracts = daily risk budget / (stop in ATR units x ATR14 x $/pt); skip days with yesterday's range > 1.5x ATR14 (Crabel wide-spread rule); reduce size when overnight gap > 1x ATR14 or VIX 252-day percentile > 80",
+   "exit": "n/a",
+   "filters": "VIX percentile (Yahoo ^VIX), ATR14/close percentile, range/ATR, gap/ATR; percentile = share of last 252 readings <= today's",
+   "parameters": "252-day lookback; <20 compression, >80 stress (calibrate by bucket)",
+   "instruments": "ES, NQ, GC",
+   "timeframe_session": "Daily regime applied to intraday trades",
+   "claimed_performance": "tradingstats: continuation rates within 1.7pp and double-break rates within 1.8pp across low/normal/high ATR; ES 5-min OR width 7.00 vs 11.25 pts (+61%), 30-min 9.00 vs 15.00 (+67%). Holmberg: edge concentrated in 2001-2011 high-vol decade (1% long 80% winners, +0.52% vs 58%/+0.08% in 1992-2001). Zarattini replication: 76% of filtered P&L from 2022.",
+   "evidence_quality": 3,
+   "prop_fit": "Use for sizing and daily-loss cap, not for direction",
+   "data_requirements": "Daily OHLC + VIX daily; 1-min for execution",
+   "sources": [
+    "https://tradingstats.net/orb-strategy-research/",
+    "http://www.econ.umu.se/ueslpnr/ues845.pdf",
+    "https://www.luxalgo.com/library/concept/volatility-percentile-rank.md"
+   ]
+  },
+  {
+   "name": "Expansion targeting: post-break extension statistics (target capping)",
+   "origin": "tradingstats 'How far does price extend after breaking the previous bar's high' (ES/NQ 2014-2026)",
+   "entry": "n/a \u2014 used to set targets after any prior-range break",
+   "exit": "Target 0.35-0.40x prior bar range beyond the broken level (~50% hit); 0.9-1.2x hit ~15%",
+   "filters": "n/a",
+   "parameters": "Median extension: NQ 1H 39%, 4H 43%, daily 36%; ES 1H 40%, 4H 42%, daily 36%; 85th pct 87-119%; 99th 214-342%",
+   "instruments": "ES, NQ continuous",
+   "timeframe_session": "1H/4H/8H/12H/daily/weekly, 2014-2026",
+   "claimed_performance": "Statistics only (no P&L)",
+   "evidence_quality": 3,
+   "prop_fit": "Basis for 0.4x-range capped targets that satisfy the 50% consistency rule and 5x$150 payout days",
+   "data_requirements": "Daily/intraday OHLC",
+   "sources": [
+    "https://tradingstats.net/price-extension-after-breakout/"
+   ]
+  }
+ ]
+}

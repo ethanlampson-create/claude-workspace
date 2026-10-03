@@ -1,0 +1,418 @@
+{
+ "family": "Cross-asset, relative-value and regime-filter strategies (ES/NQ spread and lead-lag, SMT divergence, VIX level/spike/term-structure gates, synthetic VIX, DXY-gold, gold safe haven, risk-on/off composites, correlation/turbulence regimes, GMM regime gating, relative strength, TSMOM filters, vol-targeted sizing)",
+ "notes": "Report written to /home/user/claude-workspace/research/families/multi_asset_relative.md. The session's WebSearch budget (200/200) was already exhausted when this sweep started, so the sweep used direct fetches: arXiv API (8 queries), Crossref API (10 canonical-paper lookups), Quantpedia, QuantConnect strategy library, GitHub code/repo search (StockSharp AlgoTrading, r1ckylel SMT Pine, honoreaa ES/NQ pairs, eigenquant53 VRP), Macroption, Alvarez/Quantifiable Edges indexes, and a full local pdftotext read of Mesfin (2026, arXiv:2605.04004v3). Bot-blocked and not re-fetched: Quantified Strategies, SSRN (Hanna NAAIM paper 4808230; Xu et al. cross-market intraday momentum), Wiley/OUP full text, Investopedia, Mojeek/Brave/DDG/Bing/Yahoo search front-ends. Where a well-known rule set could not be re-fetched (Connors VIX stretch/VIX RSI), the standard published interpretation is written and marked. Key takeaways: (1) only overlays have quality-4/5 evidence (vol-managed sizing, VIX/term-structure information, intraday momentum on volatile days, gold safe haven on extreme days); (2) ES/NQ lead-lag at 1-min is not exploitable and cash-index proxies make it look spuriously good; (3) the only rigorous 2021-2025 MNQ walk-forward found (Mesfin 2026) kills 14 single-bar OHLCV patterns (gross 0.07-1.50 pts vs 2.0-pt friction) but passes GMM-regime-gated 60-75 minute pullback holds (OOS T=3.11 and 4.30) with disclosed selection caveats; (4) ES/NQ spread MR has thin positive daily evidence (Sharpe 1.67, 2021-2025, single notebook) and needs short lookbacks plus a hard z-stop because of 2023-2025 leadership breaks; (5) gold decoupled from DXY in 2023-2026 but still responds to equity shocks; exclude liquidity-cascade days (Mar 2020, 7-8 Apr 2025). Data flags: VOL = needs volume; VIX-INTRADAY = needs intraday VIX (daily only available); FUTURES = cash-index proxy distorts; DAILY-ONLY = signal is daily and used as intraday filter.",
+ "strategies": [
+  {
+   "name": "ES-NQ beta-neutral spread z-score mean reversion (intraday)",
+   "origin": "Classic pairs/stat-arb (Gatev et al. 2006); futures implementations: honoreaa/Futures-MeanReversion (GitHub 2025, daily ES=F/NQ=F), QuantConnect intraday dynamic pairs (Miao 2014), StockSharp #0222 Cointegration Pairs and #0299 Beta-Adjusted Pairs",
+   "entry": "5-min RTH bars. beta = slope of rolling 20-session OLS of ln(NQ) on ln(ES), re-estimated nightly (honoreaa daily beta of ES on NQ = 0.2241). Spread S = ln(NQ) - beta*ln(ES); z = (S - mean(S,60 bars))/std(S,60 bars). Enter when |z| >= 2.0 (QuantConnect 2.33): z >= +2 short NQ / long ES notional-neutral; z <= -2 long NQ / short ES. Micro sizing ~1 MNQ vs 2 MES (recheck daily).",
+   "exit": "|z| <= 0.5 target; |z| >= 3.5-4.0 relationship-break stop; 18 bars (90 min) time stop; flat 15:55 ET.",
+   "filters": "20-session ADF on S rejects unit root at p<=0.05 (QuantConnect: corr>=0.9 and ADF p<=0.05); skip 09:30-09:45; FOMC 14:00-15:00 blackout; skip if 20-day ES-NQ daily-return correlation < 0.70.",
+   "parameters": "beta lookback 20 sessions (10-40); z lookback 60 bars (40-120); entry 2.0 (1.8-2.5); exit 0.5 (0-0.75); stop 3.5 (3-4); time stop 18 bars.",
+   "instruments": "MES vs MNQ (ES/NQ proxies)",
+   "timeframe_session": "5-min, 09:45-15:55 ET",
+   "claimed_performance": "honoreaa daily backtest 2021-01 to 2025-07: Sharpe 1.67, 86% annualized return on $100k, 49% annualized vol, ADF p=0.039 on residuals (no cost model). QuantConnect/Miao template on US bank stocks 2013-2016, 10-min bars: CAGR 26.9%, Sharpe 3.0, beta 0.23. StockSharp #0222 vendor claim ~103%/yr (unverified). No published intraday ES/NQ pairs stats.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only. [FUTURES] cash-index proxies smear the spread by 1-3 min of stale prints; use 5-min bars not 1-min.",
+   "prop_fit": "Hedged, small symmetric daily P&L suits 50% consistency and $150 payout days; doubles commissions/slippage (4 legs); main risk is multi-day spread trends on leadership changes (AI/NQ 2023-2025, Apr 2025) so the z-stop and correlation gate are mandatory.",
+   "sources": [
+    "https://github.com/honoreaa/Futures-MeanReversion",
+    "https://www.quantconnect.com/learning/articles/investment-strategy-library/intraday-dynamic-pairs-trading-using-correlation-and-cointegration-approach",
+    "https://github.com/StockSharp/AlgoTrading/tree/master/API/0201-0300/0222_Cointegration_Pairs",
+    "https://github.com/StockSharp/AlgoTrading/tree/master/API/0201-0300/0299_Beta_Adjusted_Pairs_Trading"
+   ]
+  },
+  {
+   "name": "NQ-ES 30-minute return-differential fade (dispersion spike)",
+   "origin": "Practitioner variant of spread MR using return windows; standard objective interpretation",
+   "entry": "d = 30-min cumulative log return NQ minus beta_r x 30-min cumulative log return ES (beta_r = 20-session slope of 5-min NQ on ES returns, ~1.2-1.4). sigma_d = std of d over last 60 sessions same window. Enter when |d| >= 2.5 sigma_d: short outperformer / long underperformer notional-neutral.",
+   "exit": "d back to 0.5 sigma_d; 60 min time stop; |d| >= 4 sigma_d stop; flat 15:55 ET.",
+   "filters": "Skip 09:30-10:00; skip 10:00 and 14:00 release windows.",
+   "parameters": "window 30 min (15-60); entry 2.5 sigma (2-3); exit 0.5; stop 4.0; time 60 min.",
+   "instruments": "MES vs MNQ",
+   "timeframe_session": "5-min, 10:00-15:55 ET",
+   "claimed_performance": "None published; lead-lag literature suggests 30-min dispersion is mostly information not noise.",
+   "evidence_quality": 1,
+   "data_requirements": "OHLC only. [FUTURES] mild.",
+   "prop_fit": "Same hedged profile as spread MR, fewer trades; research variant only.",
+   "sources": [
+    "https://arxiv.org/abs/1111.7103",
+    "https://arxiv.org/abs/1401.0462"
+   ]
+  },
+  {
+   "name": "Lead-lag trade-the-laggard (NQ 1-min move -> ES catch-up)",
+   "origin": "Prop-firm folklore; academic lead-lag literature (Kawaller-Koch-Koch 1987, Chan 1992, Hasbrouck 2003, Huth & Abergel 2011/2014, Curme et al. 2015)",
+   "entry": "1-min bars. z-score of 1-min NQ return vs 60-bar std >= 2.0 while 1-min ES return < 0.3 x beta_r x NQ return; buy (sell) ES at next bar open in NQ's direction.",
+   "exit": "+0.5 x beta_r x |r_NQ| captured, or 3 minutes, or 1 x ATR(14,1-min) adverse; flat 15:55 ET.",
+   "filters": "None that rescue it.",
+   "parameters": "z 2.0 (1.5-3); lag horizon 1-3 bars.",
+   "instruments": "MES (signal from NQ)",
+   "timeframe_session": "1-min RTH",
+   "claimed_performance": "Negative: Hasbrouck 2003 (price discovery in each E-mini itself); Huth & Abergel 60% next-midquote accuracy for lagger at tick scale but unprofitable with market orders due to spread; Curme et al. validated lead-lag links shrank 2002-03 to 2011-12; Mesfin 2026 single-bar MNQ patterns gross 0.07-1.50 pts vs 2.0-pt friction.",
+   "evidence_quality": 3,
+   "data_requirements": "[FUTURES] critical: cash SPX/NDX 1-min proxies create spurious lead-lag from stale component prices; needs true futures tick/1-min data.",
+   "prop_fit": "Poor: many tiny unhedged cost-dominated trades. Do not deploy.",
+   "sources": [
+    "https://doi.org/10.1046/j.1540-6261.2003.00609.x",
+    "https://arxiv.org/abs/1111.7103",
+    "https://arxiv.org/abs/1401.0462",
+    "https://arxiv.org/abs/2605.04004"
+   ]
+  },
+  {
+   "name": "SMT divergence (ICT) ES vs NQ swing failure",
+   "origin": "ICT (Michael Huddleston) Smart Money Technique; codified in r1ckylel SMT Divergence Pine (GitHub), LuxAlgo SMT Divergence, ICT all-in-one scripts",
+   "entry": "Pivots via ta.pivothigh/pivotlow(strength=3) on both instruments, synchronized within +-2 bars. Bearish SMT when one instrument trades above its pivot high (sweptA) while the other does not (sweptA != sweptB); bullish mirror at pivot lows. Short the instrument that failed to make the new high when its next 5-min bar closes back below its pivot; long mirror.",
+   "exit": "Stop 1 tick beyond the higher of the two swing highs (shorts); target prior swing low or 2R; 60-min time stop; flat 15:55 ET.",
+   "filters": "ICT kill zones 09:30-11:00 and 13:30-15:30; divergence must occur at a liquidity level (prior-day H/L, overnight H/L, 09:30-10:00 opening range); skip FOMC days.",
+   "parameters": "pivot strength 3 (2-5); sync tolerance 2 bars; 5-min bars (1-15); R multiple 2 (1.5-3).",
+   "instruments": "MES/MNQ (short the weaker, long the stronger)",
+   "timeframe_session": "5-min, kill zones",
+   "claimed_performance": "No published backtest; 66 Pine files on GitHub, none with statistics.",
+   "evidence_quality": 1,
+   "data_requirements": "OHLC only; [FUTURES] mild (5-min pivots fine, 1-min not).",
+   "prop_fit": "1-3 trades/day, defined 1R stop and 2R target inside RTH; trend days produce consecutive 1R losses, cap at 2 losses/day.",
+   "sources": [
+    "https://github.com/Rickylel/SMT-Divergence-By-r1ckylel",
+    "https://github.com/louisgundelwein/tradingview-scripts",
+    "https://github.com/fxraptor-alpha/pinescript-indicators"
+   ]
+  },
+  {
+   "name": "Opening-range cross-confirmation (ES and NQ both break vs only one)",
+   "origin": "SMT-lite on the opening range; standard objective interpretation",
+   "entry": "OR = 09:30-09:45 H/L on both. Confirmed: both close 5-min bars above OR highs within 5 min of each other (by 10:30) -> long the stronger (larger % extension). Divergent: one closes above OR high while the other closes back inside -> short the lone breaker, stop at its high.",
+   "exit": "Confirmed: trail 2 x ATR(14,5-min) or exit 15:30. Divergent: target OR midpoint, stop 1 tick above high, 45-min time stop.",
+   "filters": "Skip if OR range < 0.3 x daily ATR(14) or > 1.5 x.",
+   "parameters": "OR 15 min (5-30); confirmation window 5 min; ATR trail 2.",
+   "instruments": "MES/MNQ",
+   "timeframe_session": "5-min, 09:45-15:30 ET",
+   "claimed_performance": "None; Mesfin 2026 MNQ ORB long 75-min hold +2.82 pts net, T=0.88, year-unstable; ORB short negative.",
+   "evidence_quality": 1,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "ORB family profile; cross-confirmation reduces trade count, value unproven.",
+   "sources": [
+    "https://arxiv.org/abs/2605.04004"
+   ]
+  },
+  {
+   "name": "VIX stretch / VIX RSI daily overlay (Connors) for long-biased ES days",
+   "origin": "Connors & Alvarez, Short Term Trading Strategies That Work (2008); StockSharp #0967 Connors VIX Reversal II; Simon & Wiggins (2001) academic version",
+   "entry": "(a) VIX stretch: SPX close > SMA200 and VIX close > 1.05 x SMA10(VIX) for 3 consecutive days -> long bias next session. (b) VIX RSI: SPX > SMA200, RSI(2,VIX) > 90, VIX open > prior close -> long bias. (c) StockSharp: RSI(25,VIX) crosses above 61 long / below 42 short, hold 7-12 days. Intraday use: run only long-side intraday strategies at 1.5x size on signal days; no ES shorts.",
+   "exit": "Overlay off when RSI(2,SPX) > 65 or VIX closes below SMA10; intraday trades still flat 15:55 ET.",
+   "filters": "SPX > SMA200 trend filter (2022 bear made repeated stretch signals lose).",
+   "parameters": "stretch 5% (3-8%) x 3 days (2-4); RSI(2) > 90 (85-95); exit RSI(2,SPX) > 65 (60-75).",
+   "instruments": "MES/MNQ long bias",
+   "timeframe_session": "Daily signal, applied to RTH intraday",
+   "claimed_performance": "Simon & Wiggins 2001 (JFM, S&P futures 1989-1999): VIX/put-call/TRIN are contrarian predictors over multi-day horizons with profitable out-of-sample simulations; Connors book reports roughly 70-80% win rates for SPX rules 1995-2007 (not re-fetched). No intraday translation published.",
+   "evidence_quality": 3,
+   "data_requirements": "[DAILY-ONLY] daily VIX and SPX from Yahoo.",
+   "prop_fit": "Good sizing/direction overlay; cap increased size so 1.5 x ATR adverse fits EOD-trailing room.",
+   "sources": [
+    "https://doi.org/10.1002/fut.4",
+    "https://github.com/StockSharp/AlgoTrading/tree/master/API/0901-1000/0967_Larry_Conners_Vix_Reversal_II"
+   ]
+  },
+  {
+   "name": "VIX term-structure regime gate (VIX/VIX3M, VIX9D/VIX)",
+   "origin": "Simon & Campasano 2014 (VIX futures basis), Johnson 2017 JFQA, Cheng 2019 RFS, Quantpedia reproduction, practitioner VIX/VIX3M usage (Quantifiable Edges; Hanna 2024 NAAIM paper)",
+   "entry": "r1 = VIX/VIX3M, r2 = VIX9D/VIX from prior-day closes. Calm contango r1 < 0.90: trend strategies on, MR half size, full size. Normal 0.90-1.00: base. Backwardation r1 >= 1.00 or r2 >= 1.05: long-only MR and gold shock longs on, trend shorts off, 0.5x size, no new trades after 14:00 on FOMC days. Re-steepening day (r1 crosses back below 1.00 after >=2 days above): strongest long-bias day.",
+   "exit": "n/a (gate); underlying intraday trades flat 15:55 ET.",
+   "filters": "Alternative roll measure (VIX3M - VIX)/63 > 0.10/day = contango (Simon-Campasano threshold).",
+   "parameters": "thresholds 0.90 / 1.00 / 1.05.",
+   "instruments": "Gate for MES/MNQ/MGC strategies",
+   "timeframe_session": "Daily",
+   "claimed_performance": "Johnson 2017: VIX term-structure slope predicts variance-risk-premium returns incrementally (peer-reviewed). Cheng 2019: VIX premium falls before stress and predicts VIX futures returns. Quantpedia/Simon-Campasano: VIX futures basis strategy ~19.7%/yr 2007-2011 in-sample, slightly negative OOS. Equity-timing statistics (Hanna) paywalled.",
+   "evidence_quality": 3,
+   "data_requirements": "[DAILY-ONLY] ^VIX, ^VIX3M, ^VIX9D daily from Yahoo.",
+   "prop_fit": "Cheap, robust off-switch for backwardation days (Mar 2023, Aug 5 2024, Apr 3-9 2025) where EOD-trailing accounts fail.",
+   "sources": [
+    "https://quantpedia.com/strategies/exploiting-term-structure-of-vix-futures/",
+    "https://doi.org/10.1017/s0022109017000825",
+    "https://doi.org/10.1093/rfs/hhy062",
+    "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4808230",
+    "https://www.macroption.com/vix-term-structure/"
+   ]
+  },
+  {
+   "name": "VIX-level bucket strategy switch",
+   "origin": "Seeck 2026 (SSRN, NQ IV bands), algotr VIX-quadrant test, Fleming-Ostdiek-Whaley 1995",
+   "entry": "Prior-day VIX close buckets: <15 MR fades full size, ORB half; 15-20 base; 20-30 trend/ORB full, fades half, no short fades; >30 long-only MR plus gold shock longs, half size, daily loss cap halved. Alt: rolling 100-day VIX quartiles, exclude top quartile from MR.",
+   "exit": "n/a (gate).",
+   "filters": "Use 2-year rolling percentiles (25/50/90) to adapt edges.",
+   "parameters": "bucket edges 15/20/30.",
+   "instruments": "Gate for MES/MNQ",
+   "timeframe_session": "Daily",
+   "claimed_performance": "Seeck 2026: NQ IV-band fade Sharpe +0.38 at VXN<20, negative 20-30, +0.64 at >=30. algotr: excluding top VIX quartile improved return/drawdown ~34% for RSI(3) dip buyer on ES/NQ/RTY.",
+   "evidence_quality": 2,
+   "data_requirements": "[DAILY-ONLY] daily VIX.",
+   "prop_fit": "Simple daily gate addressing fat-tail days.",
+   "sources": [
+    "https://doi.org/10.1002/fut.3990150303",
+    "intraday_mean_reversion.md sections 6 and 11"
+   ]
+  },
+  {
+   "name": "Volatility-managed position sizing (ATR / realized-vol targeting)",
+   "origin": "Moreira & Muir 2017 JF; Fleming, Kirby & Ostdiek 2001/2003; CTA vol-targeting practice",
+   "entry": "Daily risk budget B (e.g. $300 on 50K Flex). M = k x ATR(20 sessions) x point value with k=0.5 for time-stopped intraday trades. Contracts = floor(B/M), capped by Lucid limits and so that 1.5 x ATR20 x contracts x point value <= 0.6 x remaining EOD-trailing room. Variant: weight proportional to c/RV^2 (last-month realized variance), capped 1.5x base.",
+   "exit": "n/a (sizing rule), recomputed nightly.",
+   "filters": "n/a",
+   "parameters": "B 0.5-0.75% of balance; k 0.5 (0.4-0.7); ATR window 20 (10-30); cap 1.5x.",
+   "instruments": "All (MES $5/pt, MNQ $2/pt, MGC $10/pt)",
+   "timeframe_session": "Daily recompute",
+   "claimed_performance": "Moreira & Muir 1926-2015: inverse-variance scaling produces large alphas (~4.9%/yr for market), Sharpe gains roughly 25-50%, large utility gains across factors. Fleming-Kirby-Ostdiek: volatility timing with realized vol beats static portfolios with economically large fees.",
+   "evidence_quality": 5,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Most important rule for Lucid: constant dollar-risk days make the 50% consistency test and five $150 days easy and keep the EOD-trailing floor away.",
+   "sources": [
+    "https://doi.org/10.1111/jofi.12513",
+    "https://doi.org/10.2139/ssrn.276921",
+    "https://doi.org/10.2139/ssrn.205676"
+   ]
+  },
+  {
+   "name": "Williams VIX Fix synthetic-volatility dip buy",
+   "origin": "Larry Williams (2007) VIX Fix; ChrisMoody CM Williams Vix Fix (TradingView); StockSharp #0454",
+   "entry": "WVF = (Highest(Close,22) - Low)/Highest(Close,22) x 100; BB(WVF,20,2.0); rangeHigh = 0.85 x Highest(WVF,50). On 5-min bars: WVF >= upper BB or >= rangeHigh AND close < lower BB(20,2) of price AND WVF turned down vs prior bar -> long at next open.",
+   "exit": "Close >= SMA20 of price, or inverted-WVF climax, or 12 bars, or 1 x ATR(14) below entry; flat 15:55 ET.",
+   "filters": "Prior-day VIX < 30; ADX(14,5-min) < 30; long only.",
+   "parameters": "lookback 22 (15-30); BB 20/2.0; percentile 0.85 (0.8-0.9); hold 12 bars. StockSharp defaults BbLength 20, BbMultiplier 2.0, WvfPeriod 20, WvfLookback 50, HighestPercentile 0.85, LowestPercentile 0.99.",
+   "instruments": "MES/MNQ/MGC",
+   "timeframe_session": "5-min RTH",
+   "claimed_performance": "No statistics published by either implementation.",
+   "evidence_quality": 1,
+   "data_requirements": "OHLC only; partially substitutes for [VIX-INTRADAY].",
+   "prop_fit": "Long-only time-stopped dip buying is consistency-friendly; trend-day tail is the risk.",
+   "sources": [
+    "https://github.com/StockSharp/AlgoTrading/tree/master/API/0401-0500/0454_Williams_Vix_Fix",
+    "https://www.tradingview.com/script/og7JPrRA-CM-Williams-Vix-Fix-Finds-Market-Bottoms/",
+    "https://github.com/marketcalls/openalgo"
+   ]
+  },
+  {
+   "name": "Intraday risk-on/risk-off composite (ES, NQ, GC agreement -> continuation)",
+   "origin": "Gao, Han, Li & Zhou 2018 JFE Market Intraday Momentum; Xu et al. 2024 SSRN cross-market intraday TSMOM; Smales 2016 risk-on/off",
+   "entry": "At 10:00 ET: s = sign(r_ES 09:30-10:00) + sign(r_NQ) - sign(r_GC). s=+3 long ES/NQ at 10:00; s=-3 short. Second window: at 15:00 if sign(r_ES 09:30-15:00) agrees with s, hold/enter for last hour.",
+   "exit": "15:30 for morning entry, 15:55 for last-hour leg; stop ~1-hour ATR (1.5 x daily ATR14 / sqrt(6.5)).",
+   "filters": "|r_ES(09:30-10:00)| >= 0.25%; skip negative-s trades on backwardation days.",
+   "parameters": "window 30 min (15-60); magnitude 0.25% (0.15-0.5%); gold weight 1 (0-1).",
+   "instruments": "MES/MNQ with XAU as risk-off leg",
+   "timeframe_session": "10:00-15:55 ET",
+   "claimed_performance": "Gao et al. SPY 1993-2013: first half-hour return predicts last half-hour return (t > 3), stronger on volatile/high-volume/macro days, replicated on 10 ETFs. Composite untested.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only (XAU 1-min available 23h).",
+   "prop_fit": "1-2 trades/day, long hold; last-hour leg most robust; trades volatile days so ATR sizing essential.",
+   "sources": [
+    "https://doi.org/10.1016/j.jfineco.2018.05.009",
+    "https://doi.org/10.2139/ssrn.4765613",
+    "https://doi.org/10.1016/j.frl.2016.03.010"
+   ]
+  },
+  {
+   "name": "Rolling cross-asset correlation-regime filter (ES-NQ, ES-GC)",
+   "origin": "Risk-management practice; related to Kritzman absorption ratio; objective interpretation",
+   "entry": "Nightly rho_EN = 20-day corr(ES,NQ daily returns); rho_EG = corr(ES,GC). Index-coherent rho_EN >= 0.85: directional on, spread off. Dispersion rho_EN < 0.70: spread on, directional half. Flight-to-safety rho_EG <= -0.30: gold shock longs on, ES short fades off, half size. Everything-rally rho_EG >= +0.50: no safe-haven trades.",
+   "exit": "n/a (gate).",
+   "filters": "n/a",
+   "parameters": "window 20 days (10-40); thresholds 0.85/0.70/-0.30/+0.50.",
+   "instruments": "Gate",
+   "timeframe_session": "Daily",
+   "claimed_performance": "Descriptive; indirect support from Kritzman et al. 2011 (AR spikes precede drawdowns) and ORCA 2026 (spectral correlation features +10.3 pp crash detection).",
+   "evidence_quality": 2,
+   "data_requirements": "[DAILY-ONLY] daily closes.",
+   "prop_fit": "Cheap gate; mainly to switch spread MR off when NQ/ES decouple.",
+   "sources": [
+    "https://doi.org/10.3905/jpm.2011.37.4.112",
+    "https://arxiv.org/abs/2604.17251"
+   ]
+  },
+  {
+   "name": "Turbulence index / absorption-ratio kill switch (Kritzman)",
+   "origin": "Kritzman & Li 2010 FAJ; Kritzman, Li, Page & Rigobon 2011 JPM; ORCA (Kriuk 2026 arXiv:2604.17251); Triadic Stress Index (Acedo 2026)",
+   "entry": "Basket of daily returns (SPX, NDX, GC, TNX change, DXY, VIX change, plus ETFs). Turbulence d = Mahalanobis distance with trailing 2-year mu/Sigma. AR = variance share of top n/5 eigenvectors over 500 days; shift = (AR_15d - AR_1y)/std. Kill: d > 90th percentile of trailing 2-year, or AR shift > +1 sigma -> next session no new directional trades, spreads/gold half size, daily loss cap halved; resume after 2 calm days.",
+   "exit": "n/a (gate).",
+   "filters": "n/a",
+   "parameters": "percentile 90 (85-95); AR window 500 days; shift 1 sigma; basket >= 6 assets.",
+   "instruments": "Gate",
+   "timeframe_session": "Daily",
+   "claimed_performance": "Kritzman & Li: turbulent days persistent with lower returns/higher risk. Kritzman et al. 2011: stock drawdowns preceded by AR spikes. ORCA 2026: 24 ETFs, 15 years, 8-fold walk-forward, crash AUC 0.741; rotation CAGR 15.6%, Sharpe 1.13, max DD -7.5% vs buy-and-hold 3.7%/-33.7%.",
+   "evidence_quality": 3,
+   "data_requirements": "[DAILY-ONLY] multi-asset daily from Yahoo.",
+   "prop_fit": "Pure protection; cost is missed post-turbulence trend days, favourable for EOD-trailing accounts.",
+   "sources": [
+    "https://doi.org/10.2469/faj.v66.n5.3",
+    "https://doi.org/10.3905/jpm.2011.37.4.112",
+    "https://arxiv.org/abs/2604.17251"
+   ]
+  },
+  {
+   "name": "Gold safe-haven shock-day long (equity shock -> buy MGC)",
+   "origin": "Baur & Lucey 2010 FR; Baur & McDermott 2010 JBF; Akhtaruzzaman et al. 2021; Smales 2016",
+   "entry": "Trigger A: ES 18:00-09:25 return <= -1.0% and XAU same-window return >= 0 -> buy MGC 09:30. Trigger B: ES 09:30-11:00 return <= -1.0% (or prior VIX close > 25 and VIX gap >= +10%) and XAU above its 09:30 price -> buy MGC 11:00.",
+   "exit": "Flat 15:50 ET; stop 0.6 x daily ATR(14,GC); target +1.0 x ATR; exit early if ES recovers to within 0.3% of prior close.",
+   "filters": "Skip if 20-day rho(ES,GC) >= +0.5; skip liquidity cascades (VIX > 45 and gold down > 1% at trigger; Mar 2020, 7-8 Apr 2025 type days).",
+   "parameters": "shock -1.0% (-0.75 to -1.5%); hold to 15:50; stop 0.6 ATR.",
+   "instruments": "MGC (XAU proxy)",
+   "timeframe_session": "RTH, 5-15 days/year",
+   "claimed_performance": "Baur & Lucey 1995-2005: gold a hedge on average and safe haven in extreme conditions, property short-lived (~15 days). Baur & McDermott 1979-2009: safe haven for US/major European markets at 5%/1% quantiles. Akhtaruzzaman: held early COVID, failed later. Madani 2019: negative significant gold-USD dependence at all intraday scales 2017-2019. Mesfin 2026: MGC 5-min OU mean reversion fails (T -1.6 to -5.3).",
+   "evidence_quality": 4,
+   "data_requirements": "OHLC only (XAU 1-min); daily VIX for trigger B variant.",
+   "prop_fit": "Specialist trade for shock days when index strategies are off; long only, flat by close; MGC $10/pt on $4,000+ gold needs ATR sizing.",
+   "sources": [
+    "https://doi.org/10.1111/j.1540-6288.2010.00244.x",
+    "https://doi.org/10.1016/j.jbankfin.2009.12.008",
+    "https://doi.org/10.1016/j.econmod.2021.105588",
+    "https://arxiv.org/abs/1912.12590",
+    "https://arxiv.org/abs/2605.04004"
+   ]
+  },
+  {
+   "name": "DXY-trend directional filter for intraday gold",
+   "origin": "Murphy Intermarket Analysis (2004); Madani 2019 arXiv:1912.12590; Choi 2026 arXiv:2609.03437",
+   "entry": "Nightly DX-Y.NYB: sign(close - SMA20) and sign(5-day change). Both negative -> gold intraday strategies long-only; both positive -> short-only or stand aside; mixed -> base. Optional 1.25x size if |5-day DXY change| > 1.0%.",
+   "exit": "n/a (filter).",
+   "filters": "n/a",
+   "parameters": "SMA 20 (10-50); 5-day change (3-10); intensity 1.0%.",
+   "instruments": "MGC filter",
+   "timeframe_session": "Daily",
+   "claimed_performance": "Madani: negative significant gold-USD dependence at every intraday scale 2017-2019. Choi 2026: gold is the dominant shock transmitter to FX/DXY (gold leads dollar), arguing against DXY as a leading filter. 2023-2026: gold rose from ~$1,800 to >$4,000 with DXY range-bound/rising, inverse link weak.",
+   "evidence_quality": 2,
+   "data_requirements": "[DAILY-ONLY] no intraday DXY available.",
+   "prop_fit": "Tie-breaker only; never override price signals.",
+   "sources": [
+    "https://arxiv.org/abs/1912.12590",
+    "https://arxiv.org/abs/2609.03437"
+   ]
+  },
+  {
+   "name": "Relative-strength instrument selection (ES vs NQ vs GC)",
+   "origin": "Cross-sectional momentum (Jegadeesh & Titman 1993; Asness, Moskowitz & Pedersen 2013 incl. index futures); practitioner NQ/ES ratio charts",
+   "entry": "RS = 0.5 x z(overnight return 18:00-09:25 vs 60-day std) + 0.5 x z(5-session return). Run long day-strategies in the highest-RS instrument, shorts in the lowest. Ratio version: R = NDX/SPX; R > SMA20(R) and 5-day change > 0 -> prefer NQ for longs, ES for shorts; else reverse. Gold enters long ranking only if 20-day rho(ES,GC) > 0.",
+   "exit": "n/a (selector).",
+   "filters": "n/a",
+   "parameters": "weights 0.5/0.5; windows 5 sessions (3-10), 60-day z.",
+   "instruments": "Selector across MES/MNQ/MGC",
+   "timeframe_session": "Daily / at 09:25 ET",
+   "claimed_performance": "Asness-Moskowitz-Pedersen: 12-1 month cross-sectional momentum works in equity index futures (monthly). No intraday RS selector test; Mesfin 2026 unconditional MNQ long at open -2.60 pts/trade 2022-2024 (T=-0.75).",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Costless overlay; must feed ATR sizing since MNQ and MES dollar ATRs differ.",
+   "sources": [
+    "https://doi.org/10.1111/jofi.12021",
+    "https://arxiv.org/abs/2605.04004"
+   ]
+  },
+  {
+   "name": "Cross-asset time-series momentum direction filter (daily TSMOM)",
+   "origin": "Moskowitz, Ooi & Pedersen 2012 JFE; Hurst, Ooi & Pedersen 2017; CTA practice",
+   "entry": "Nightly per instrument TS = sign(close - close[21]) + sign(close - close[63]) + sign(close - close[252]). Breakout/continuation entries only in TS direction when |TS| >= 2; mean-reversion entries only against TS (buy dips in uptrends). |TS| < 2: base rules.",
+   "exit": "n/a (filter).",
+   "filters": "n/a",
+   "parameters": "lookbacks 21/63/252; majority rule.",
+   "instruments": "Filter for MES/MNQ/MGC",
+   "timeframe_session": "Daily",
+   "claimed_performance": "MOP 2012: 58 futures 1985-2009, 12-month TSMOM positive in every asset class, diversified Sharpe ~1; many replications; weaker 2009-2019, revived 2022. Intraday-gate use untested.",
+   "evidence_quality": 5,
+   "data_requirements": "[DAILY-ONLY].",
+   "prop_fit": "Prevents shorting NQ breaks in melt-ups and buying every dip in 2022-style bears.",
+   "sources": [
+    "https://doi.org/10.1016/j.jfineco.2011.11.003",
+    "https://doi.org/10.1111/jofi.12021"
+   ]
+  },
+  {
+   "name": "Expansion-bar (volatility-burst) reversal / synthetic intraday VIX spike",
+   "origin": "StockSharp #1528 VIX Spike and #0037 VIX Trigger (need intraday VIX; replaced by realized-range spike); empirical anchor Mesfin 2026 Section 4.2",
+   "entry": "5-min bars: range spike when bar range >= 2.0 x SMA20 of bar range. Fade: spike bar closed down -> buy next open; closed up -> sell next open. Variant: long only when vol proxy > mean + 2 x std(15 bars), exit after 10 bars.",
+   "exit": "6 bars (30 min) or 1 x spike-bar range adverse; flat 15:55 ET.",
+   "filters": "RTH only; skip 09:30-09:45 and first bar after 10:00/14:00 releases.",
+   "parameters": "multiple 2.0 (1.5-2.5); SMA 20; hold 6 bars.",
+   "instruments": "MNQ/MES",
+   "timeframe_session": "5-min RTH",
+   "claimed_performance": "Mesfin 2026 (Asia session MNQ): continuation after expansion bar T = -11.52 at bar+1 (N=1,955, 1.5x), move consumed within the bar (open-to-next-open +32.24 pts, close-to-next-open -0.17); but reversal gross content only 0.2-1.5 pts, below 2.0-pt friction. StockSharp VIX Trigger vendor claim ~148%/yr (unverified).",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only; original needs [VIX-INTRADAY].",
+   "prop_fit": "Not stand-alone; use as rule: never enter continuation at the close of an expansion bar, wait for pullback.",
+   "sources": [
+    "https://arxiv.org/abs/2605.04004",
+    "https://github.com/StockSharp/AlgoTrading/tree/master/API/1501-1600/1528_VIX_Spike",
+    "https://github.com/StockSharp/AlgoTrading/tree/master/API/0001-0100/0037_VIX_Trigger"
+   ]
+  },
+  {
+   "name": "GMM volatility-regime gated pullback entry (Mesfin RTH Confluence / London Signal B architecture)",
+   "origin": "Mesfin 2026 arXiv:2605.04004v3 positive controls; HMM/GMM regime literature (Park 2023 arXiv:2307.00459; Blake 2025 arXiv:2510.03236)",
+   "entry": "5-min MNQ RTH. Features: ATR ratio = ATR(20 on 1-min bars, merged at 5-min close)/baseline (10.34 pts in paper), volume z-score (50 bars; substitute range z-score), close position in bar range, 5-min return. 3-component GMM fit on training year (regimes 0 low activity, 1 active flow, 2 extreme vol). Signal when regime=1 AND rolling 200-bar Markov P(1->2) > 0.15 AND volume z > 0.5. Entry = limit at signal close minus 25 x ATR_ratio pts (ATR_ratio capped [0.5,2.0]), valid 6 bars. Long only. London variant: 15-min 03:00-08:30 ET, GMM refit per fold, long at next open on clean regime 0->2 transition (no regime 1 in prior 2 bars).",
+   "exit": "Bar 13 after signal (65 min) or end of RTH; stop 80 x ATR_ratio pts (tighten to 40 for Lucid). London: 60 min or 08:30 ET, stop 20 pts.",
+   "filters": "Regime gate is the filter.",
+   "parameters": "GMM 3 comps; Markov window 200; P 0.15; pullback 25 x ATR_ratio; hold 13 bars; stop 80 x ATR_ratio. London: 15-min, hold 60 min, stop 20.",
+   "instruments": "MNQ (paper), extendable to MES",
+   "timeframe_session": "5-min 09:30-16:00 ET; London 03:00-08:30 ET",
+   "claimed_performance": "RTH Confluence: in-sample 2022-2024 N=538 +15.77 pts net T=5.83 win 61%; walk-forward OOS N=196 +11.82 pts net (after 2.0-pt friction) SD 53.8 T=3.11, 2025 OOS +13.14, permutation p<0.001; unconditional long benchmark -2.60 pts T=-0.75. London B: OOS N=247 +4.09 pts SD 14.97 T=4.30 p=0.000025 win 61.5% per-trade Sharpe 0.27, bootstrap P(mean>2 pts) 98.9%, sensitivity T 3.87-4.83; 1-bar delay flips to T=-2.78. Disclosed caveats: 53+ parameter combos searched, ATR baseline in-sample, contaminated 2022-H2 fold, idealized stop fills, no roll adjustment.",
+   "evidence_quality": 3,
+   "data_requirements": "[VOL] volume gate (approximate with range z-score, expect degradation); [FUTURES] mild; 1-min bars for ATR.",
+   "prop_fit": "1-2 trades/day, 65-min hold; +11.8 MNQ pts = $23.6 per micro, ~$236 per 10 MNQ with SD ~$1,076; paper's 80 x ATR_ratio stop (~$1,600 on 10 MNQ) too wide for $2,000 EOD-trailing; tighten and ATR-size.",
+   "sources": [
+    "https://arxiv.org/abs/2605.04004",
+    "https://arxiv.org/abs/2307.00459",
+    "https://arxiv.org/abs/2510.03236"
+   ]
+  },
+  {
+   "name": "VIX open-gap day-type classifier",
+   "origin": "Connors VIX RSI rule component (VIX open > prior close); practitioner VIX-gap studies (Quantifiable Edges, paywalled); standard objective interpretation",
+   "entry": "VIX_gap = VIX 09:30 open / prior close - 1. Fear gap >= +8%: mean-reversion long day (dip buys, VWAP reversion long, gap-down fade) if SPX > SMA200; no shorts. Complacency gap <= -5%: trend-day long bias (ORB long). Else base. If VIX closes below its open on a fear-gap day, hold longs to 15:55.",
+   "exit": "n/a (classifier); intraday trades flat 15:55 ET.",
+   "filters": "SPX > SMA200 for fear-gap longs.",
+   "parameters": "+8% (5-12%); -5% (-3 to -8%).",
+   "instruments": "Day-type for MES/MNQ",
+   "timeframe_session": "Daily open",
+   "claimed_performance": "No fetched statistics; Connors' published rule uses VIX open > prior close as confirmation; Simon & Wiggins support contrarian direction at multi-day horizons.",
+   "evidence_quality": 2,
+   "data_requirements": "[DAILY-ONLY] Yahoo VIX open (VIX computes from 03:15 so open is not a clean gap).",
+   "prop_fit": "Prevents shorting gap-downs on fear days where V-reversals hurt EOD-trailing accounts.",
+   "sources": [
+    "https://doi.org/10.1002/fut.4"
+   ]
+  },
+  {
+   "name": "Overnight cross-asset divergence at the open (ES vs NQ gap disagreement)",
+   "origin": "Practitioner; related to SMT and gap-fade evidence; objective interpretation",
+   "entry": "Gaps g_ES, g_NQ (09:30 open vs prior 16:00 close). If sign(g_ES) != sign(g_NQ) or |g_NQ - beta x g_ES| > 0.4% -> fade the larger-gap instrument toward prior close for 60 min (stop 0.5 x gap beyond open); no ORB that day. Agreeing gaps 0.1-0.5% -> normal gap-fade/ORB rules.",
+   "exit": "Prior close target, 60-min time stop, stop 0.5 x gap beyond the open; flat 15:55 ET.",
+   "filters": "n/a",
+   "parameters": "divergence 0.4% (0.25-0.6%); hold 60 min.",
+   "instruments": "MES/MNQ",
+   "timeframe_session": "09:30-10:30 ET",
+   "claimed_performance": "None. Mesfin 2026 MNQ gap-fill fade negative at 09:30/09:45/10:00 (-1.92/-1.05/-1.43 pts net, T -0.26 to -0.44); gap-continuation short (Kalman velocity z>2.5 in first 30 min) best near-miss +14.52 pts net T=1.46 N=35 year-unstable.",
+   "evidence_quality": 1,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Research item only.",
+   "sources": [
+    "https://arxiv.org/abs/2605.04004"
+   ]
+  },
+  {
+   "name": "VIX futures basis / VIX premium regime signal (not tradeable with our instruments)",
+   "origin": "Simon & Campasano 2014; Cheng 2019 RFS; Quantpedia; eigenquant53/VRP thesis backtest; Li 2016 arXiv:1605.07945",
+   "entry": "Original: sell (buy) front VIX futures with >=10 days to expiry when daily roll > +0.10 (< -0.10), hedge with ES by regression, hold 5 days. For us: daily roll > +0.10 = carry regime (allow trend longs); < -0.10 = stress regime (same actions as backwardation gate). Approximate roll by (VIX3M - VIX)/63 or Yahoo VX=F.",
+   "exit": "n/a (signal).",
+   "filters": "n/a",
+   "parameters": "roll threshold +-0.10/day; min 10 trading days to maturity; 5-day hold (original).",
+   "instruments": "Signal only",
+   "timeframe_session": "Daily",
+   "claimed_performance": "Quantpedia reproduction ~19.7%/yr 2007-2011 in-sample ($82k on $56,375), slightly negative OOS. Cheng: VIX premium predicts VIX futures returns and declines before stress.",
+   "evidence_quality": 3,
+   "data_requirements": "[DAILY-ONLY]; VIX futures data sparse on Yahoo.",
+   "prop_fit": "Signal only.",
+   "sources": [
+    "https://quantpedia.com/strategies/exploiting-term-structure-of-vix-futures/",
+    "https://doi.org/10.1093/rfs/hhy062",
+    "https://github.com/eigenquant53/VRP",
+    "https://arxiv.org/abs/1605.07945"
+   ]
+  }
+ ]
+}

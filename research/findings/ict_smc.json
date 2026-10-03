@@ -1,0 +1,417 @@
+{
+ "family": "ICT, Smart Money Concepts, and price-action methods translated into objective rules",
+ "notes": "Report: /home/user/claude-workspace/research/families/ict_smc_price_action.md (61 KB, 20 strategies). WebSearch budget was already exhausted (200/200) when this subagent started, so discovery used Brave/Bing result pages via WebFetch, Crossref, GitHub clones, and ~45 direct page fetches; Reddit bodies were unreachable on every mirror (snippet-only evidence, rated accordingly); quantifiedstrategies.com is bot-walled. Key hard evidence: (1) MPM Markets 7-year 1-minute ES/NQ/GC/SI FVG study (5 constructions, ~40k gaps): reaction real (+5pp vs random) but no tradeable edge after costs at any entry/timeframe; 5-15m scalps worst; hourly exit resolution inflated PF 2.2-2.5 vs 1.0 on 1-min (engine must resolve on 1-minute bars). (2) Cloned hindsight-finance/Silver-Bullet-AM-Session NQ 1-minute ledger Sep 2020-Nov 2025, recomputed by us: 78 trades, 21.8% win, -6.75R, PF 0.87, maxDD -17.4R; 2025: 13 trades avg -0.34R PF 0.51; by entry type FVG +0.04R (n=46), OB +0.18R 47% win (n=15), Breaker -0.68R 6% win (n=17). Repo also contains an NQ 1-minute parquet with volume (Aug 2020-Nov 2025) at /tmp/claude-0/-home-user-claude-workspace/1cc73676-89d9-5a1b-9d6f-8a4e4b0e81e2/scratchpad/sb/nq_1m.parquet that the data pipeline may want. (3) cjosh NQ 5-minute 2026 Silver Bullet: 31 trades, 32% win, PF 0.67; grid found no robust variant. (4) Osler FRBNY 2000: S/R levels bounce 60.8% vs 56.2% artificial (+4-5.6pp), 96% of levels end in 0/5; Osler 2003: stops cluster just beyond round numbers. (5) edgeful YM: PDH break -> 81% green close, PDL break -> 63% red (continuation, so sweep-reversals must require close-back-inside). (6) MPM Fibonacci (38.2/50) and double-bottom futures tests: no edge beyond drift. (7) Only positive in-family NQ 1-minute record: JJ Simon displacement-from-open model, 158 manual trades 54% win PF 1.76 with 25-tick stop/38.5-tick target (quality 2). Prop-fit conclusion: canonical ICT models (20-35% win, 5-16R outliers, 15-17R drawdowns) are the worst shape for a $2k EOD-trailing, 50%-consistency account; backtest queue should be (1) JJ Simon displacement model, (2) PDH/PDL/ONH/ONL sweep-reclaim with VWAP/midpoint target in 09:30-11:30, (3) FVG midpoint 1R vs MPM baseline, (4) OB midpoint limit with random-zone control, (5) Silver Bullet as negative control.",
+ "strategies": [
+  {
+   "name": "S1 ICT Silver Bullet (canonical three-window FVG model)",
+   "origin": "Michael Huddleston (ICT) 2022-23; codified by innercircletrader.net, LuxAlgo, Flux Charts, JadeCap Pine strategy; coded tests by hindsight-finance (NQ 1m) and cjosh4toyotas-stack (NQ 5m)",
+   "timeframe_session": "1m/5m execution; windows 03:00-04:00, 10:00-11:00, 14:00-15:00 ET; 15m for liquidity marking",
+   "instruments": "NQ/MNQ, ES/MES (also GC)",
+   "entry": "Mark PDH/PDL, overnight H/L, session H/L, equal H/L on 15m before the window. In the window (or 30 min before), a bar trades through a level and closes back inside (sweep). Then displacement back through the level: body > 1.5xATR(20), body/range >= 0.70, leaving an FVG >= 0.3xATR (bullish: Low[i] > High[i-2]). Limit at the near FVG edge (or CE midpoint); must fill inside the window; one trade per window.",
+   "exit": "Stop 1 tick beyond the sweep extreme (or beyond the FVG-creating candle); skip if risk > 60 NQ pts. Target opposite liquidity / opposite side of reference range, or fixed 2R (JadeCap/cjosh) or 1:3 (ICT). Optional BE at +1R or +3R. Time exit 2h after entry or flat 16:00.",
+   "filters": "Min range 10 NQ pts; daily bias from 15m-4h structure; PM window was a consistent loser in the cjosh grid",
+   "parameters": "ATR(20) displacement mult 1.5; body ratio 0.70; FVG min 0.3xATR; RR 2.0; sweep lookback 2h or 9AM candle; $10 RT cost per NQ",
+   "claimed_performance": "Vendors claim 55-80% win (unaudited). hindsight-finance NQ 1m Sep2020-Nov2025 (our recomputation): 78 trades, 21.8% win, -6.75R, avg -0.087R, PF 0.87, maxDD -17.4R; 2024 avg -0.435R; 2025 13 trades avg -0.337R PF 0.51; only 2022 positive via one +16.3R trade. cjosh NQ 5m Jun-Oct 2026: 31 trades 32.3% win PF 0.67 -$3,980 maxDD $6,835/contract; 14-day walk-forward 20 trades 65% win PF 2.02 (author: fragile/luck). Reddit snippets: 36%, 33%, 20% win in manual tests; one week 66.7% on ES.",
+   "evidence_quality": 3,
+   "prop_fit": "Poor: median risk 21.9 NQ pts; 17R drawdowns and reliance on rare 5-16R days conflict with $2k EOD trailing DD and 50% consistency rule. Use as negative control only, or re-cut to 1R with OB entries.",
+   "data_requirements": "1-minute OHLC only; volume-spike sweep filters not reproducible",
+   "sources": [
+    "https://github.com/hindsight-finance/Silver-Bullet-AM-Session",
+    "https://github.com/cjosh4toyotas-stack/silver-bullet-backtest",
+    "https://www.luxalgo.com/blog/ict-silver-bullet-setup-trading-methods/",
+    "https://innercircletrader.net/tutorials/ict-silver-bullet-strategy/",
+    "https://howtotrade.com/trading-strategies/ict-silver-bullet/",
+    "https://blog.pickmytrade.trade/jadecap-ict-silver-bullet-strategy-complete-guide-for-tradingview-traders/",
+    "https://www.algokings.net/learn/ict-silver-bullet/",
+    "https://www.reddit.com/r/InnerCircleTraders/comments/1q5tj77/"
+   ]
+  },
+  {
+   "name": "S2 Fair Value Gap retest (generic intraday FVG model)",
+   "origin": "ICT; coded by LuxAlgo, smart-money-concepts library, FvgGold-EA; tested by MPM Markets, edgeful, Quant Trading Discoveries",
+   "timeframe_session": "1m base resampled to 5m/15m/1h; 09:30-11:30 ET recommended filter",
+   "instruments": "ES, NQ, GC, SI (MPM); YM (edgeful); EURUSD; XAUUSD",
+   "entry": "FVG: bullish if Low[i] > High[i-2], zone [High[i-2], Low[i]]. Constructions: C1 limit at midpoint; C2 close back through near edge; C3 limit at near edge; C5 midpoint only after a rejection bar (close back in gap direction, wick >= 50% range). Displacement variant: middle-candle range > 1.5x median of prior 20 bars.",
+   "exit": "C1: stop k x ATR(14) [k=1], fixed 1R/2R; C3: stop = hourly ATR(14), RR 1:3/2:3/1:1; C4 stop = daily ATR(14); C5 stop below far edge, targets 1R/2R/3R. Flat 16:00.",
+   "filters": "Gap >= 0.3xATR; unmitigated by close; H1 EMA50/200 alignment; premium/discount vs session VWAP; session 09:30-11:30",
+   "parameters": "ATR(14); min gap 0.3xATR; RR grid 1-3; FvgGold quality score >= 50 (gap size 30, displacement 30, HTF 20, freshness 10, P/D 10, OB overlap +20), 1.5R target",
+   "claimed_performance": "MPM (Apr2019-May2026, ~40,000 FVGs, 1-min data): C1 PF ~1.0; C2 win = chance; C3 breakeven at every RR; C4 3-pt edge with DD 3-4x profit; C5 3-6pt win-rate edge on 1h erased by costs; 1 of 18 configs positive (GC 1h 3R ~$6/trade); reaction +5pp vs random; 5-15m worst; hourly exit resolution PF 2.2-2.5 collapsed to 1.0 on 1-min. edgeful YM 30m: 60.7% bullish / 63.2% bearish FVGs unmitigated by close same session. QTD EURUSD 2022-25: 1,247 setups, 63.7% never fill, unfiltered 41-55% win, filtered 341 setups 66.5% win 2.3RR +1.14R (filters paywalled). FvgGold XAUUSD M15: 64 trades 45.3% win +48.7% 6 months, no PF/DD. Reddit SPY 85% win PF 1.63 (snippet).",
+   "evidence_quality": 4,
+   "prop_fit": "Not standalone. Only as entry-location tool; C1 1R construction has lowest variance if used.",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://mpmmarkets.com/research/does-the-fair-value-gap-strategy-work",
+    "https://edgeful.com/blog/posts/fair-value-gap-best-practices-guide",
+    "https://quanttradingdiscoveries.substack.com/p/fair-value-gap-backtest-results-eurusd",
+    "https://github.com/foeed/FvgGold-EA",
+    "https://github.com/joshyattridge/smart-money-concepts",
+    "https://www.luxalgo.com/library/concept/fair-value-gap/"
+   ]
+  },
+  {
+   "name": "S3 Inverse FVG (IFVG) model at NY open",
+   "origin": "Josh's IFVG model (TradeZella), TrendSpider IFVG, Trader Kane Lab model (FX Replay)",
+   "timeframe_session": "1m/2m/3m/5m entries; NY session from 09:30 ET (Kane: 10:00-13:00 after 10:00 4h close)",
+   "instruments": "NQ and ES together (SMT divergence)",
+   "entry": "Bias from 1h/4h liquidity target. Price sweeps an obvious internal swing high/low (N=3). An FVG in the sweep direction is closed through by a same-timeframe bar (inversion). Enter on return to the IFVG (limit at midpoint) or on the close through it with displacement. Kane: require ES/NQ SMT divergence + IFVG on 1/3/5m.",
+   "exit": "Stop just beyond IFVG far edge or sweep candle extreme. Target 1 = internal liquidity (last swing), final = external swing/draw on liquidity; BE when target 1 hits without further displacement; Kane: BE at halfway.",
+   "filters": "SMT divergence between NQ and ES; clean market-structure liquidity only",
+   "parameters": "Timeframe consistency (3m IFVG needs 3m close through)",
+   "claimed_performance": "No statistics published; Reddit anecdote of a $2,000+ day",
+   "evidence_quality": 1,
+   "prop_fit": "Unknown; reclaim entry with nearby stop and first target at internal liquidity is drawdown-friendly if win rate > 55%",
+   "data_requirements": "OHLC; SMT needs synchronous ES and NQ 1-minute (available)",
+   "sources": [
+    "https://www.tradezella.com/strategies/ifvg-trading-model",
+    "https://fxreplay.com/strategies/trader-kanes-nq-strategy-the-lab-model",
+    "https://www.luxalgo.com/library/concept/fair-value-gap/"
+   ]
+  },
+  {
+   "name": "S4 ICT 2022 model (full sequence: HTF bias, London Judas, NY killzone sweep, MSS, FVG)",
+   "origin": "ICT 2022 Mentorship (YouTube); theinnercircletraders.com; TradeZella plain-English version",
+   "timeframe_session": "Daily/weekly bias; 5m structure; 1m entry; NY killzone 07:00-10:00 (ICT) or 08:30-11:00 ET",
+   "instruments": "NQ/ES",
+   "entry": "Sweep of PDH/PDL or session extreme; MSS = 5m (or 1m) close through the most recent counter-swing formed after the sweep, with displacement leaving an FVG; enter on retrace into that FVG (limit). TradeZella form: short NQ when PDH swept, 5m MSS down, bearish FVG, enter on retrace.",
+   "exit": "Stop above/below the sweep extreme; target the pre-marked draw on liquidity (PDH/PDL, session H/L) or fixed 2R; flat 16:00",
+   "filters": "Daily bias from HTF PD arrays; London session Judas sweep against bias; one or two setups per day",
+   "parameters": "5m MSS, 1m entries, RR 2-2.5",
+   "claimed_performance": "Vendor: 55-70% win, RR > 1:2.5 (uncited). Reddit: 33% win on 1-min MSS+FVG at 1:2 after 5 months (snippet). No independent coded test; components tested separately (S1, S2, S5) were negative.",
+   "evidence_quality": 2,
+   "prop_fit": "Same shape problem as S1 (one trade/day, ~35% win, 2R) -> multi-day losing streaks vs EOD trailing DD. Test only the 5m PDH/PDL wording as an S5 variant.",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://www.theinnercircletraders.com/ict-2022-model/",
+    "https://www.tradezella.com/blog/backtest-ict-strategy",
+    "https://quanttradingdiscoveries.substack.com/p/top-smart-money-trading-strategies-2026"
+   ]
+  },
+  {
+   "name": "S5 Liquidity sweep and reclaim of PDH/PDL, overnight and session extremes (sweep-and-reverse, Turtle Soup)",
+   "origin": "Raschke & Connors Turtle Soup (1995); ICT turtle soup; LuxAlgo; steady-turtle; TradingView Sweep&Reverse and Liquidity Sweep+VWAP strategies; NinjaTrader; test-max; dailypriceaction",
+   "timeframe_session": "1m/5m; 09:30-11:30 ET (08:30 data window also); test-max: ref range 09:00-09:25, signal 09:30-10:25, exit 11:00",
+   "instruments": "ES/MES, NQ/MNQ (GC also)",
+   "entry": "Levels: PDH/PDL (prior RTH), ONH/ONL (18:00-09:30), 9AM candle H/L, IB H/L, equal H/L, round numbers (ES 25/50, NQ 100). Sweep: bar trades through level by >= 1 tick and closes back inside; track sweep extreme. Confirmation grid: (a) next bar closes inside; (b) later bar closes above the sweep bar's high; (c) close inside AND on correct side of session VWAP with 200-EMA filter; (d) 5m MSS. Entry next bar open or limit at reclaimed level. Daily Turtle Soup: 20-day low broken (prior low >= 4 days earlier), buy stop 5-10 ticks above old low.",
+   "exit": "Stop a few ticks or k x ATR beyond the sweep extreme (not at the level; stops cluster just beyond round numbers). Targets: VWAP partial then session POC/opposite extreme; opposite liquidity (2:1 min); fixed 2R and exit at 11:00 open; BE at halfway. One trade per level per day; max 3/day; flat 16:00.",
+   "filters": "Lower-high day bias filter (S19) for PDL targets; avoid strongly trending days (sweeps continue); time window",
+   "parameters": "Sweep buffer 1 tick; stop buffer 1-1.5 x ATR(1m); VWAP approximated from OHLC; EMA 200",
+   "claimed_performance": "Level effect: Osler 2000 FX 1-min 1996-98: bounce 60.8% at published S/R vs 56.2% artificial (+4.2pp DEM, +5.6pp JPY, +4.0pp GBP; best firm +9.2pp), 13/16 significant at 5%, persists >= 5 days; Osler 2003: stop orders cluster just beyond round numbers. Direction: edgeful YM 6 months: PDH break -> 81% green close, PDL break -> 63% red close (continuation). MPM 6 markets ~30y daily: lower-high day raises next-day PDL visit by 7-11pp (indices) but buy-tag-sell-close PF 0.36-0.52 ex-best trades. TradingView strategies publish no numbers. No 2022-26 ES/NQ sweep backtest with numbers found.",
+   "evidence_quality": 3,
+   "prop_fit": "Best in family if confirmation (c) and VWAP/midpoint targets are used: stops 1-2 x ATR(1m) (ES 2-4 pts, NQ 10-25 pts), plausible 50-60% win, many small green days suits $150-day payout rule. Must require close back inside given 81% continuation stat.",
+   "data_requirements": "OHLC only; VWAP approximated without volume (flag); volume-spike/delta filters not reproducible",
+   "sources": [
+    "https://www.newyorkfed.org/medialibrary/media/research/epr/00v06n2/0007osle.pdf",
+    "https://doi.org/10.1111/1540-6261.00588",
+    "https://edgeful.com/blog/posts/previous-day-range-indicator-tradingview",
+    "https://mpmmarkets.com/research/lower-highs-previous-day-low-visit",
+    "https://www.luxalgo.com/library/concept/liquidity-sweep/",
+    "https://steady-turtle.com/knowledge/day-trading-strategies",
+    "https://www.tradingview.com/script/GoeqO1ev-Sweep-Reverse-Liquidity-Sweep-Reversal-Strategy/",
+    "https://www.tradingview.com/script/raeV41qI/",
+    "https://ninjatrader.com/futures/blogs/how-to-trade-liquidity-traps-in-futures/",
+    "https://test-max.com/blog/ict-trading-strategies/",
+    "https://dailypriceaction.com/blog/liquidity-sweep-reversals/"
+   ]
+  },
+  {
+   "name": "S6 Judas swing / Asian-range sweep at London open; Power of Three at NY open",
+   "origin": "ICT 2022 Mentorship ep. 9; theinnercircletraders.com; LuxAlgo Judas-swing concept; FX Replay backtest session",
+   "timeframe_session": "Asian range 20:00-00:00 or 20:00-02:00 ET; London killzone 02:00-05:00 ET; NY version 08:30-10:00 vs midnight open",
+   "instruments": "NQ/ES (ICT says designed on them), FX, gold",
+   "entry": "London: sweep of Asian high/low (wick through) then CHoCH = candle close back through the swept level (wick rejection insufficient); enter at CHoCH close or on first pullback into the displacement FVG; longs only from lower half of range. NY PO3: on bullish-bias days expect low below midnight/08:30 open in 08:30-10:00; objective proxy = sweep of ONL/opening-range low with close back above 09:30 open, enter on reclaim.",
+   "exit": "Stop below the lowest wick of the sweep; target opposite side of Asian range (FX Replay, fixed, no management) or next daily draw on liquidity (claimed 1:3 to 1:5); NY: target PDH/ONH; flat 16:00",
+   "filters": "Daily bias required; invalid if no CHoCH inside killzone or sweep outside it; too much deviation from range invalidates",
+   "parameters": "5m MSS; 2R fixed target in FX Replay model",
+   "claimed_performance": "Reddit 17cmzjm snippet: 9 trades on Asian range, 4W/5L, +14.9R. FX Replay published no results. YouTube 79% win claims unverified. ICT claims tested on NQ/ES, no data.",
+   "evidence_quality": 1,
+   "prop_fit": "London window 02:00-05:00 ET allowed by Lucid (flat by 16:59) but thin liquidity/wider slippage on NQ/ES; NY version collapses into S5 with bias filter",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://www.theinnercircletraders.com/ict-judas-swing/",
+    "https://www.luxalgo.com/library/concept/judas-swing/",
+    "https://fxreplay.com/events/ict-judas-swing-backtesting-session",
+    "https://innercircletrader.net/tutorials/ict-power-of-3/",
+    "https://www.reddit.com/r/InnerCircleTraders/comments/17cmzjm/"
+   ]
+  },
+  {
+   "name": "S7 Order-block retest (ICT/SMC OB, midpoint limit)",
+   "origin": "ICT; LuxAlgo SMC; smart-money-concepts library; puravidaedge and tradelybox testing specs; Reddit 1-year multi-asset test",
+   "timeframe_session": "1m/5m/15m; 09:30-11:30 ET filter",
+   "instruments": "Micro index futures (puravidaedge spec), NQ (hindsight ledger), multi-asset",
+   "entry": "Bullish OB = last bearish candle before an impulse of >= 2 x ATR(14) within the next 3 bars (variants 1.5x/3x, or impulse must create an FVG / break a swing high). Zone = full High-Low of that candle (variant: body). Limit at zone midpoint on first return (require trade-through by >= 1 tick).",
+   "exit": "Stop 1 tick beyond far edge of zone; target 2R (variant 1R); expiry 5 sessions or once traded; flat 16:00",
+   "filters": "Session filter; FVG overlap (+20 quality points in FvgGold); random-zone control: same-width zones at random times, identical logic, >= 20 seeds, edge must lie outside the random range",
+   "parameters": "ATR(14) impulse mult 2.0; 3-bar window; RR 1-2",
+   "claimed_performance": "hindsight-finance NQ ledger OB entries (our computation): 15 trades, 47% win, +2.73R, avg +0.18R, PF 1.46 (small, inside a losing strategy). Reddit 1qvovpv snippet: 1-year test on 100 stocks/100 crypto/30 futures/50 forex, multiple TFs: negative almost everywhere, forex near breakeven. lunefi (uncited): 62% win PF 1.8 on forex majors over 2,600 trades; 55-65% with FVG confluence. vestinda PF 1.13.",
+   "evidence_quality": 2,
+   "prop_fit": "Tightest stops in family (often 5-12 NQ pts on 1m) suit $2k DD; fill assumptions must be conservative",
+   "data_requirements": "OHLC only; library OBVolume and LuxAlgo volume-weighted OB selection need volume (not reproducible)",
+   "sources": [
+    "https://puravidaedge.com/blog/how-to-backtest-order-blocks",
+    "https://www.tradelybox.com/blogs/order-blocks-how-to-define-and-test-them",
+    "https://www.reddit.com/r/algotrading/comments/1qvovpv/",
+    "https://lunefi.com/blog/best-order-block-indicators-2026-tradingview-top-picks-backtests-win-rates",
+    "https://github.com/joshyattridge/smart-money-concepts",
+    "https://github.com/hindsight-finance/Silver-Bullet-AM-Session"
+   ]
+  },
+  {
+   "name": "S8 Breaker block and Unicorn (breaker + FVG overlap)",
+   "origin": "ICT; LuxAlgo breaker/Unicorn; UAlgo, TradingFinder, Flux Charts indicators; FX Replay Unicorn strategy",
+   "timeframe_session": "1m/5m; 09:30-11:30 ET",
+   "instruments": "NQ/ES (hindsight ledger), gold",
+   "entry": "Breaker: swing low L1 -> swing high H1 -> bar sweeps below L1 -> displacement closes above H1 (close-based BOS); breaker zone = last down-closing candle(s) between H1 and the sweep (full range). Limit at breaker top on first retest from above. Unicorn: only when the displacement FVG overlaps the breaker; entry at the overlap.",
+   "exit": "Stop beyond the sweep low (manipulation-leg extreme); target next liquidity pool / H1 projection / PDH; invalid if bar closes through far side",
+   "filters": "Displacement ATR thresholds; one trade per structure",
+   "parameters": "Swing N=3; displacement 1.5xATR",
+   "claimed_performance": "hindsight-finance ledger breaker entries (our computation): 17 trades, 6% win, -11.52R, avg -0.68R, PF 0.23 (worst sub-model; definition sensitivity high). Unicorn: no quantitative evidence; YouTube 100-trade videos unretrievable.",
+   "evidence_quality": 2,
+   "prop_fit": "No",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://www.luxalgo.com/library/concept/breaker-block/",
+    "https://www.luxalgo.com/blog/ict-unicorn-model-strategy-how-to-use/",
+    "https://www.tradingview.com/script/wBEUAFxD-ICT-Unicorn-Model-UAlgo/",
+    "https://fxreplay.com/strategies/ict-unicorn-strategy",
+    "https://github.com/hindsight-finance/Silver-Bullet-AM-Session"
+   ]
+  },
+  {
+   "name": "S9 Optimal Trade Entry (62-79% retracement after displacement/MSS)",
+   "origin": "ICT OTE; LuxAlgo OTE concept; innercircletrader.net; adjacent test by MPM (Fibonacci pullbacks)",
+   "timeframe_session": "5m legs, 1m fills; 09:30-11:30 ET",
+   "instruments": "NQ/ES/GC",
+   "entry": "After bullish MSS, measure leg from the pre-MSS swing low to the displacement swing high (N=3 confirmed); limit at 0.705 (band 0.62-0.79), optionally requiring an FVG/OB inside the band; cancel if price trades below 0.79 unfilled or leg older than 60 min",
+   "exit": "Stop below swing low (1.0) + 1 tick / 0.25xATR; targets -0.27 extension then -0.62 or opposing liquidity; flat 16:00",
+   "filters": "PD array inside OTE; session window",
+   "parameters": "Fib 0.62/0.705/0.79; extensions -0.27/-0.62",
+   "claimed_performance": "MPM (GC, SI, NQ, ES; Apr2019-May2026; 2,072-2,214 signals; 38.2%/50% of prior-day range, long when open above level and trades down to it): sell-at-old-high -0.153R (negative all 4 markets); sell-at-close +0.002R 47.4% win; hold-N-days +0.073R matched by random; beat random only 34-89% of comparisons. 61.8/78.6 not tested. No OTE-specific published test.",
+   "evidence_quality": 2,
+   "prop_fit": "Moderate stops (ES 3-6 pts on 5m legs) but low fill rate; use only as entry mechanism for S5/S10 legs",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://mpmmarkets.com/research/do-fibonacci-pullbacks-actually-make-money",
+    "https://www.luxalgo.com/library/concept/optimal-trade-entry/",
+    "https://innercircletrader.net/tutorials/ict-optimal-trade-entry-ote-pattern/"
+   ]
+  },
+  {
+   "name": "S10 Fair Value Theory displacement-from-open model (JJ Simon, NQ 1-minute)",
+   "origin": "JJ Simon (YouTube); third-party FX Replay backtest",
+   "timeframe_session": "1m; anchors 09:30 open (primary) and ~14:00 (secondary); skip first 3 min for continuations; mean reversions only in first 30 min; avoid 15:00-16:00 ET",
+   "instruments": "NQ/MNQ",
+   "entry": "Displacement bar = counter-wick <= 20% of open-to-extreme range (bullish: Open-Low <= 0.20 x (High-Open)). Trigger 1 continuation: displacement closing away from the anchor -> enter at its close in its direction. Trigger 2 mean reversion: displacement + 1m structure break back toward the anchor within first 30 min -> enter toward the anchor. One position at a time.",
+   "exit": "Stop 25 ticks, target 38.5 ticks (1.5R) when 1m ATR 7-20 ticks; 50/75 ticks when ATR > 20; 16.5-24.75 ticks when ATR < 7; flat 16:00",
+   "filters": "ATR regime scaling; low-quality window filter (in-sample)",
+   "parameters": "SL 25 ticks, TP 38.5 ticks, 1.5R (1.6R marginally better); ATR(1m) bands 7/20",
+   "claimed_performance": "158 manual trades (FX Replay): 54% win, PF 1.76, max win streak 8, max loss streak 5. Mean-reversion subset 49-59% win PF 1.46. Feb 2026 43 trades 58% win +19R; Apr-May 2025 56% win PF 1.93; Apr 2023 chop underperformed. Pre-filter 150 trades +46R 52% PF 1.66; post-filter 62% win PF 2.46 (in-sample). No costs stated.",
+   "evidence_quality": 2,
+   "prop_fit": "Best shape in family: 25-tick NQ stop = $125/NQ or $12.50/MNQ, 1.5R, several trades/day; 5-loss streak = $625 on 1 NQ. Needs daily profit cap for consistency rule. First in backtest queue.",
+   "data_requirements": "OHLC only; 1m ATR",
+   "sources": [
+    "https://www.youtubesummary.com/summary/SNO1wqJTq5A",
+    "https://www.youtube.com/watch?v=SNO1wqJTq5A"
+   ]
+  },
+  {
+   "name": "S11 Market structure shift / BOS-CHoCH trend-following (SMC structure model)",
+   "origin": "SMC (LuxAlgo SMC indicator, smart-money-concepts Python library); ICT MSS",
+   "timeframe_session": "5m structure, 1m entries; 09:30-15:30 ET",
+   "instruments": "NQ/ES/GC",
+   "entry": "Swings N=3 (internal) / N=5 (swing). CHoCH = close through most recent counter-swing (e.g., close above last lower high in a downtrend) with displacement (body > 1.5xATR). Enter on first pullback into the OB/FVG created by the CHoCH leg (limit at midpoint).",
+   "exit": "Stop beyond the swing the leg started from; target next swing level or 2R; flat 16:00",
+   "filters": "Close-based breaks (library close_break=True); internal BOS adds only when flat",
+   "parameters": "Swing lengths 3/5; displacement 1.5xATR",
+   "claimed_performance": "No independent quantitative test of a CHoCH rule found; LuxAlgo gives no statistics; library is the codeable definition. Structurally a swing-breakout pullback system (see trend/momentum family base rates).",
+   "evidence_quality": 1,
+   "prop_fit": "Moderate stops, trend-dependent; long flat stretches on range days hurt the 5x$150-day payout rule",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://github.com/joshyattridge/smart-money-concepts",
+    "https://www.luxalgo.com/library/concept/break-of-structure/",
+    "https://www.tradingview.com/script/CnB3fSph-Smart-Money-Concepts-LuxAlgo/"
+   ]
+  },
+  {
+   "name": "S12 Supply and demand zones (rally-base-rally / drop-base-drop, fresh zones)",
+   "origin": "Sam Seiden / OTA; SMC; LuxAlgo S&D guide; journalplus; signalsoracle; Quantified Strategies declined to backtest",
+   "timeframe_session": "5m/15m; 09:30-11:30 ET",
+   "instruments": "Equity index futures (claims), forex majors (test)",
+   "entry": "Base = 1-3 consecutive bars each with range <= 0.5xATR(14); departure >= 2xATR within 3 bars. Demand zone = base low to base high (variant: to highest body). Fresh (F1) only. Limit at proximal edge on first retest.",
+   "exit": "Stop 1 tick below distal edge + 0.25xATR; target 2R or opposing zone; expiry 5 sessions; flat 16:00",
+   "filters": "HTF (1h) trend alignment; freshness F1",
+   "parameters": "ATR(14); base range 0.5x; departure 2x",
+   "claimed_performance": "signalsoracle: forex majors 2-year manual breakout-and-retest with S/D zones ~55% win, 1.8 avg RR, no PF/DD/count, trend-dependent. journalplus (uncited): F1 wins 15-25pp more than F3 in equity futures. tradiecapital (uncited): 40-55% win at 1:2.5+. Quantified Strategies: cannot make a meaningful backtest.",
+   "evidence_quality": 1,
+   "prop_fit": "Like S7: small stops at zone edge; fill modelling critical",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://signalsoracle.com/backtesting-strategy-supply-and-demand-edge/",
+    "https://www.luxalgo.com/blog/supply-and-demand-zones-a-simple-guide/",
+    "https://journalplus.co/strategies/supply-zone-strategy/",
+    "https://www.quantifiedstrategies.com/supply-and-demand-trading-strategy/"
+   ]
+  },
+  {
+   "name": "S13 Support/resistance retest and round-number bounce (classic)",
+   "origin": "Edwards & Magee; Murphy; Osler 2000/2003; Brock-Lakonishok-LeBaron 1992; Lo-Mamaysky-Wang 2000",
+   "timeframe_session": "1m/5m; 09:30-15:30 ET",
+   "instruments": "ES (25/50-pt rounds), NQ (100-pt), GC ($10)",
+   "entry": "Levels: prior swing H/L (N=5, 5m) touched >= 2x within 0.1xATR(14); PDH/PDL, ONH/ONL, prior week H/L; round numbers. First-touch fade: 1m bar Low within 0.1xATR of support and closes back above it in upper half of range -> buy next open. Breakout-retest: after displacement close beyond level, buy first return within 0.1xATR.",
+   "exit": "Stop 1.0-1.5xATR beyond the level (beyond the stop cluster); target midpoint to next level or 1R; breakout version target = measured move; flat 16:00",
+   "filters": "Time window; avoid trending days for fades",
+   "parameters": "Touch tolerance 0.1xATR; stop 1-1.5xATR",
+   "claimed_performance": "Osler 2000 (FX 1-min 1996-98): bounce 60.8% vs 56.2% artificial (+4.2/+5.6/+4.0pp DEM/JPY/GBP; best firm +9.2pp); 96% of levels end in 0 or 5; persists >= 5 days. Osler 2003 (J. Finance): stops cluster just beyond round numbers, take-profits at them. Brock et al. 1992: S&P daily S/R breakout rules true but costs may not be covered. Lo-Mamaysky-Wang 2000: patterns carry incremental info (US stocks 1962-96).",
+   "evidence_quality": 3,
+   "prop_fit": "Bounce edge ~4-5pp over ~56% base is thin; viable only with very tight execution and sub-tick costs; better as the level set for S5",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://www.newyorkfed.org/medialibrary/media/research/epr/00v06n2/0007osle.pdf",
+    "https://doi.org/10.1111/1540-6261.00588",
+    "https://www.nber.org/papers/w7613"
+   ]
+  },
+  {
+   "name": "S14 Al Brooks second entry (H2/L2) with-trend pullback",
+   "origin": "Al Brooks Trading Price Action trilogy (2012); brookspriceaction.com; thinkScript and TradingView implementations",
+   "timeframe_session": "5m; 09:30-15:30 ET; skip first bar",
+   "instruments": "ES/NQ",
+   "entry": "Trend: price above rising EMA(20). Pullback leg: bar Low < prior Low. H1 = first bar whose High exceeds prior bar High after the pullback; after a second lower leg, the next such bar is H2. Buy stop 1 tick above the H2 signal bar High (signal bar closes in top 30%). Mirror for L2.",
+   "exit": "Stop 1 tick below signal bar Low (or below pullback low); target 2R, measured move (prior leg height from breakout), or EMA for scalps; flat 16:00",
+   "filters": "Trend definition; context (Brooks says not mechanical)",
+   "parameters": "EMA 20; signal-bar close top/bottom 30%",
+   "claimed_performance": "Brooks' probability statements: ~60% for second entries / additional legs after big bars, 40% measured move after double bottoms with bull flags, 50% range breakouts, 80% reversals after big gaps in first hour. No independent backtest; practitioners say stats are context-dependent.",
+   "evidence_quality": 1,
+   "prop_fit": "Trend-day dependent; 5m signal-bar stops on NQ 15-40 pts; repeated failures on range days",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://www.brookspriceaction.com/acronyms.php",
+    "https://usethinkscript.com/threads/al-brooks-price-action-indicators-for-thinkorswim.17208/",
+    "https://www.tradingview.com/script/YUixSlPL-Al-Brooks-Second-Entry/",
+    "https://trasignal.com/blog/learn/al-brooks-2nd-entry-setup/"
+   ]
+  },
+  {
+   "name": "S15 Al Brooks failed breakout / breakout pullback with measured-move target",
+   "origin": "Al Brooks; Bulkowski flag/pennant statistics; steady-turtle opening-range fade",
+   "timeframe_session": "5m; 09:30-15:30 ET; OR fade uses 09:30-09:35 range",
+   "instruments": "ES/NQ",
+   "entry": "Breakout = 5m close beyond a >= 10-bar range (or OR/IB) with body > 1.5xATR. Breakout pullback: first pullback holding beyond the level -> buy stop above the BP signal bar. Failed breakout: close back inside the range within 5 bars -> fade on the close back inside.",
+   "exit": "BP: stop below range high - 0.5xATR, target measured move (range height). FBO: stop beyond breakout extreme, target opposite side of range or VWAP; flat 16:00",
+   "filters": "Range length >= 10 bars; displacement body",
+   "parameters": "ATR mult 1.5; 5-bar failure window",
+   "claimed_performance": "Bulkowski (daily stocks): flags 44-45% break-even failure, 46% reach target, avg 9%/8%; pennants 54% failure, 35%/32% reach target; descending triangles 22%/23% failure, 64%/50% reach target. Brooks: 50% breakout success in ranges. ORB family (separate report): raw ORB on MNQ 2021-25 not an edge after costs.",
+   "evidence_quality": 2,
+   "prop_fit": "FBO fade is S5 applied to the opening range; see ORB family base rates",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://thepatternsite.com/flags.html",
+    "https://thepatternsite.com/pennants.html",
+    "https://thepatternsite.com/dt.html",
+    "https://www.brookspriceaction.com/acronyms.php",
+    "https://steady-turtle.com/knowledge/day-trading-strategies"
+   ]
+  },
+  {
+   "name": "S16 Candlestick reversal patterns at levels (engulfing, hammer/pin, evening/morning star, three-line strike)",
+   "origin": "Nison 1991; Bulkowski Encyclopedia of Candlestick Charts; Caginalp-Laurent 1998; Marshall-Young-Rose 2006; Lu 2014; Jonsson 2016",
+   "timeframe_session": "5m; 09:30-15:30 ET; only at an S5/S13 level",
+   "instruments": "Daily stocks in evidence; intended ES/NQ/GC",
+   "entry": "Bullish engulfing: Close[i]>Open[i], Close[i-1]<Open[i-1], Open[i]<=Close[i-1], Close[i]>=Open[i-1]. Hammer: lower wick >= 2x body, upper wick <= 0.25x body, close in top third, after >= 3 declining closes. Evening star: large bull body, small body (<0.3x) above, bear body closing below midpoint of first. Bearish three-line strike: three bear bars with lower closes then a bull bar opening below the third close and closing above the first open. Enter next bar open.",
+   "exit": "Stop beyond pattern extreme + 0.25xATR; target 1R-2R; flat 16:00",
+   "filters": "Must coincide with a level; trend context",
+   "parameters": "Wick/body ratios as above",
+   "claimed_performance": "Bulkowski daily stocks: bearish three-line strike rank 1 (80% meet target), bullish three-line strike 2, three black crows 3, evening star 4, morning star 12, piercing 13, dark cloud 22; hammer 65 (88% meet tiny target), shooting star 55, bullish engulfing 84, bearish engulfing 91, hanging man 87. Academic: MYR 2006 (35 DJIA stocks 1992-2001, 28 patterns, bootstrap): no value; Marshall-Young-Chang 2008 (Tokyo 1975-2002): none; Caginalp-Laurent 1998 (S&P stocks 1992-96, eight 3-day patterns): all significant short-term; Goo et al 2007 Taiwan: bearish best at 3-4 days; Lu 2014 Taiwan: profitable with 3-day MA; Jonsson 2016 OMXS30: little value. No intraday futures study.",
+   "evidence_quality": 3,
+   "prop_fit": "Confirmation filter only; standalone will not clear 1m ES/NQ costs",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://thepatternsite.com/ThreeLineStrikeBear.html",
+    "https://thepatternsite.com/EveningStar.html",
+    "https://thepatternsite.com/Hammer.html",
+    "https://thepatternsite.com/BullEngulfing.html",
+    "https://thepatternsite.com/BearEngulfing.html",
+    "https://doi.org/10.1016/j.jbankfin.2005.08.001",
+    "https://doi.org/10.1016/j.pacfin.2013.10.006",
+    "https://lup.lub.lu.se/luur/download?func=downloadFile&recordOId=8877738&fileOId=8877838",
+    "https://www.sciencedirect.com/science/article/abs/pii/S1058330012000092"
+   ]
+  },
+  {
+   "name": "S17 Classic chart patterns intraday (double top/bottom, head-and-shoulders) with neckline entry",
+   "origin": "Edwards & Magee; Bulkowski; Lo-Mamaysky-Wang 2000; Chang-Osler 1999; MPM double-bottom test",
+   "timeframe_session": "5m/1h; 09:30-15:30 ET",
+   "instruments": "NQ, ES, GC, SI, HG, CL (MPM hourly); daily stocks (Bulkowski)",
+   "entry": "Double bottom: two confirmed swing lows (N=4) within 0.25xATR, 8-120 bars apart, intervening peak >= 0.5xATR above the higher low; entry (a) at second low or (b) on close above neckline. H&S: three swing highs, middle highest, shoulders within 0.5xATR; entry on neckline close.",
+   "exit": "(a) stop 0.5xATR below second low; (b) stop below second low; target pattern height from neckline or 2R; H&S stop above right shoulder; flat 16:00",
+   "filters": "Symmetry, prior trend, tightness (MPM found they add nothing)",
+   "parameters": "N=4 swings; 0.25xATR match; 8-120 bar separation",
+   "claimed_performance": "MPM (6 futures, hourly, Apr2019-May2026, 13,704 double bottoms): raw 52.2%/54.0%/57.8% positive at 6h/24h/120h = market drift; vs randomized entries no reliable edge at any entry/horizon; neckline-break significance mechanical; 5 filters add nothing. Bulkowski daily stocks: H&S top 19% BE failure, avg decline 16%, 68% pullback, 51% reach target (2,800 trades); H&S bottom 11% failure, 45% rise, 65% throwback, 71% reach target (3,197). Lo-Mamaysky-Wang 2000: incremental info, no profit claim. Chang & Osler 1999: H&S profitable USD/DEM and USD/JPY, not 4 other rates.",
+   "evidence_quality": 3,
+   "prop_fit": "No as standalone",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://mpmmarkets.com/research/double-bottom-under-the-microscope",
+    "https://thepatternsite.com/hst.html",
+    "https://thepatternsite.com/hsb.html",
+    "https://www.nber.org/papers/w7613",
+    "https://doi.org/10.1111/1468-0297.00466"
+   ]
+  },
+  {
+   "name": "S18 Equal highs/lows run and 9 AM-candle range reversal (session-range sweep micro-models)",
+   "origin": "ICT equal highs/lows; hindsight-finance 9AM-candle range model; test-max 09:00-09:25 range spec",
+   "timeframe_session": "1m; 10:00-11:00 ET (9AM range); 5m 09:30-10:25 (test-max)",
+   "instruments": "NQ (ledger), ES",
+   "entry": "Equal highs: two 1m swing highs (N=3) within 0.1xATR(14), >= 10 bars apart, within last 120 min; sweep = High > higher of the two by >= 1 tick and Close < the lower; enter next open. 9AM range: at 10:00 mark 09:00-10:00 H/L; 1m sweep then displacement close back inside; enter on FVG/OB; skip if RR < 2.5. test-max: first 5m candle closing below range low then back inside; confirm on later close above sweep candle high; enter next open; one trade/day.",
+   "exit": "Stop 1 tick beyond sweep extreme (test-max: sweep candle low minus buffer); target opposite liquidity / other side of 9AM range / 1.5R / 2R; exit at 11:00 open (test-max); flat 16:00",
+   "filters": "Displacement filter; RR >= 2.5 (hindsight)",
+   "parameters": "Equal-high tolerance 0.1xATR; 9AM range; BE at 3R",
+   "claimed_performance": "9AM-range version = hindsight-finance ledger (78 trades, 21.8% win, -6.75R, PF 0.87; 2025 PF 0.51). Equal-highs version untested. Osler 2003 supports the stop-clustering mechanism.",
+   "evidence_quality": 2,
+   "prop_fit": "Same as S5; the 40-80 NQ-pt opposite-side target is the source of 2.5R+ payoffs and low win rate; test a VWAP/midpoint target instead",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://github.com/hindsight-finance/Silver-Bullet-AM-Session",
+    "https://test-max.com/blog/ict-trading-strategies/",
+    "https://doi.org/10.1111/1540-6261.00588"
+   ]
+  },
+  {
+   "name": "S19 Lower-high / higher-low daily bias filter for liquidity targets (MPM pattern)",
+   "origin": "MPM Markets research; ICT draw-on-liquidity logic",
+   "timeframe_session": "Daily bars for the condition; 1m execution via S5",
+   "instruments": "S&P 500, Nasdaq-100, gold, silver, crude, EURUSD (tested); ES/NQ/GC for use",
+   "entry": "Not an entry. If yesterday's close < prior day's high (lower-high day), allow S5 sweep-reclaim longs at PDL and set PDL as the short target; on higher-high days prefer PDH as target.",
+   "exit": "Per S5",
+   "filters": "Condition only",
+   "parameters": "Lower high = close below prior day's high (MPM definition on Fridays)",
+   "claimed_performance": "MPM (6 markets, ~30 years daily, 8,387 Friday weeks): PDL-visit probability +13-20pp vs higher-high Fridays, +7-11pp vs random (indices, EURUSD), +6-7pp (metals, crude). Naive buy-the-tag-sell-the-close loses: PF 0.36-0.52 ex-best trades, deeper MAE.",
+   "evidence_quality": 3,
+   "prop_fit": "Filter only",
+   "data_requirements": "Daily OHLC (Yahoo) plus 1-minute for execution",
+   "sources": [
+    "https://mpmmarkets.com/research/lower-highs-previous-day-low-visit"
+   ]
+  },
+  {
+   "name": "S20 ICT killzone/macro time windows as a pure time filter",
+   "origin": "ICT macros (09:50-10:10, 10:50-11:10, 13:10-13:40, 15:15-15:45), Silver Bullet windows, killzones; cjosh grid results",
+   "timeframe_session": "Any; forbid entries 11:30-13:30 and after 15:30 ET; favour 10:00-11:30",
+   "instruments": "NQ, ES, CL (cjosh grid)",
+   "entry": "Not an entry model; restricts S5/S7/S10 entries to the windows above",
+   "exit": "Per underlying strategy",
+   "filters": "Time only",
+   "parameters": "Window set as listed",
+   "claimed_performance": "cjosh grid (NQ/ES/CL 5m, 2026): PM window 14:00-15:00 a consistent failure; London+AM windows survived in-sample then lost -5.4R over next 7 forward trades; walk-forward +0.34R/trade on 20 trades. Vendor claims time-of-day models lift success 15% (uncited).",
+   "evidence_quality": 1,
+   "prop_fit": "Use as filter; 10:00-11:30 also has the tightest ES/NQ spreads for micro sizing",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://github.com/cjosh4toyotas-stack/silver-bullet-backtest",
+    "https://innercircletrader.net/tutorials/ict-silver-bullet-strategy/"
+   ]
+  }
+ ]
+}

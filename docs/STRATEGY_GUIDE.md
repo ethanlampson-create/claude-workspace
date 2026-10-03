@@ -68,7 +68,11 @@ Register in `strategies/__init__.py` (`REGISTRY[id] = 'strategies.<module>'`). O
 - Intraday max drawdown per micro small enough that 10-20 micros stay under the $2,000 EOD-trailing MLL
   (rule of thumb: max_dd_intraday * micros < $1,500).
 - Holds up (profit factor >= 1.1) on 2023-2024 with the same parameters, and the parameter grid is a plateau, not a spike.
-- Then the Lucid Monte Carlo decides: pass rate, time to pass, first-payout probability, expected net per evaluation.
+- Then the Lucid Monte Carlo decides: pass rate, pass-within-21-sessions rate by start month (`monthly_pass_rate`, with
+  `monthly_n` counts), first-payout probability, expected net per evaluation. `backtest.batch.lucid_scan` sizes by the
+  block-bootstrap LOWER bound of expected net (`exp_net_lb`), prints the zero-edge control (`zero_edge_exp_net`, the
+  same stream demeaned) and flags `recommended` only when the lower bound is positive and the strategy beats its
+  control by >= $100. Only a `recommended` size counts; a positive point estimate alone is noise-compatible.
 
 ## Reporting
 Write `results/<id>/README.md`: rules as implemented, parameters tested, metrics table per period, diagnostics summary,

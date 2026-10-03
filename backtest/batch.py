@@ -27,19 +27,33 @@ def to_micro(daily, contract):
     return micro_daily(daily, contract)
 
 
-def lucid_scan(daily_micro, rules=None, micros=MICRO_SCAN, start_every=1, funded_same=True, min_profit_to_request=4000.0):
-    """Run the Lucid Monte Carlo for several contract sizes; return the per-size summary table and the best row
-    (max expected_net_per_eval subject to pass_rate>0)."""
+def lucid_scan(daily_micro, rules=None, micros=MICRO_SCAN, start_every=1, funded_same=True, min_profit_to_request=4000.0, boot_reps=60, block=20):
+    """Lucid Monte Carlo for several contract sizes (fast simulator). For each size: point estimates, a block-bootstrap
+    LOWER bound (5th percentile) of expected net per evaluation, the probability of losing the fee, and the zero-edge
+    control (same stream demeaned). The `best` row is chosen by the bootstrap lower bound, NOT the point estimate
+    (the in-sample argmax of a lottery-shaped objective is biased upward), and best['recommended'] is True only when
+    that lower bound is positive AND the strategy beats its zero-edge control. Returns (table, best)."""
+    from backtest.lucid import monte_carlo_fast, bootstrap_summary, zero_edge_control
     rules = rules or Rules()
     rows = []
     for m in micros:
-        fm = m if funded_same else min(m, 20)
-        _, s = monte_carlo(daily_micro, m, constant_micros(fm), rules, start_every=start_every, min_profit_to_request=min_profit_to_request)
-        s = {k: v for k, v in s.items() if k != 'monthly_pass_rate'}
-        mp = monte_carlo  # noqa
-        s['micros'] = m; rows.append(s)
+        fm = min(m, 20) if funded_same else min(m, 20)
+        _, s = monte_carlo_fast(daily_micro, m, fm, rules, start_every=start_every, min_profit_to_request=min_profit_to_request)
+        row = {k: v for k, v in s.items() if not isinstance(v, dict)}
+        row['micros'] = m
+        if boot_reps and boot_reps > 0:
+            bs = bootstrap_summary(daily_micro, m, fm, rules, reps=boot_reps, block=block, start_every=max(start_every, 3), min_profit_to_request=min_profit_to_request)
+            row['exp_net_lb'] = bs.get('expected_net_per_eval_p05', np.nan); row['exp_net_p50'] = bs.get('expected_net_per_eval_p50', np.nan)
+            row['pass_rate_lb'] = bs.get('pass_rate_p05', np.nan); row['p_exp_net_positive'] = bs.get('p_expected_net_positive', np.nan)
+        z = zero_edge_control(daily_micro, m, fm, rules, start_every=start_every, min_profit_to_request=min_profit_to_request)
+        row['zero_edge_exp_net'] = z.get('expected_net_per_eval'); row['zero_edge_pass_rate'] = z.get('pass_rate')
+        rows.append(row)
     t = pd.DataFrame(rows)
-    best = t.sort_values('expected_net_per_eval', ascending=False).iloc[0] if 'expected_net_per_eval' in t and t['expected_net_per_eval'].notna().any() else t.iloc[0]
+    key = 'exp_net_lb' if 'exp_net_lb' in t and t['exp_net_lb'].notna().any() else 'expected_net_per_eval'
+    best = t.sort_values(key, ascending=False).iloc[0].copy()
+    lb = best.get('exp_net_lb', np.nan)
+    best['recommended'] = bool((lb == lb) and lb > 0 and best.get('expected_net_per_eval', 0) > (best.get('zero_edge_exp_net', 0) or 0) + 100)
+    best['selection'] = key
     return t, best
 
 
@@ -66,9 +80,11 @@ def _worker(args):
         row = {'strategy': strategy_id, 'contract': contract_name, 'start': start, 'end': end, 'params': json.dumps(params)}
         row.update({k: v for k, v in m.items() if k != 'monthly'})
         if do_lucid and len(trades) > 5:
-            t, best = lucid_scan(to_micro(daily, contract))
-            row.update({'best_micros': int(best['micros']), 'pass_rate': best['pass_rate'], 'p_first_payout_uncond': best.get('p_first_payout_unconditional'),
-                        'exp_net_per_eval': best.get('expected_net_per_eval'), 'median_days_to_pass': best.get('median_days_to_pass'),
+            t, best = lucid_scan(to_micro(daily, contract), boot_reps=30)
+            row.update({'best_micros': int(best['micros']), 'pass_rate': best['pass_rate'], 'pass_within_21': best.get('pass_within_21'),
+                        'p_first_payout_uncond': best.get('p_first_payout_unconditional'),
+                        'exp_net_per_eval': best.get('expected_net_per_eval'), 'exp_net_lb': best.get('exp_net_lb'), 'zero_edge_exp_net': best.get('zero_edge_exp_net'),
+                        'recommended': bool(best.get('recommended', False)), 'median_days_to_pass': best.get('median_days_to_pass'),
                         'p_first_payout_given_pass': best.get('p_first_payout_given_pass')})
         return row
     except Exception as e:
@@ -121,7 +137,7 @@ if __name__ == '__main__':
     t0 = time.time()
     df = grid_search(a.strategy, a.contract, periods, json.loads(a.grid) if a.grid else None, json.loads(a.base), a.jobs, a.slip, not a.no_lucid)
     cols = [c for c in ['start', 'params', 'trades', 'net', 'win_rate', 'profit_factor', 'max_dd_intraday', 'sharpe_daily_ann', 'pct_pos_days', 'largest_day_share',
-                        'best_micros', 'pass_rate', 'p_first_payout_uncond', 'exp_net_per_eval', 'error'] if c in df]
+                        'best_micros', 'pass_rate', 'pass_within_21', 'p_first_payout_uncond', 'exp_net_per_eval', 'exp_net_lb', 'zero_edge_exp_net', 'recommended', 'error'] if c in df]
     with pd.option_context('display.width', 250, 'display.max_colwidth', 60, 'display.max_rows', 500):
         print(df[cols].sort_values(['start', 'net'], ascending=[True, False]).to_string(index=False))
     print(json.dumps(robustness(df), indent=1, default=float))

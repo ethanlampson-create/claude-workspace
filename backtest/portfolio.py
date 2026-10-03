@@ -17,8 +17,12 @@ import strategies
 
 
 def run_leg(leg, start, end, slip_ticks=None):
+    """Run one leg per MICRO contract (a mini leg is simulated as its micro counterpart, so commissions are the real
+    micro commissions) and scale by leg['micros']."""
     from backtest.run import prepare
-    df1, it, contract = prepare(leg['strategy'], leg['contract'], start, end, leg.get('params', {}))
+    from backtest.contracts import MICRO_OF
+    cname = MICRO_OF.get(leg['contract'], leg['contract'])
+    df1, it, contract = prepare(leg['strategy'], cname, start, end, leg.get('params', {}))
     trades, daily, bars = engine.run(it, contract, slip_ticks=slip_ticks, return_bars=True)
     s0 = pd.Timestamp(start).date()
     keep_d = daily['session'].values >= s0
@@ -26,8 +30,8 @@ def run_leg(leg, start, end, slip_ticks=None):
     bars = bars[np.isin(bars['day_id'].values, np.where(keep_d)[0])].reset_index(drop=True)
     bars['day_id'] = bars['day_id'] - int(np.where(keep_d)[0].min()) if keep_d.any() else bars['day_id']
     if len(trades):
-        trades = trades[pd.to_datetime(trades['entry_ts']).dt.tz_convert('America/New_York').dt.date >= s0].reset_index(drop=True)
-    scale = leg.get('micros', 1) / (contract.micro_ratio if contract.name in ('ES', 'NQ', 'GC', 'CL') else 1)
+        trades = trades[trades['session'].values >= s0].reset_index(drop=True) if 'session' in trades else trades
+    scale = leg.get('micros', 1)
     trades = trades.copy(); trades['pnl'] *= scale; trades['leg'] = leg['strategy'] + '/' + leg['contract']
     bars = bars.copy(); bars['eq_low'] *= scale; bars['eq_close'] *= scale
     daily = daily.copy(); daily['pnl'] *= scale; daily['min_eq'] *= scale; daily['max_eq'] *= scale

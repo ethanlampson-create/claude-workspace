@@ -42,7 +42,8 @@ class Rules:
     split: float = 0.90
     max_payouts: int = 5
     payout_locks_mll: bool = True
-    eval_fee: float = 146.0
+    payout_base: str = 'total'       # 'total': 50% of (balance - start); 'cycle': 50% of profit since the last payout (unconfirmed reading)
+    eval_fee: float = 146.0            # one-time per evaluation (LucidFlex has no monthly fee and no time limit)
     reset_fee: float = 90.0
 
 
@@ -124,7 +125,7 @@ def simulate_funded(pnl, min_eq, start, micros_policy, rules: Rules, horizon=250
                     'balance': bal, 'first_payout_day': payouts_days[0] if payouts else None}
         profit = bal - rules.start_balance
         cycle_net = bal - cycle_start_bal
-        amount = min(rules.payout_max, rules.payout_frac * profit)
+        amount = min(rules.payout_max, rules.payout_frac * (profit if rules.payout_base == 'total' else max(0.0, cycle_net)))
         eligible = qual_days >= rules.payout_min_days and cycle_net > 0 and amount >= rules.payout_min
         want = profit >= min_profit_to_request or (request_asap_after_first and len(payouts) > 0)
         if eligible and want:
@@ -200,10 +201,220 @@ def summarize_mc(df: pd.DataFrame, rules: Rules):
         out['p_first_payout_unconditional'] = out['pass_rate'] * out['p_first_payout_given_pass'] if len(fr) else np.nan
         out['expected_paid_per_eval'] = out['pass_rate'] * out['mean_paid_given_pass'] if len(fr) else np.nan
         out['expected_net_per_eval'] = out['expected_paid_per_eval'] - rules.eval_fee if len(fr) else np.nan
-    # monthly pass rate: evals started in each calendar month (censored excluded)
+    # pass-within-k curves (k sessions after the start) and the loss-of-fee probability
+    for k in (21, 42, 63):
+        out[f'pass_within_{k}'] = float(((res['eval'] == 'pass') & (res['eval_days'] <= k)).mean()) if m else np.nan
+    out['p_loss_fee'] = float(res['eval'].isin(['fail', 'incomplete']).mean()) if m else np.nan
+    # primary rates over starts that had the full evaluation horizon available (no censoring selection)
+    if 'full_horizon' in df and m:
+        fh = res[res['full_horizon'].astype(bool)]
+        out['n_full_horizon'] = int(len(fh)); out['pass_rate_full_horizon'] = float((fh['eval'] == 'pass').mean()) if len(fh) else np.nan
+    # effective sample size: overlapping starts are highly correlated; ~ resolved starts / median sessions to resolve
     if m:
-        mo = pd.to_datetime(res['start']).dt.to_period('M')
-        out['monthly_pass_rate'] = res.groupby(mo)['eval'].apply(lambda s: float((s == 'pass').mean())).to_dict()
+        med_res = float(res['eval_days'].median()) if res['eval_days'].notna().any() else np.nan
+        out['n_effective'] = float(m / max(1.0, med_res)) if med_res == med_res else np.nan
+    # monthly statistics by start month (censored excluded):
+    #   monthly_pass_rate  = P(pass within 21 sessions | start in month)   <- what "can I pass this month" means
+    #   monthly_fail_rate  = P(fail within 21 sessions | start in month)
+    #   monthly_pass_rate_eventual = P(pass within the horizon | start in month)
+    #   monthly_n = number of resolved starts in the month (months with < 15 are thin)
+    if m:
+        mo = pd.to_datetime(res['start']).dt.to_period('M').astype(str)
+        g = res.groupby(mo)
+        out['monthly_pass_rate'] = g.apply(lambda x: float(((x['eval'] == 'pass') & (x['eval_days'] <= 21)).mean())).to_dict()
+        out['monthly_fail_rate'] = g.apply(lambda x: float(((x['eval'] == 'fail') & (x['eval_days'] <= 21)).mean())).to_dict()
+        out['monthly_pass_rate_eventual'] = g['eval'].apply(lambda x: float((x == 'pass').mean())).to_dict()
+        out['monthly_n'] = g.size().astype(int).to_dict()
     else:
-        out['monthly_pass_rate'] = {}
+        out['monthly_pass_rate'] = {}; out['monthly_fail_rate'] = {}; out['monthly_pass_rate_eventual'] = {}; out['monthly_n'] = {}
     return out
+
+
+# =====================================================================================================================
+# Fast (numba) Monte Carlo for the standard policies, block bootstrap, zero-edge control
+# =====================================================================================================================
+from numba import njit
+
+
+@njit(cache=True)
+def _mc_nb(pnl, min_eq, ntr, micros, f_base, f_min_room, f_reduced, start_balance, target, mll_dist, lock_trig, lock_lvl,
+           consistency, min_days, eval_max, scal_thr, scal_mx, pay_days, pay_day_min, pay_min, pay_max, pay_frac, split,
+           max_pay, pay_locks, eval_h, funded_h, min_profit_req, start_every):
+    n = pnl.shape[0]
+    ns = (max(0, n - min_days) + start_every - 1) // start_every
+    ev_out = np.zeros(ns, np.int8); ev_days = np.zeros(ns, np.int32); ev_end = np.zeros(ns, np.int32)
+    fd_out = np.zeros(ns, np.int8); fd_np = np.zeros(ns, np.int32); fd_paid = np.zeros(ns); fd_first = np.full(ns, -1, np.int32)
+    fd_cens = np.zeros(ns, np.int8); starts = np.zeros(ns, np.int32)
+    k = 0
+    for s in range(0, max(0, n - min_days), start_every):
+        starts[k] = s
+        # ---------------- evaluation
+        bal = start_balance; mll = start_balance - mll_dist; peak = bal; largest = 0.0; days = 0; tdays = 0
+        last = min(n, s + eval_h); out = 2; endd = last - 1
+        m = min(micros, eval_max)
+        for i in range(s, last):
+            if bal + min_eq[i] * m <= mll:
+                out = 0; days += 1; endd = i; bal = mll; break
+            dp = pnl[i] * m; bal += dp; days += 1
+            if ntr[i] > 0:
+                tdays += 1
+            if dp > largest:
+                largest = dp
+            if bal > peak:
+                peak = bal
+            newm = peak - mll_dist
+            if peak > lock_trig:
+                newm = lock_lvl
+            if newm > mll:
+                mll = min(newm, lock_lvl)
+            if bal <= mll:
+                out = 0; endd = i; break
+            profit = bal - start_balance
+            if profit >= target and tdays >= min_days and (consistency <= 0 or largest <= consistency * profit):
+                out = 1; endd = i; break
+        if out == 2 and last == n and s + eval_h > n:
+            out = 3
+        ev_out[k] = out; ev_days[k] = days; ev_end[k] = endd
+        # ---------------- funded
+        if out == 1 and endd + 1 < n:
+            s2 = endd + 1
+            bal = start_balance; mll = bal - mll_dist; peak = bal; npay = 0; paid = 0.0; qual = 0; cyc = bal; fdays = 0
+            fo = 3; first = -1
+            last2 = min(n, s2 + funded_h)
+            for i in range(s2, last2):
+                profit = bal - start_balance
+                cap = scal_mx[0]
+                for j in range(scal_thr.shape[0]):
+                    if profit >= scal_thr[j]:
+                        cap = scal_mx[j]
+                mm = f_base if (bal - mll) >= f_min_room else f_reduced
+                if mm > cap:
+                    mm = cap
+                if mm > 0:
+                    if bal + min_eq[i] * mm <= mll:
+                        fo = 1; fdays += 1; break
+                    dp = pnl[i] * mm; bal += dp
+                    if dp >= pay_day_min:
+                        qual += 1
+                fdays += 1
+                if bal > peak:
+                    peak = bal
+                newm = peak - mll_dist
+                if peak > lock_trig:
+                    newm = lock_lvl
+                if newm > mll:
+                    mll = min(newm, lock_lvl)
+                if bal <= mll:
+                    fo = 1; break
+                profit = bal - start_balance
+                amount = min(pay_max, pay_frac * profit)
+                if qual >= pay_days and (bal - cyc) > 0 and amount >= pay_min and profit >= min_profit_req:
+                    npay += 1; paid += amount * split
+                    if first < 0:
+                        first = fdays
+                    bal -= amount
+                    if pay_locks and lock_lvl > mll:
+                        mll = lock_lvl
+                    qual = 0; cyc = bal
+                    if npay >= max_pay:
+                        fo = 2; break
+            fd_out[k] = fo; fd_np[k] = npay; fd_paid[k] = paid; fd_first[k] = first
+            fd_cens[k] = 1 if (fo == 3 and s2 + funded_h > n) else 0
+        k += 1
+    return starts, ev_out, ev_days, ev_end, fd_out, fd_np, fd_paid, fd_first, fd_cens
+
+
+_EV = {0: 'fail', 1: 'pass', 2: 'incomplete', 3: 'censored'}
+_FD = {0: None, 1: 'breach', 2: 'live', 3: 'alive'}
+
+
+def monte_carlo_fast(daily, micros, funded_base=None, rules: Rules = None, start_every=1, eval_horizon=120, funded_horizon=250,
+                     min_profit_to_request=4_000.0, funded_min_room=900.0, funded_reduced=None):
+    """numba Monte Carlo with constant eval micros and the standard funded policy (base micros while the room to the
+    MLL is >= funded_min_room, else funded_reduced; always within the scaling cap). Same outputs as monte_carlo."""
+    rules = rules or Rules()
+    res = _run_nb(daily, micros, funded_base, rules, start_every, eval_horizon, funded_horizon, min_profit_to_request, funded_min_room, funded_reduced)
+    pnl = daily['pnl'].values
+    starts, ev_out, ev_days, ev_end, fd_out, fd_np, fd_paid, fd_first, fd_cens = res
+    sessions = daily['session'].values
+    df = pd.DataFrame({'start': sessions[starts], 'eval': [_EV[int(x)] for x in ev_out], 'eval_days': ev_days, 'eval_end': ev_end,
+                       'funded': [_FD[int(x)] for x in fd_out], 'n_payouts': fd_np, 'paid': fd_paid,
+                       'first_payout_day': [int(x) if x >= 0 else np.nan for x in fd_first], 'funded_censored': fd_cens.astype(bool)})
+    df.loc[df['eval'] != 'pass', ['funded', 'n_payouts', 'paid', 'first_payout_day']] = [None, 0, 0.0, np.nan]
+    df['full_horizon'] = (starts + eval_horizon) <= len(pnl)
+    return df, summarize_mc(df, rules)
+
+
+def _fast_stats(ev_out, ev_days, fd_np, fd_paid, fd_out, fd_cens, rules, k=21):
+    """Headline statistics straight from the simulator arrays (no pandas), for bootstrap replicates."""
+    res = ev_out != 3
+    m = int(res.sum())
+    if m == 0:
+        return {'pass_rate': np.nan, 'pass_within_21': np.nan, 'p_first_payout_unconditional': np.nan, 'expected_net_per_eval': np.nan, 'p_loss_fee': np.nan}
+    passed = res & (ev_out == 1)
+    pr = passed.sum() / m
+    pw = (passed & (ev_days <= k)).sum() / m
+    pl = (res & ((ev_out == 0) | (ev_out == 2))).sum() / m
+    # funded resolved: passed and not (alive with no payout and censored)
+    fr = passed & ~((fd_out == 3) & (fd_np == 0) & (fd_cens == 1))
+    nfr = int(fr.sum())
+    if nfr:
+        pfp = (fd_np[fr] >= 1).sum() / nfr; paid = fd_paid[fr].mean()
+        return {'pass_rate': pr, 'pass_within_21': pw, 'p_first_payout_unconditional': pr * pfp, 'expected_net_per_eval': pr * paid - rules.eval_fee, 'p_loss_fee': pl}
+    return {'pass_rate': pr, 'pass_within_21': pw, 'p_first_payout_unconditional': 0.0 if pr == 0 else np.nan, 'expected_net_per_eval': -rules.eval_fee if pr == 0 else np.nan, 'p_loss_fee': pl}
+
+
+def _run_nb(daily, micros, funded_base, rules, start_every=1, eval_horizon=120, funded_horizon=250, min_profit_to_request=4_000.0,
+            funded_min_room=900.0, funded_reduced=None):
+    pnl = np.ascontiguousarray(daily['pnl'].values, dtype=np.float64); mn = np.ascontiguousarray(daily['min_eq'].values, dtype=np.float64)
+    ntr = np.ascontiguousarray(daily['trades'].values, dtype=np.int64) if 'trades' in daily else (np.abs(pnl) + np.abs(mn) > 0).astype(np.int64)
+    fb = int(min(micros, 20) if funded_base is None else funded_base)
+    fr = int(max(1, fb // 3) if funded_reduced is None else funded_reduced)
+    thr = np.array([t for t, _ in rules.funded_scaling], dtype=np.float64); mx = np.array([m for _, m in rules.funded_scaling], dtype=np.int64)
+    return _mc_nb(pnl, mn, ntr, int(micros), fb, float(funded_min_room), fr, rules.start_balance, rules.target, rules.mll_distance,
+                  rules.lock_trigger, rules.lock_level, rules.consistency, int(rules.min_days), int(rules.eval_max_micros), thr, mx,
+                  int(rules.payout_min_days), rules.payout_day_min_profit, rules.payout_min, rules.payout_max, rules.payout_frac, rules.split,
+                  int(rules.max_payouts), bool(rules.payout_locks_mll), int(eval_horizon), int(funded_horizon), float(min_profit_to_request), int(start_every))
+
+
+def block_bootstrap_indices(n, block, rng):
+    """Moving-block bootstrap: concatenate random blocks of `block` consecutive sessions to length n."""
+    nb = int(np.ceil(n / block)); starts = rng.integers(0, max(1, n - block + 1), size=nb)
+    idx = np.concatenate([np.arange(s, s + block) for s in starts])[:n]
+    return idx
+
+
+def bootstrap_summary(daily, micros, funded_base=None, rules: Rules = None, reps=200, block=20, seed=0, **kw):
+    """Block-bootstrap distribution of the headline Monte Carlo statistics. Returns dict of percentiles (5/50/95),
+    P(expected_net > 0) and the number of reps. Uses the fast simulator and array-only statistics."""
+    rules = rules or Rules(); rng = np.random.default_rng(seed)
+    n = len(daily); cols = ['pass_rate', 'p_first_payout_unconditional', 'expected_net_per_eval', 'pass_within_21', 'p_loss_fee']
+    acc = {c: [] for c in cols}
+    base = daily.reset_index(drop=True)
+    pnl0 = base['pnl'].values.astype(np.float64); mn0 = base['min_eq'].values.astype(np.float64)
+    ntr0 = base['trades'].values.astype(np.int64) if 'trades' in base else (np.abs(pnl0) + np.abs(mn0) > 0).astype(np.int64)
+    for r in range(reps):
+        idx = block_bootstrap_indices(n, block, rng)
+        d = pd.DataFrame({'pnl': pnl0[idx], 'min_eq': mn0[idx], 'trades': ntr0[idx]})
+        starts, ev_out, ev_days, ev_end, fd_out, fd_np, fd_paid, fd_first, fd_cens = _run_nb(d, micros, funded_base, rules, **kw)
+        st = _fast_stats(ev_out, ev_days, fd_np, fd_paid, fd_out, fd_cens, rules)
+        for c in cols:
+            acc[c].append(st.get(c, np.nan))
+    out = {'reps': reps, 'block': block}
+    for c in cols:
+        a = np.array(acc[c], dtype=float); a = a[~np.isnan(a)]
+        if len(a):
+            out[c + '_p05'] = float(np.percentile(a, 5)); out[c + '_p50'] = float(np.percentile(a, 50)); out[c + '_p95'] = float(np.percentile(a, 95))
+    a = np.array(acc['expected_net_per_eval'], dtype=float); a = a[~np.isnan(a)]
+    out['p_expected_net_positive'] = float((a > 0).mean()) if len(a) else np.nan
+    return out
+
+
+def zero_edge_control(daily, micros, funded_base=None, rules: Rules = None, **kw):
+    """Same Monte Carlo on the DEMEANED daily stream (edge removed, volatility and intraday structure kept): what the
+    simulator would report for a strategy with no edge. A candidate must beat this clearly."""
+    rules = rules or Rules()
+    d = daily.copy(); mu = d['pnl'].mean()
+    d['pnl'] = d['pnl'] - mu; d['min_eq'] = np.minimum(d['min_eq'] - mu, 0.0)
+    starts, ev_out, ev_days, ev_end, fd_out, fd_np, fd_paid, fd_first, fd_cens = _run_nb(d, micros, funded_base, rules, **kw)
+    return _fast_stats(ev_out, ev_days, fd_np, fd_paid, fd_out, fd_cens, rules)

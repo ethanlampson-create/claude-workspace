@@ -1,0 +1,543 @@
+{
+ "family": "Classic published trading systems and author methods",
+ "notes": "Report: /home/user/claude-workspace/research/families/classic_systems_authors.md. WebSearch budget was exhausted by the parent workflow after 6 searches; the sweep was completed with ~70 direct fetches (mesasoftware PDFs, oxfordstrat, Capstone product pages, demark.com, ProRealCode, elitetrader/nexusfi excerpts, x-trader.net, tradingsetupsreview, mql5, luxalgo, bettersystemtrader, KJ Trading). quantifiedstrategies.com (bot wall), Unger Academy (captcha), Scribd and web.archive.org were unreachable; rules taken from the books themselves are marked [book], standard objective readings of vague sources [interp]. Key findings: (1) almost nothing in this family has a modern net-of-cost OOS record on ES/NQ/GC intraday; oxfordstrat multi-decade tests rate Crabel narrow-range ORB and Williams Oops \"C\" (gross-positive, marginal after $50 RT) and wide-range \"D\" (PF 0.74). (2) The only 2024-2026 year-by-year numbers (Capstone/David Bean, hypothetical, no slippage) show NQ gap-continuation and open-range day trades still profitable every year (2025 weakest) while ES gap-fill (09:32 fade) and ES 09:31 long-reversal systems went flat/negative in 2024-2026: bias toward NQ continuation after the open, ES fades only with tight time stops. (3) Exit evidence is the most transferable: Davey's 567k-backtest study (40 futures, 2010-2020) found dollar targets > ATR targets, targets > stops, breakeven third, trailing/parabolic/chandelier worse, only indices and metals positive; Ehlers shows confirmation-based oscillator entries lose while anticipatory crossings win (daily S&P), and his bond tests give PF 1.7-2.1 at 53-57% wins. (4) Best-shaped candidates for Lucid: Crabel stretch ORB on NR4/ID/NR7 days with close confirmation; 80-20/Turtle-Soup prior-day-extreme re-entries; Williams volatility breakout with bond filter in micros; Momentum Pinball (daily LBR/RSI filter + first-hour ORB); ACD time-confirmation + failed-A wrapper; Ehlers roofing-filter anticipatory stochastic with adverse-excursion reversal; Capstone-style NQ gap continuation ($1,225 NQ stop = $122 MNQ). (5) Poor fits: Turtle entries, TD Sequential, KAMA/MAMA crossovers, Collins stop-less open-to-close holds, Ruggiero intermarket/report-day (needs calendar), Bandy multi-day equity reversion. Section 30 of the report lists seven concrete first parameter sets (F1-F7) and four filters for the backtest queue.",
+ "strategies": [
+  {
+   "name": "Original Turtle rules (System 1 20/10, System 2 55/20)",
+   "origin": "Dennis/Eckhardt 1983-88; rules published by Curtis Faith (originalturtles.org / tradingblox.com PDF)",
+   "entry": "N = 20-day Wilder-style average true range. S1: buy 1 tick above the 20-day high (sell below 20-day low); skip if the previous S1 breakout in that market was a winner (loser = moved 2N against before a profitable 10-day exit); 55-day breakout always taken. S2: 55-day breakout always. Add 1 unit each 1/2 N up to 4 units.",
+   "exit": "Stop 2N from the latest entry (earlier units' stops raised 1/2 N on each add; whipsaw variant 1/2 N). S1 exits at the 10-day low/high, S2 at the 20-day low/high.",
+   "filters": "Last-breakout-was-a-winner skip; position limits 4 units/market, 6 closely correlated, 10 loosely, 12 per direction.",
+   "parameters": "Unit = 1% of equity / (N x $ per point); N length 20; 20/10 and 55/20 channels; 2N stop; 1/2 N pyramid step.",
+   "instruments": "Diversified futures portfolio; on single-market ES/NQ since 2010 the 20-day breakout has been a documented loser",
+   "timeframe_session": "Daily bars, multi-week holds (not day-trade)",
+   "claimed_performance": "Turtle program ~80%/yr 1983-88 on a 40+ market portfolio; Trading Blox forum re-tests positive through the 2000s; no intraday evidence",
+   "evidence_quality": 4,
+   "prop_fit": "Poor as published (overnight holds forbidden). Reusable: N-based micro sizing, the skip-after-a-winner filter for intraday ORBs, 55 vs 20 bar intraday Donchian as a test-only variant.",
+   "data_requirements": "Daily OHLC only",
+   "sources": [
+    "https://www.tradingblox.com/originalturtles/",
+    "https://www.tradingblox.com/originalturtles/originalturtlerules.pdf",
+    "https://www.tradingblox.com/tbforum/viewforum.php?f=6"
+   ]
+  },
+  {
+   "name": "Larry Williams Oops! gap reversal",
+   "origin": "Larry Williams, How I Made One Million Dollars (1973); Long-Term Secrets to Short-Term Trading (1999)",
+   "entry": "Buy: today's open < yesterday's low; buy stop at yesterday's low (a tick above) filled only if price trades back up through it. Sell: open > yesterday's high; sell stop at yesterday's high. Gap bar cannot confirm itself (mql5/forge version requires a completed bar closing back through the level, validity 3 bars, minimum gap size).",
+   "exit": "Stop at the gap bar's extreme (today's low for longs); Williams: bail-out at first profitable open or dollar stop; day-trade version: flat at the close (TradingView version trails the current day's low, force-flat last bar, no target).",
+   "filters": "Williams [book]: trade day of week, T-bonds closed higher than 5 days ago for S&P buys, buys only after a down close.",
+   "parameters": "Entry offset 1-2 ticks; stop = gap extreme (0.3-0.6 x ATR typical); target prior close or 1 x ATR; orders active 09:30-11:30 ET in intraday adaptations.",
+   "instruments": "S&P, bonds originally; tested on 42 US futures (oxfordstrat), XAUUSD (mql5)",
+   "timeframe_session": "Daily setup, intraday execution; RTH 09:30-16:00 ET, flat by close",
+   "claimed_performance": "oxfordstrat Bull Oops 42 futures 1980-2011 daily, time exits 1-40 days, 6xATR stop: rated C (gross-positive, no table). mql5 XAUUSD daily 2022-2026: 8 trades, +$523 on $10k (meaningless). Unger Academy 2025 test exists but is captcha-walled.",
+   "evidence_quality": 2,
+   "prop_fit": "Objective, small stop, low frequency (open outside prior range ~15-25% of NQ days); fits consistency rule with prior-close target. Special case of the open-outside-range fade statistic.",
+   "data_requirements": "Daily + 1-min OHLC only",
+   "sources": [
+    "https://oxfordstrat.com/trading-strategies/bull-oops-pattern/",
+    "https://www.mql5.com/en/articles/21741",
+    "https://forge.mql5.io/CHACHAIAN/lwOopsPatternExpert",
+    "https://www.tradingview.com/script/7Gqs0Sqn-Larry-Williams-Oops-Strategy/",
+    "https://www.luxalgo.com/library/concept/classic-bar-setups.md"
+   ]
+  },
+  {
+   "name": "Larry Williams Smash Day (naked and hidden)",
+   "origin": "Williams, Long-Term Secrets to Short-Term Trading (1999) [book]; ProRealCode forum implementation",
+   "entry": "Naked buy smash day = a day closing below the previous day's low; next day buy stop at the smash day's high (valid that day only). Naked sell = close above the previous day's high; sell stop at the smash day's low. Hidden smash buy: close in the bottom 25% of the range without taking out the prior low; buy above its high next day [book, paraphrased]. ProRealCode: If Close < Low[1] then buy at High stop, filter High[1] < High[n].",
+   "exit": "Stop below the smash day low (longs); Williams bail-out at first profitable open or flat at close; ProRealCode uses fixed SL/TP in ticks.",
+   "filters": "TDW and bond-trend filter (Williams); High[1] < High[n], n = 5-30 (ProRealCode).",
+   "parameters": "Hidden smash threshold 25% of range; n filter 5-30; SL 0-600 pips optimized in forum version.",
+   "instruments": "S&P, bonds (book)",
+   "timeframe_session": "Daily pattern, next-day stop entry; day-trade exit at close",
+   "claimed_performance": "Book tables only (S&P/bonds 1980s-90s); ProRealCode thread has code, no stats.",
+   "evidence_quality": 1,
+   "prop_fit": "One-day failed-breakdown reversal executed as a stop at the prior day's high; risk = smash-day range (often > 1 x ATR on NQ) so 2-5 micros; low frequency.",
+   "data_requirements": "Daily + 1-min OHLC",
+   "sources": [
+    "https://www.prorealcode.com/topic/larry-williams-smash-day/",
+    "https://www.prorealcode.com/?s=larry+williams"
+   ]
+  },
+  {
+   "name": "Larry Williams volatility breakout (open + k x prior range) with bond/TDW filters",
+   "origin": "Williams, Long-Term Secrets to Short-Term Trading ch. 4 [book]; also in Kaufman, Trading Systems and Methods",
+   "entry": "Buy stop at today's open + k x yesterday's range (or larger of last 1-3 ranges / true range); sell stop at open - k x range. k market-specific, mostly 0.5-0.8 (standard k = 0.6).",
+   "exit": "Opposite stop (reverse) or dollar stop; exit at the close (day trade) or bail-out at the first profitable open.",
+   "filters": "Take buys only when T-bonds closed higher than 5 (or 10) days ago; trade-day-of-week tables; buys after a down close, sells after an up close.",
+   "parameters": "k 0.5-0.8; bond lookback 5-10 days; TDW per market; dollar stop $150-250 per micro recommended.",
+   "instruments": "S&P, bonds (book); ES/NQ/MES/MNQ for our test",
+   "timeframe_session": "Daily range, stop entry during RTH, flat at close",
+   "claimed_performance": "Book in-sample S&P tables 1982-1998 report 80%+ profitable with the bond filter [book]; modern ORB literature (Zarattini 2023/2024, Mesfin 2026) shows the generic open-plus-fraction-of-range edge is gross-positive but within slippage unless filtered.",
+   "evidence_quality": 2,
+   "prop_fit": "One entry, hard stop, EOD exit. With k = 0.6 the NQ trigger is 150-240 pts from the open (triggers late/rarely); ES stop-and-reverse width is $3,000-5,000 per mini, so micros with a dollar stop instead of the full reverse. Bond filter codeable from Yahoo daily ZB.",
+   "data_requirements": "Daily + 1-min OHLC; daily T-bond closes (Yahoo) for the filter",
+   "sources": [
+    "https://www.prorealcode.com/?s=larry+williams",
+    "research/families/orb_session.md (sibling report, ORB evidence)"
+   ]
+  },
+  {
+   "name": "Williams %R oversold/overbought (10/14-period)",
+   "origin": "Larry Williams (1973); formula per TradingView/ireallytrade.com",
+   "entry": "%R = (HH(n) - C)/(HH(n) - LL(n)) x -100, n = 14 (Williams used 10). Standard intraday form [interp]: 5-min RTH, long when %R crosses up through -80 with daily close > 20-day SMA; short mirror through -20 in a downtrend. Momentum failure (fails to re-enter the zone) as a reversal signal.",
+   "exit": "Exit when %R reaches -20 (longs) or at 15:55; stop 0.75 x ATR(14, 5-min).",
+   "filters": "Daily trend filter (20-day SMA or bond filter).",
+   "parameters": "n = 10 or 14; zones -80/-20 (Williams -90/-10).",
+   "instruments": "Any; no ES/NQ test found",
+   "timeframe_session": "5-min RTH bars 09:30-15:55 ET",
+   "claimed_performance": "No independent backtest found; indicator-description sources only.",
+   "evidence_quality": 1,
+   "prop_fit": "Many small mean-reversion trades fit the consistency rule, but Ehlers' evidence says confirmation-style oscillator entries lose to lag; prefer the anticipatory crossing (see Ehlers entry).",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://www.tradingview.com/support/solutions/43000501985-williams-r/",
+    "https://www.ireallytrade.com/"
+   ]
+  },
+  {
+   "name": "Turtle Soup and Turtle Soup Plus One (Street Smarts)",
+   "origin": "Connors & Raschke, Street Smarts (1995) ch. 1-2",
+   "entry": "Buy: today makes a new 20-day low; the previous 20-day low must be >= 4 trading days old; buy stop 5-10 ticks above the previous 20-day low, good today only. Plus One: today's close at/below the previous 20-day low, buy stop placed the next day at that low. Intraday adaptation [interp]: 5-min RTH, level = prior-day low or 20-bar low (prior extreme >= 4 bars old), price breaks by >= 2 ticks then a bar closes back above -> buy stop 1 tick above the level.",
+   "exit": "Stop 1 tick below today's low (Plus One: below the lower of the last two days' lows); re-enter once at the original price on day 1-2; take profits in 2-6 days with a trailing stop. Intraday: stop at the breakout extreme capped 0.5 x ATR, target 1 x ATR or VWAP, flat 15:55.",
+   "filters": "Prior extreme >= 4 days/bars old; regime (works in rotational markets).",
+   "parameters": "Lookback 20; entry offset 5-10 ticks; min age 4; ProRealCode M30 forex variant: 5-bar lows, EMA 21 > EMA 30, 3 x ATR(20) stop, 06:00-22:00.",
+   "instruments": "Any futures; ES/NQ/GC for our test",
+   "timeframe_session": "Daily setup, intraday execution; flat by 15:55 ET",
+   "claimed_performance": "No statistics in the book; ProRealCode M30 forex test: positive long term but 'bad profit factor'; luxalgo: regime-dependent.",
+   "evidence_quality": 2,
+   "prop_fit": "Good risk shape (stop at failed-break extreme 0.2-0.5 x ATR), low frequency; downside-break failures stronger than upside in 2023-2026.",
+   "data_requirements": "Daily + 1-min OHLC",
+   "sources": [
+    "https://technical.traders.com/tradersonline/display.asp?art=2414",
+    "https://roboforex.com/blog/education/trading-strategies-that-were-a-revolution-three-strategies-of-linda-raschke/",
+    "https://www.prorealcode.com/prorealtime-trading-strategies/turtle-soup/",
+    "https://www.luxalgo.com/library/concept/turtle-soup.md"
+   ]
+  },
+  {
+   "name": "80-20s / 90-10s (Street Smarts, Taylor-Moore)",
+   "origin": "Connors & Raschke, Street Smarts ch. 3; Steve Moore statistics; mql5 implementation",
+   "entry": "Buy: yesterday opened in the top 20% of its range and closed in the bottom 20% (90-10 variant: top/bottom 10%); today trades at least 5-15 ticks below yesterday's low; buy stop at yesterday's low. Sell: mirror at yesterday's high.",
+   "exit": "Initial stop at today's low (high for shorts); trail; it is a day trade, exit by the close. Day-trade target: prior close or 1 x ATR.",
+   "filters": "mql5: yesterday's range > 20-day average range; one trade per day; active 09:30-13:00 ET in intraday use.",
+   "parameters": "Open/close zones 20% (or 10%); extension 5-15 ticks; optional TP multiple of the break.",
+   "instruments": "Any; mql5 tested EURUSD/USDJPY/XAUUSD daily",
+   "timeframe_session": "Daily setup, next-session execution, flat at close",
+   "claimed_performance": "Moore stat: close in top/bottom 10% -> 80-90% follow-through next morning but ~50% close beyond; mql5 2016 FX daily: 233 trades over ~6 years, marginal profitability, 'requires modernization'.",
+   "evidence_quality": 2,
+   "prop_fit": "Rare, objective, tight risk, day trade by construction; best as an upgrade filter for the prior-day-extreme fade.",
+   "data_requirements": "Daily + 1-min OHLC",
+   "sources": [
+    "https://www.mql5.com/en/articles/2785",
+    "https://www.luxalgo.com/library/concept/classic-bar-setups.md",
+    "https://roboforex.com/blog/education/trading-strategies-that-were-a-revolution-three-strategies-of-linda-raschke/"
+   ]
+  },
+  {
+   "name": "Momentum Pinball (LBR/RSI + first-hour range breakout)",
+   "origin": "Connors & Raschke, Street Smarts ch. 4 [book]; ProRealCode indicator",
+   "entry": "LBR/RSI = 3-period RSI of the 1-day ROC (close - close[1]) on daily bars. Buy day: yesterday's LBR/RSI < 30; today let the first hour 09:30-10:30 ET form; buy stop above the first-hour high. Sell day: LBR/RSI > 70; sell stop below the first-hour low. Re-enter once if re-triggered after a stop.",
+   "exit": "Stop at the first-hour low (a few ticks below); book: hold overnight if profitable at the close and exit next morning; day-trade version: flat 15:55; target 1 x first-hour range.",
+   "filters": "Daily oscillator extreme (<30 / >70) defines direction; first-hour range defines risk.",
+   "parameters": "RSI length 3 on ROC(1); thresholds 30/70 (ProRealCode indicator uses 14 and 40/60, a different parameterisation); first hour 60 min; stop cap 0.5 x ATR.",
+   "instruments": "S&P, bonds originally; ES/NQ for test",
+   "timeframe_session": "Daily filter + 60-min ORB, entries after 10:30 ET, flat 15:55",
+   "claimed_performance": "No independent statistics; ORB component supported by modern IB/first-hour studies (~60-72% continuation with context filters).",
+   "evidence_quality": 1,
+   "prop_fit": "At most one trade a day after the opening chaos, risk = first-hour range (ES 15-30 pts, NQ 80-200 -> micros), directional filter from prior days; drop the overnight hold.",
+   "data_requirements": "Daily closes + 1-min OHLC",
+   "sources": [
+    "https://www.prorealcode.com/prorealtime-indicators/momentum-pinball/"
+   ]
+  },
+  {
+   "name": "Holy Grail (ADX > 30 rising + 20-EMA pullback)",
+   "origin": "Connors & Raschke, Street Smarts ch. 6; tradingsetupsreview codification",
+   "entry": "14-period ADX > 30 and rising; price retraces to the 20-period EMA (tradingsetupsreview uses SMA); buy stop at the high of the bar that touched the average (lower it to each new touching bar's high); shorts mirror with -DI dominant.",
+   "exit": "Initial stop below the recent swing low; target the recent swing high (partial), trail the rest; cancel if ADX turns down; flat 15:55 intraday.",
+   "filters": "ADX rising requirement; some sources use ADX > 20.",
+   "parameters": "ADX 14, threshold 30, EMA 20.",
+   "instruments": "Any; examples HP daily, EUR/USD",
+   "timeframe_session": "Any; 5-min ES/NQ RTH for our test (ADX needs ~30 bars of history)",
+   "claimed_performance": "Book and tradingsetupsreview examples only; caveat that high ADX can mark exhaustion.",
+   "evidence_quality": 2,
+   "prop_fit": "Pullback-in-trend entry with tight stop (4-8 ES pts on 5-min), ~50% WR, 1.2-1.5 R; acceptable in micros.",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://www.tradingsetupsreview.com/the-holy-grail-trading-setup/",
+    "https://roboforex.com/blog/education/trading-strategies-that-were-a-revolution-three-strategies-of-linda-raschke/"
+   ]
+  },
+  {
+   "name": "ADX Gapper (trend-filtered Oops)",
+   "origin": "Connors & Raschke, Street Smarts ch. 7 [book]",
+   "entry": "ADX(14) > 30 (some summaries 20) with +DI > -DI; today opens below yesterday's low; buy stop at yesterday's low. Short mirror in a downtrend when the open is above yesterday's high.",
+   "exit": "Stop at today's low; trail; exit at the close or next day; do not hold if the day closes below yesterday's low.",
+   "filters": "Wilder trend filter removes counter-trend Oops trades.",
+   "parameters": "ADX 14 > 30; entry at prior extreme.",
+   "instruments": "Any",
+   "timeframe_session": "Daily setup, intraday execution, flat at close",
+   "claimed_performance": "Book only.",
+   "evidence_quality": 1,
+   "prop_fit": "Same as Oops with lower frequency and better directional accuracy; small stop.",
+   "data_requirements": "Daily + 1-min OHLC",
+   "sources": [
+    "https://www.tradingview.com/support/solutions/43000502250-average-directional-index-adx/"
+   ]
+  },
+  {
+   "name": "The Anti (stochastic hook, 7/10/3)",
+   "origin": "Connors & Raschke, Street Smarts ch. 8; roboforex parameters",
+   "entry": "Slow stochastic 7,10,3. %D sets the short-term trend; %K hooks against %D for 3-4 bars (pullback) then hooks back in %D's direction; buy stop above the high of the hook bar (short mirror).",
+   "exit": "Stop below the hook bar's low; held strictly one day / exit at the close.",
+   "filters": "Trend-day filter recommended (fades badly on rotational days).",
+   "parameters": "Stochastic 7,10,3; hook 3-4 bars.",
+   "instruments": "Any",
+   "timeframe_session": "Any timeframe; 5-min RTH for our test",
+   "claimed_performance": "Book examples only.",
+   "evidence_quality": 1,
+   "prop_fit": "Pullback continuation with small stops and frequent signals; needs a trend filter.",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://roboforex.com/blog/education/trading-strategies-that-were-a-revolution-three-strategies-of-linda-raschke/"
+   ]
+  },
+  {
+   "name": "Whiplash climax reversal (Street Smarts, standard interpretation)",
+   "origin": "Connors & Raschke, Street Smarts part 3 ch. 9 [interp - book text not retrievable]",
+   "entry": "Sell: Day 1 makes a new 20-day high; Day 2 trades above Day 1's high then closes below Day 1's low (outside reversal); Day 3 sell stop 1 tick below Day 2's low. Buy mirror after a new 20-day low.",
+   "exit": "Stop 1 tick above Day 2's high; exit at Day 3 close or 2-day time stop.",
+   "filters": "None published.",
+   "parameters": "Lookback 20; 2-day time stop.",
+   "instruments": "Any",
+   "timeframe_session": "Daily pattern, next-day stop entry",
+   "claimed_performance": "None; related oxfordstrat 'Reversal Patterns part 2' (42 futures 1980-2019, $50 RT): base PF 0.97, CAGR -0.4%, win 34.5%, rated C, positive only with 8:1 reward exits.",
+   "evidence_quality": 1,
+   "prop_fit": "Low frequency, large stop, needs huge targets per oxfordstrat: wrong shape for the consistency rule. Low priority.",
+   "data_requirements": "Daily + 1-min OHLC",
+   "sources": [
+    "https://oxfordstrat.com/trading-strategies/reversal-patterns-part-2/"
+   ]
+  },
+  {
+   "name": "Crabel Opening Range Breakout with Stretch (and ORB II)",
+   "origin": "Toby Crabel, Day Trading with Short Term Price Patterns and Opening Range Breakout (1990); x-trader.net summaries; oxfordstrat tests",
+   "entry": "Stretch = 10-day SMA of min(High-Open, Open-Low). Buy stop at Open + Stretch, sell stop at Open - Stretch; first fill is the position, the other order becomes the reversal/protective stop. Earlier triggers are better (first 10 min); cancel unfilled orders after 5-10 min (ORB II: a wide-range directional bar in the first 5 minutes is itself the entry).",
+   "exit": "Liquidate at the close; oxfordstrat swing variant: 10-day time exit, 6 x ATR(20) stop, stretch x2.",
+   "filters": "Trade after Inside Day, NR4/NR7 (incl. dojis), Bull/Bear Hook, ID/NR4; avoid after wide-spread days; S&P gap rules (bigger gaps continue; counter-gap ORBs minimally profitable; bonds/gold behave opposite).",
+   "parameters": "Stretch lookback 10 (multiplier 1.0 Crabel, 2.0 oxfordstrat); entry window 09:30-10:30 ET; exit 15:55; recommended target 0.5 x 14-day ATR.",
+   "instruments": "S&P, bonds (Crabel); 42 US futures (oxfordstrat); Nasdaq (Unger test, blocked)",
+   "timeframe_session": "Day trade, RTH 09:30-16:00 ET",
+   "claimed_performance": "Crabel S&P tables 1982-89: 60-71% profitable at close after NR4/ID setups (one table 203 trades, 71%, avg win $343 / loss $289). oxfordstrat Narrow Range N-day (1980-2013) and NR7 (1980-2016): rated C, 'not currently tradeable without additional rules' after $50 RT; Wide Range: D, net -$873k, CAGR -5.1%, Sharpe -1.45, MDD 88%, win 23.8%, PF 0.74.",
+   "evidence_quality": 3,
+   "prop_fit": "Best-shaped ORB in the family: ES stretch ~5-10 pts (NQ 25-60) so stop = 2x stretch is $500-1,000 per ES mini -> MES/MNQ; add a 0.5-1.0 x ATR target to cut EOD fat tails; NR4/ID/NR7 filter gives 2-4 setups a week across ES/NQ/GC.",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://www.x-trader.net/descubriendo-a-toby-crabel-ii/",
+    "https://www.x-trader.net/descubriendo-a-toby-crabel-iii/",
+    "https://oxfordstrat.com/trading-strategies/narrow-range/",
+    "https://oxfordstrat.com/?p=3707",
+    "https://oxfordstrat.com/trading-strategies/wide-range-pattern/",
+    "https://www.mql5.com/en/blogs/post/772126"
+   ]
+  },
+  {
+   "name": "Crabel ID/NR4 and NR7 pattern-bar breakouts",
+   "origin": "Crabel (1990); tradingsetupsreview and mql5 NR7 ORB EA codifications",
+   "entry": "NR4 = narrowest range of last 4; NR7 = of last 7; ID = high < prior high and low > prior low; ID/NR4 = both; Bull Hook = NRx day opening above prior high and closing below prior close. Buy stop 1 tick above the pattern bar's high, sell stop 1 tick below its low; mql5 EA: compression zone = 7-bar window high/low, 1-pip break.",
+   "exit": "Stop at the opposite end of the pattern bar; cancel if the next bar does not trigger; flat at session end (EA: no new trades on the last candle).",
+   "filters": "tradingsetupsreview: last 7 bars entirely above/below the 20-EMA; avoid consecutive NR7s (congestion).",
+   "parameters": "NR length 4 or 7; EMA 20; intraday bar size 5/15/30 min (mql5 recommends M30).",
+   "instruments": "Any; CL 3-min examples; forex/gold/BTC (EA)",
+   "timeframe_session": "Daily or intraday pattern bars; RTH execution, flat at close",
+   "claimed_performance": "Crabel's tables; oxfordstrat NR7 C-rated (positive gross, fails $50 costs on swing exits); EA has no stats.",
+   "evidence_quality": 2,
+   "prop_fit": "Tight objective risk (pattern-bar range); setup filter for the stretch ORB; 15/30-min NR7 breakouts give 1-3 trades a day.",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://www.tradingsetupsreview.com/inside-daynr4/",
+    "https://www.tradingsetupsreview.com/nr7-trading-strategy/",
+    "https://www.mql5.com/en/blogs/post/772126",
+    "https://oxfordstrat.com/?p=8148"
+   ]
+  },
+  {
+   "name": "Mark Fisher ACD (A-up/A-down, C levels, pivot range)",
+   "origin": "Mark B. Fisher, The Logical Trader (2002); elitetrader ACD-thread excerpts; TradingView Session OR A-Lines script",
+   "entry": "OR = first N minutes (Fisher: CL 45 min, S&P ~20 min pit era; modern ES/NQ 5-15 min from 09:30 ET). A = 20-25% of a 5- or 10-day ATR (CL example A 0.08, C 0.13; TradingView defaults A 0.5% of OR, C 1-2%). Long when price holds above OR high + A for a time window (standard: half the OR length); C-down reversal short at OR low - C after a failed A-up, stop above the OR. Only the first fade/A of the day has edge.",
+   "exit": "Stop back inside the OR (OR high for longs) or the confirmation-bar low on strong days; 'minimize risk by time, not by price'; flat at close.",
+   "filters": "Pivot range = (H+L+C)/3 +/- |pivot - (H+L)/2|; narrow pivot ranges (3 consecutive) precede volatile days; 3-day rolling pivot bias.",
+   "parameters": "OR 5-45 min; A = 0.2-0.25 x ATR(5-10 day); C ~1.5-2 x A; confirmation ~half OR length.",
+   "instruments": "CL, ES/NQ, stocks",
+   "timeframe_session": "Intraday from the session open; RTH",
+   "claimed_performance": "Anecdotal; Fisher: 5-min OR is the high or low of the day ~15-18% of the time for CL; thread claims ~75% wins on longer-term confirmed trades; no public backtest.",
+   "evidence_quality": 1,
+   "prop_fit": "Risk-control wrapper (time confirmation, failed-A reversal, first-A only) that fixes wick-break and re-trigger ORB failures; A = 0.2 x ATR on ES = 12-16 pts so OR-low stops risk $1,250-2,000 per mini -> micros or confirmation-bar stop.",
+   "data_requirements": "OHLC only",
+   "sources": [
+    "https://www.elitetrader.com/et/threads/excerpts-from-the-1400-page-acd-method-thread-mark-fisher.377419/",
+    "https://www.tradingview.com/script/RMlgLTOl-Dr-Yazdani-V063-Session-OR-A-Lines/",
+    "https://nexusfi.com/a/strategies/acd-trading-method"
+   ]
+  },
+  {
+   "name": "Kaufman KAMA with std-dev filter and Efficiency Ratio regime filter",
+   "origin": "Perry Kaufman, Smarter Trading (1995); Trading Systems and Methods ch. 17 (pp. 436-438 cited by Ehlers) [book]",
+   "entry": "ER(10) = |C - C[10]| / sum of 10 one-bar absolute changes; SC = [ER x (0.6667 - 0.0645) + 0.0645]^2; KAMA = KAMA[1] + SC x (C - KAMA[1]). Buy when KAMA turns up by more than filter = 1.0 x stdev of 1-bar KAMA changes over 20 bars (0.1-1.0 suggested); or price crosses KAMA.",
+   "exit": "Exit/sell when KAMA turns down by more than the filter.",
+   "filters": "ER > ~0.3 = trending (allow breakouts), ER < 0.3 = noisy (fade or stand aside).",
+   "parameters": "ER length 10; fast 2, slow 30; filter 1.0 x stdev(20).",
+   "instruments": "Futures and stocks (Kaufman daily tests)",
+   "timeframe_session": "Daily; intraday use as a regime filter",
+   "claimed_performance": "Kaufman's own daily tests (1990s); no modern intraday ES evidence.",
+   "evidence_quality": 2,
+   "prop_fit": "Lagging trend follower, bad shape intraday; valuable as a cheap objective regime filter (ER(10, daily) > 0.3 gate for breakout strategies).",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://www.mesasoftware.com/papers/MAMA.pdf",
+    "https://oxfordstrat.com/trading-strategies/livermore-system-1/"
+   ]
+  },
+  {
+   "name": "DeMark TD Setup (9) and TD Sequential Countdown (13)",
+   "origin": "Tom DeMark, The New Science of Technical Analysis (1994); demark.com Sequential page",
+   "entry": "Price flip (close < close[4] after close > close[4]) then Buy Setup = 9 consecutive closes < close 4 bars earlier (Sell Setup mirror); perfected if low of bar 8 or 9 < lows of bars 6 and 7; TDST = setup extreme. Countdown from bar 9: 13 non-consecutive closes <= low 2 bars earlier (buy); 13's low must be <= close of countdown bar 8 else deferred; cancelled by an opposite setup or TDST violation; recycled if an overlapping setup reaches 22 bars or 100-200% of the prior setup range. Standard rule [interp]: buy at the close of setup 9 or countdown 13.",
+   "exit": "Stop = lowest low of the setup minus that bar's true range (risk level); target TDST; reversal expected within 12 bars of the 13.",
+   "filters": "Perfection, TDST, cancellation/recycle rules.",
+   "parameters": "Setup 9 vs close[4]; countdown 13 vs low/high[2]; 12-bar validity.",
+   "instruments": "Any",
+   "timeframe_session": "Any; on 5-min RTH a 9-count takes 45 min, a 13 takes hours (0-2 signals/day)",
+   "claimed_performance": "No independent ES/NQ test found; academic tests mostly crypto/equities, mixed.",
+   "evidence_quality": 1,
+   "prop_fit": "Rare exhaustion entries against the trend; poor on trend days. Usable only as a do-not-chase filter.",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://demark.com/sequential-indicator/"
+   ]
+  },
+  {
+   "name": "Kevin Davey Strategy Factory: published price patterns and the 567k-backtest exit study",
+   "origin": "Kevin Davey, Building Winning Algorithmic Trading Systems (2014); kjtradingsystems.com articles",
+   "entry": "15 published patterns, e.g. count up/down closes over BCount bars and go long if more ups and close < close[pullback]; short when consecutive up closes >= BCount and close > close[PCount]; outside/inside bar sequences with momentum direction; morning/evening doji star with 10-bar momentum (90-min mini S&P sample). Mini S&P strategy fully disclosed only to course members.",
+   "exit": "Exit study (40 futures, 60-min to daily, 2010-2020, 5 entries x 15 exits): stop-and-reverse best, dollar target second, breakeven third; dollar exits > ATR exits; targets > stops; trailing/parabolic/chandelier/indicator exits underperform.",
+   "filters": "Walk-forward, Monte Carlo on OOS, limited parameters, no re-optimising after losses.",
+   "parameters": "BCount, PCount, pullback bars (non-optimized samples).",
+   "instruments": "40 futures; samples on SI, FC, ZF, CL, LH, NK, YM, NG, HG, EC, JY, MP, HO, ES",
+   "timeframe_session": "60-min to daily",
+   "claimed_performance": "Pattern article: sample equity curves only. Exit study: only metals and stock indices had positive average returns. Mini S&P strategy: $121k+ hypothetical OOS per contract over 5 years (rules not public).",
+   "evidence_quality": 2,
+   "prop_fit": "Exit findings map directly to Lucid: fixed dollar targets ($150-400/day on micros) and breakeven stops suit the payout-day and consistency rules; avoid ATR trailing stops.",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://kjtradingsystems.com/15-algo-trading-price-patterns.html",
+    "https://kjtradingsystems.com/algo-trading-exits.html",
+    "https://kjtradingsystems.com/"
+   ]
+  },
+  {
+   "name": "Andrea Unger / Unger Academy: prior-session level re-cross and bias strategies on ES/GC",
+   "origin": "Unger Academy blog 2023-2025 (post 102 fetchable; Oops, Crabel-on-Nasdaq, gold-bias and myths posts captcha-walled)",
+   "entry": "Strategy 1 (ES, 15-min bars): long when a bar closes back above the previous session's low after trading below it; short when it closes back below the previous session's high. Strategy 2: limit buy at current session low minus an offset. Bias method [interp]: average open-to-close P&L by hour-of-day/day-of-week over 10+ years, trade the recurring window with a time stop.",
+   "exit": "Strategy 1: stop $1,300, target $4,000 per ES, exit at session end. Strategy 2: stop $800, target $3,000, session-end exit. Day-trade translation: 0.5 x ATR stop, prior-close target, flat 15:55.",
+   "filters": "Undisclosed extra filters 'especially on the short side'.",
+   "parameters": "15-min bars; dollar stops/targets above; offset optimized.",
+   "instruments": "ES; GC (bias post)",
+   "timeframe_session": "RTH 15-min bars, session-end exit",
+   "claimed_performance": "Strategy 1: ~750 trades over 6-7 yrs incl. OOS, avg ~$300/trade, 2022 +$15k, 2023 +$18k per ES. Strategy 2: ~1,800 trades, avg ~$140, 2020 +$40k, 2023 +$33k. No slippage disclosure.",
+   "evidence_quality": 2,
+   "prop_fit": "Low-win-rate big-target shape hurts consistency; use the re-cross trigger with tighter stop/target. Time-of-day biases on GC are directly testable on our 1-min data.",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://blog2.ungeracademy.com/?p=102",
+    "https://ungeracademy.com/blog/we-tested-larry-williams-oops-pattern-the-results-might-surprise-you",
+    "https://ungeracademy.com/blog/testing-toby-crabel-s-opening-range-breakout-does-it-really-work-code-backtest-on-nasdaq"
+   ]
+  },
+  {
+   "name": "Art Collins: combined small biases (fade two same-way open-to-closes, 15-day high-low average, day-of-week)",
+   "origin": "Art Collins (with Robert Pardo), Beating the Financial Futures Market (Wiley 2006); Better System Trader ep. 73; Scribd TOC",
+   "entry": "Daily open-to-close trades: fade two same-way open-to-closes (both last two days closed above their opens -> sell the open; both below -> buy the open); 15-day high-low average (buy the open when yesterday's close > 15-day average of (H+L)/2, sell when below); day-of-week (long bias early in the week in S&P); open-vs-prior-close; score biases +1/-1 and trade when the net score exceeds a threshold.",
+   "exit": "Exit on the close (no intraday stop in the book).",
+   "filters": "Four optimization rules: good neighbourhood, works across S&P/Russell/Nasdaq, profits spread through time, hypothesis stated first.",
+   "parameters": "15-day average; 2-day same-way count; score threshold.",
+   "instruments": "S&P, Nasdaq, Russell, Dow, bonds (1990s-2005)",
+   "timeframe_session": "Daily, open-to-close (09:30-16:00 ET)",
+   "claimed_performance": "Book tables (not retrievable); no modern OOS.",
+   "evidence_quality": 2,
+   "prop_fit": "Stop-less open-to-close holds expose the account to the full daily range ($2,500-4,000 per ES mini on bad days) -> can breach the $2,000 intraday floor; use in 1-3 micros or as a directional filter for intraday systems.",
+   "data_requirements": "Daily OHLC (Yahoo) for scores; 1-min for execution",
+   "sources": [
+    "https://bettersystemtrader.com/073-simple-concepts-to-build-robust-stratgies-art-collins/",
+    "https://www.scribd.com/document/507754748/Art-Collins-Robert-Pardo-Beating-the-Financial-Futures-Market-Combining-Small-Biases-Into-Powerful-Money-Making-Strategies"
+   ]
+  },
+  {
+   "name": "John Ehlers: roofing-filter anticipatory stochastic, PDF-inferred RSI/Fisher strategies, MAMA/FAMA",
+   "origin": "Ehlers, mesasoftware.com papers: MAMA (2001), Predictive Indicators (2013), Inferring Trading Strategies from PDFs (2008), Robustness procedure",
+   "entry": "(a) Roofing filter = 2-pole high-pass (48-bar) + SuperSmoother (10-bar), stochastic of the filtered series; buy when it crosses BELOW 20% (anticipating the trough), short when it crosses ABOVE 80% (confirmation entries lose). (b) Generic RSI and High-pass+Fisher-transform strategies: sell short when the smoothed signal crosses above the upper threshold, buy when it crosses below the lower; reverse the position if adverse excursion exceeds a set % of entry price. (c) MAMA/FAMA: price (H+L)/2, Hilbert homodyne period, alpha = FastLimit/DeltaPhase bounded [0.05, 0.5], FAMA uses alpha/2; long on MAMA crossing above FAMA.",
+   "exit": "Opposite signal; adverse-excursion reversal; intraday flat 15:55. Robustness: genetic optimisation (pop 40, keep 2,000 tests), median/max net-profit ratio (~75%) as expected OOS retention.",
+   "filters": "Roofing band 10-48 bars removes aliasing noise and spectral dilation.",
+   "parameters": "HP 48, SS 10, stochastic ~20, thresholds 0.2/0.8; FastLimit 0.5, SlowLimit 0.05; adverse-excursion % tuned (suggest 0.4 x ATR intraday).",
+   "instruments": "S&P daily futures (10 yrs), US T-bond futures (5 yrs to 2007-12), 100 stocks 1998-2001",
+   "timeframe_session": "Daily in the papers; 5-min RTH adaptation proposed",
+   "claimed_performance": "Bonds 5 yrs, 1 contract, no costs: Channel $54,968 / 142 trades / 53.5% / PF 1.72 / DD $15,520; RSI $72,468 / 119 / 57.1% / PF 2.05 / DD $11,625; Fisher $73,125 / 135 / 57.0% / PF 2.10 / DD $9,125; MC annual: RSI $17,085 profit vs $6,219 DD, 96.6% P(>=breakeven). MAMA: 1,317 trades, 37.5% wins, $4.86/share avg vs $0.30 costs. Roofed-stochastic anticipatory on S&P daily: equity curve 'consistent winners' (no table).",
+   "evidence_quality": 3,
+   "prop_fit": "Anticipatory oscillator with adverse-excursion reversal is a natural 5-min ES mean-reversion engine (57% wins, PF ~2 in his data), small stops, several trades/day, EOD flat; MAMA/FAMA too slow intraday. Highest-priority Ehlers item.",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://www.mesasoftware.com/papers/MAMA.pdf",
+    "https://www.mesasoftware.com/papers/PredictiveIndicators.pdf",
+    "https://www.mesasoftware.com/papers/InferringTradingStrategies.pdf",
+    "https://www.mesasoftware.com/papers/ROBUSTNESS.pdf",
+    "https://www.mesasoftware.com/papers/"
+   ]
+  },
+  {
+   "name": "Welles Wilder: DMI/ADX crossover with extreme-point rule, Parabolic SAR, RSI, Volatility System",
+   "origin": "Wilder, New Concepts in Technical Trading Systems (1978); TradingView ADX page",
+   "entry": "DMI 14: +DM = H-H[1] if > L[1]-L and > 0; +DI/-DI = 100 x Wilder-smoothed DM / ATR; ADX = smoothed |+DI - -DI|/(+DI + -DI) x 100. Buy when +DI crosses above -DI with ADX > 25 (20-25 indeterminate); stop = extreme point (low of the crossover bar); signal persists on re-cross unless the extreme point is breached. Parabolic SAR: SAR += AF x (EP - SAR), AF 0.02 step to 0.20, stop-and-reverse. RSI 14 30/70. Volatility System: SAR at significant close +/- 3 x ATR(7).",
+   "exit": "Extreme-point stop; SAR reversal; ARC reversal.",
+   "filters": "ADX > 25 trend filter.",
+   "parameters": "14 periods; AF 0.02/0.20; ARC 3 x ATR(7).",
+   "instruments": "Any",
+   "timeframe_session": "Any",
+   "claimed_performance": "Historical; modern tests only on Indian equities / SPX option overlays (sibling report); no ES intraday net evidence.",
+   "evidence_quality": 2,
+   "prop_fit": "ADX as a trend-day vs rotation filter is the useful piece; SAR/DMI crossover systems whipsaw intraday and Davey ranks parabolic exits below dollar targets.",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://www.tradingview.com/support/solutions/43000502250-average-directional-index-adx/"
+   ]
+  },
+  {
+   "name": "Charles LeBeau: Chandelier exit, Yo-Yo exit, ADX filter",
+   "origin": "LeBeau & Lucas, Technical Traders Guide to Computer Analysis of the Futures Market (1992) [book]",
+   "entry": "Exits/filters rather than entries: trend systems only when ADX(14) > 20 and rising; counter-trend when ADX falls from above 30. 25x25 bond system: enter when close > close 25 days ago with ADX rising [approx].",
+   "exit": "Chandelier = highest high since entry - 3 x ATR(22) (2.5-4 x); Yo-Yo = yesterday's close - 2 x ATR re-anchored each bar.",
+   "filters": "ADX rising/falling.",
+   "parameters": "ATR 22 x 3; Yo-Yo 2 x ATR; ADX 14 > 20.",
+   "instruments": "Futures",
+   "timeframe_session": "Daily; Yo-Yo on 5-min as intraday disaster stop",
+   "claimed_performance": "None modern; Davey's study ranks chandelier below dollar targets.",
+   "evidence_quality": 1,
+   "prop_fit": "Exits only; Yo-Yo (close - 2 x ATR on 5-min) is a reasonable volatility-scaled disaster stop.",
+   "data_requirements": "OHLC",
+   "sources": [
+    "https://kjtradingsystems.com/algo-trading-exits.html"
+   ]
+  },
+  {
+   "name": "David Bean / Capstone ES-NQ gap-fill, gap-continuation and open-range day-trade systems",
+   "origin": "David Bean, Seven Trading Systems for the S&P Futures (2010, EasyLanguage disclosed); Capstone Trading Systems product pages (hypothetical, 1 contract, no slippage disclosed)",
+   "entry": "Four gap types [book]: open above yesterday's high; inside range above close; inside range below close; below yesterday's low. Gap Fill fades toward the prior close with a PT/SL ratio (ES GAPF I enters 09:32 ET); Gap Continuation enters in the gap direction when early momentum aligns (NQ, long only in the 2020 version); ES Mirror 2020 enters long at 09:31 ET; NQ Open Range 2026 breaks the opening range; NQ GAPC 2024 trades 10:30-15:30.",
+   "exit": "Fixed dollar stops/targets: ES Mirror stop $525 / target $675; Gap Continuation NQ max loss $1,225 (~49 NQ pts), exits by 15:30; GAPF I '700 PT / 500 SL'.",
+   "filters": "Gap type classification; early-momentum alignment (undisclosed).",
+   "parameters": "Entry 09:31-09:32 ET (ES systems); stop $1,225 NQ ($122 MNQ); PT/SL ratio.",
+   "instruments": "ES, NQ (and micros)",
+   "timeframe_session": "RTH day trades, 09:30-15:30/16:00 ET",
+   "claimed_performance": "ES GAPF I: 614 trades, 63.2% wins, PF 1.21, DD $12,538; 2023 +$15,925, 2024 -$100, 2025 +$475, 2026 YTD -$3,675. ES Mirror 2020: 415 trades, 50.6%, PF 1.22, DD $9,225; 2024 -$1,275, 2025 -$375, 2026 -$2,625. Gap Continuation 2020 NQ: 506 trades, 59.5%, PF 1.87, DD $10,090, Sharpe 1.42; 2024 +$28,190, 2025 +$6,090, 2026 +$6,645. Gap Continuation 2026 NQ: 732 trades, 57.7%, PF 1.83, avg $164, DD $6,585; 2024 +$23,655, 2025 +$10,520, 2026 +$5,705. NQ GAPC 2024: 1,096 trades, 47.0%, PF 1.38, DD $18,210; 2024 +$23,790, 2025 +$9,960, 2026 +$11,615. NQ Open Range 2026: 1,127 trades, 37.4%, PF 1.45, avg $258, DD $17,755; 2024 +$62,510, 2025 +$39,880, 2026 +$28,465.",
+   "evidence_quality": 2,
+   "prop_fit": "NQ continuation shape (57-60% wins, win/loss ~1.3, $122 MNQ stop) is prop-friendly in micros; ES gap-fill shape (avg loss > avg win, PF 1.21) has decayed; open-range 37% win rate with $2,213 avg winners is wrong for the 50% consistency rule. Vendor re-releases systems yearly (survivorship).",
+   "data_requirements": "OHLC; gap definitions need the RTH prior close (16:00 settlement vs 16:15 close)",
+   "sources": [
+    "https://capstonetradingsystems.com/pages/trading-systems",
+    "https://capstonetradingsystems.com/products/es-gapf-i-700-pt-500-sl",
+    "https://capstonetradingsystems.com/products/es-mirror-2020",
+    "https://capstonetradingsystems.com/products/gap-continuation-2020-nq",
+    "https://capstonetradingsystems.com/products/gap-continuation-2026-nq",
+    "https://capstonetradingsystems.com/products/nq-gapc-2024",
+    "https://capstonetradingsystems.com/products/nq-open-range-2026",
+    "https://books.apple.com/us/book/seven-trading-systems-for-the-s-p-futures/id460008338",
+    "https://algorithmictradingreviews.org/2018/05/24/capstone-trading-systems/"
+   ]
+  },
+  {
+   "name": "Howard Bandy: short-horizon mean reversion and CAR25 / safe-f framework",
+   "origin": "Bandy, Mean Reversion Trading Systems (2013), Quantitative Technical Analysis (2015); Better System Trader ep. 61, 6",
+   "entry": "[book, standard form] daily equities/ETFs: buy at the close when z-score(close vs 20-day mean) < -1.5 or RSI(2) < 10.",
+   "exit": "Sell at the close when z > 0 / RSI(2) > 70 or after 3-5 days; no stops (stops hurt in his tests).",
+   "filters": "Benchmark for a competitive system: >= 65% accuracy, 1-2 day holds, 20-40 trades/yr; risk defined by account size, 2-yr horizon, 20% max DD at 5% probability.",
+   "parameters": "CAR25 = 25th-percentile compound return from Monte Carlo; safe-f = position fraction meeting the DD constraint.",
+   "instruments": "US equities/ETFs",
+   "timeframe_session": "Daily, multi-day",
+   "claimed_performance": "Author tests on equities; no numbers published in fetched sources.",
+   "evidence_quality": 2,
+   "prop_fit": "Multi-day equity reversion not tradable; CAR25/safe-f and the 65%-accuracy short-hold benchmark are directly reusable for the Monte-Carlo monthly-pass-rate engine.",
+   "data_requirements": "n/a (framework)",
+   "sources": [
+    "https://bettersystemtrader.com/061-foundations-of-trading-howard-bandy/",
+    "https://bettersystemtrader.com/006-dr-howard-bandy/"
+   ]
+  },
+  {
+   "name": "Brent Penfold: 1-5 bar price patterns validated on a 24-market universal portfolio",
+   "origin": "Penfold, The Universal Principles of Successful Trading (2010); Better System Trader ep. 101",
+   "entry": "Daily OHLC bar sequences 1-5 bars long; example key reversal: today opens below yesterday's close, makes a higher high, closes below yesterday's close -> sell next day below the low.",
+   "exit": "Stop beyond the pattern bar; short/medium/long-term versions [book].",
+   "filters": "Pattern must show positive expectancy across all 24 markets (P24) before use; no indicator parameters.",
+   "parameters": "None (pattern definitions only).",
+   "instruments": "24-market portfolio: currencies, rates, indices, energies, metals, softs, grains, meats",
+   "timeframe_session": "Daily, next-day stop entry",
+   "claimed_performance": "No numbers published.",
+   "evidence_quality": 1,
+   "prop_fit": "Same shape as Smash Day/Whiplash (low frequency, range-sized stops); the cross-market acceptance test is a good robustness criterion for ES/NQ/GC.",
+   "data_requirements": "Daily + 1-min OHLC",
+   "sources": [
+    "https://bettersystemtrader.com/101-trading-price-patterns-with-brent-penfold/"
+   ]
+  },
+  {
+   "name": "Jake Bernstein: 30-minute breakout and gap methods (The Compleat Day Trader)",
+   "origin": "Bernstein, The Compleat Day Trader (1995/2007) [book]",
+   "entry": "30-min breakout: range of 09:30-10:00 ET; buy stop above / sell stop below. Gap method: open gaps beyond yesterday's close and trades back through the open toward the fill -> fade the gap toward yesterday's close. MACD/momentum divergence timing; day-of-week/seasonal filters.",
+   "exit": "Stop at the opposite side of the 30-min range (or beyond the day's extreme for the gap fade); exit at the close.",
+   "filters": "Day-of-week/seasonal.",
+   "parameters": "30-min range; gap size thresholds unspecified.",
+   "instruments": "S&P, bonds",
+   "timeframe_session": "RTH day trade",
+   "claimed_performance": "Book tables only; the ORB-30 family is covered by modern studies in the sibling ORB report (close-confirmed ORB-30 with 0.25-0.5x range targets among the best-shaped).",
+   "evidence_quality": 1,
+   "prop_fit": "Covered under ORB-30 in orb_session.md.",
+   "data_requirements": "OHLC",
+   "sources": [
+    "research/families/orb_session.md (sibling report)"
+   ]
+  },
+  {
+   "name": "Murray Ruggiero: report-day fade, intermarket bond/S&P filter, adaptive channel breakout",
+   "origin": "Ruggiero, Cybernetic Trading Strategies (1997); Better System Trader ep. 42",
+   "entry": "Report-day: sell a strong pre-report rally / buy a strong pre-report sell-off (traders overreact before announcements). Intermarket: directional filter from a moving-average cross of the related market (T-bonds for S&P; utilities for bonds; XAU for gold); divergence = mean-reversion trade; relationships invert at 2.6 standard deviations. Adaptive channel breakout: channel length = measured dominant cycle.",
+   "exit": "Not specified in fetched sources.",
+   "filters": "Robustness: average net profit across the parameter grid >= 2 x its std dev, profitable across the whole range.",
+   "parameters": "2.6 sigma inversion threshold; MA lengths per pair.",
+   "instruments": "S&P, bonds, gold, crude",
+   "timeframe_session": "Daily; report days (08:30/10:00/14:00 ET releases)",
+   "claimed_performance": "'Won 63% of report day trades' (interview claim); no modern OOS.",
+   "evidence_quality": 1,
+   "prop_fit": "Intermarket filters codeable from Yahoo daily ZB/ZN vs ES; report-day rule needs an economic calendar (not available) - only approximable with fixed release times.",
+   "data_requirements": "Daily cross-market data (Yahoo); economic release calendar (NOT available - flag)",
+   "sources": [
+    "https://bettersystemtrader.com/042-murray-ruggiero/"
+   ]
+  },
+  {
+   "name": "Thomas Stridsman: Meander system (volatility-band open fade)",
+   "origin": "Stridsman, Trading Systems That Work (2000) [book, approximate]",
+   "entry": "Over the last 5 days compute % distance of each O/H/L/C from the previous close (20 observations), mean m and std s; band = yesterday's close x (1 + m +/- s). Buy the open if it is below the lower band (unusually weak open); sell the open if above the upper band.",
+   "exit": "Exit on the close (day trade) or next open; no stop originally, later versions add 1-2 x ATR.",
+   "filters": "None.",
+   "parameters": "5-day window; 1 standard deviation band.",
+   "instruments": "S&P and other futures (book)",
+   "timeframe_session": "Daily open-to-close",
+   "claimed_performance": "Book tests 1990s, modest positive; no modern test.",
+   "evidence_quality": 1,
+   "prop_fit": "Volatility-normalised cousin of Oops/80-20/gap fades; include as a parameterisation of the gap-fade family with a stop at the day's extreme.",
+   "data_requirements": "Daily + 1-min OHLC",
+   "sources": [
+    "Stridsman, Trading Systems That Work (2000) [book]"
+   ]
+  }
+ ]
+}
