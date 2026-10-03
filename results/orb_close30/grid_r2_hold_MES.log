@@ -1,0 +1,27 @@
+     start                                                                                                params  trades         net  win_rate  profit_factor  max_dd_intraday  sharpe_daily_ann  pct_pos_days  largest_day_share
+2023-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 60}     166  -584.63625  0.548193       0.852827      -1068.62000         -0.619842      0.548193                NaN
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 120}     166  -971.11000  0.560241       0.795602      -1311.22125         -0.910453      0.560241                NaN
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 240}     166 -1084.28125  0.554217       0.779708      -1326.20375         -1.002503      0.554217                NaN
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 240}     196  1094.20000  0.658163       1.156971       -827.48500          0.655975      0.658163           0.171088
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 120}     196   552.00250  0.637755       1.082164      -1129.93125          0.350339      0.637755           0.339138
+2025-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 60}     196   365.84625  0.617347       1.063104      -1007.68500          0.263583      0.617347           0.364368
+{
+ "2023-01-01..2024-12-31": {
+  "n": 3,
+  "pct_profitable": 0.0,
+  "median_net": -971.1100000000224,
+  "best_net": -584.6362500000222,
+  "median_pf": 0.7956024781707695,
+  "best_pass_rate": NaN
+ },
+ "2025-01-01..2026-09-30": {
+  "n": 3,
+  "pct_profitable": 1.0,
+  "median_net": 552.0025000000076,
+  "best_net": 1094.200000000005,
+  "median_pf": 1.082164259304466,
+  "best_pass_rate": NaN
+ },
+ "rank_corr_first_two_periods": -1.0
+}
+6 runs in 19s

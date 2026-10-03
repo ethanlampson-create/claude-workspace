@@ -11,8 +11,15 @@ DIRECTION: gap down -> LONG; gap up -> SHORT (sides='both' | 'long' | 'short'). 
 ENTRY: market at the open of the bar at 09:30 + entry_delay minutes.  Skip if the gap already filled in the bars before
   entry (long: any high >= prior_close; short: any low <= prior_close).  Skip if the stop level was already breached before entry (the
   bracket would be dead on arrival; skip_beyond_stop=True).
-STOP: one gap-distance beyond the open: open_0930 -/+ stop_mult * |gap_pts|.  TARGET: open_0930 + fill_frac * (prior_close - open_0930).
+STOP: one gap-distance beyond the open: open_0930 -/+ stop_mult * |gap_pts|, floored at stop_floor_atr * ATR (0 = published).
+  TARGET: open_0930 + fill_frac * (prior_close - open_0930).
 EXIT: flat at the open of the first bar >= exit_time (Intents.exit_at); force flat at `flat`.  One trade per day.
+OPTIONAL (improvement rounds, all off by default so PARAMS = the published rule):
+  entry='limit': instead of market at 09:30+delay, a limit order limit_frac * |gap_pts| beyond the open (buy the dip deeper
+    than the open), live for limit_valid bars.  trend_filter='against': only fade gaps that go against the 20-day trend
+    (gap-down when prior close > SMA(trend_len) of RTH closes, lagged; gap-up when below); 'with' is the mirror.
+  trail_frac / trail_act_frac: trailing stop of trail_frac * |gap_pts| that activates once price has recovered
+    trail_act_frac * |gap_pts| (equal values = break-even ratchet).  max_hold: minutes; daily_loss_stop: $ per contract.
 """
 import os
 import numpy as np
@@ -26,7 +33,9 @@ DESCRIPTION = __doc__
 CONTRACTS = ['MES', 'MNQ']
 PARAMS = {'gap_min': 0.10, 'gap_max': 0.50, 'atr_mult': 0.7, 'stop_mult': 1.0, 'fill_frac': 1.0, 'entry_delay': 5,
           'exit_time': '11:00', 'flat': '15:55', 'sides': 'both', 'vix_gate': True, 'vix_lb': 100, 'vix_q': 0.75,
-          'outside_atr': 0.5, 'skip_mon_gapup': False, 'skip_beyond_stop': True, 'max_trades': 1}
+          'outside_atr': 0.5, 'skip_mon_gapup': False, 'skip_beyond_stop': True, 'max_trades': 1,
+          'stop_floor_atr': 0.0, 'entry': 'market', 'limit_frac': 0.25, 'limit_valid': 15, 'trend_filter': 'none',
+          'trend_len': 20, 'trail_frac': 0.0, 'trail_act_frac': 0.0, 'max_hold': 0, 'daily_loss_stop': 0.0}
 GRID = {'gap_max': [0.35, 0.50, 0.70], 'stop_mult': [0.75, 1.0, 1.5], 'sides': ['both', 'long'], 'exit_time': ['11:00', '12:00']}
 
 
@@ -63,6 +72,10 @@ def day_table(df1: pd.DataFrame, contract, p: dict) -> pd.DataFrame:
     t['atr_pct'] = 100.0 * t['atr'] / t['pd_close']
     vr = vix_regime(df1, int(p['vix_lb']), float(p['vix_q']))
     t = t.join(vr)
+    # 20-day trend of RTH closes, lagged: SMA over sessions <= d-1 compared with the prior close (sessions < d only)
+    dcl = daily_bars(df1, rth_only=True, rth=rth)['close']
+    t['sma_lag'] = dcl.rolling(int(p['trend_len']), min_periods=int(p['trend_len'])).mean().shift(1).reindex(t.index)
+    t['trend_up'] = t['pd_close'] > t['sma_lag']
     ag = t['gap_pct'].abs()
     q = (ag >= p['gap_min']) & (ag <= p['gap_max']) & t['atr'].notna() & t['pd_close'].notna()
     q &= ag <= p['atr_mult'] * t['atr_pct']
@@ -76,6 +89,10 @@ def day_table(df1: pd.DataFrame, contract, p: dict) -> pd.DataFrame:
         q &= side < 0
     if p['skip_mon_gapup']:
         q &= ~((t['dow'] == 0) & (side < 0))
+    if p['trend_filter'] == 'against':          # gap-down in an uptrend (long), gap-up in a downtrend (short)
+        q &= t['sma_lag'].notna() & (((side > 0) & t['trend_up']) | ((side < 0) & ~t['trend_up']))
+    elif p['trend_filter'] == 'with':
+        q &= t['sma_lag'].notna() & (((side > 0) & ~t['trend_up']) | ((side < 0) & t['trend_up']))
     t['side'] = side
     t['qualify'] = q
     return t
@@ -91,7 +108,8 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
     tod = df1['tod'].values; day = df1['day_id'].values
     h = df1['high'].values; l = df1['low'].values; c = df1['close'].values
     n = len(df1)
-    idx = []; sides = []; sps = []; tps = []
+    idx = []; sides = []; sps = []; tps = []; eps = []; trl = []; trla = []
+    use_limit = p['entry'] == 'limit'
     for d, r in t.iterrows():
         i0 = int(r['i_open']); side = int(r['side'])
         # entry bar: first bar of this session with tod >= entry_tod (normally exactly 09:30 + delay)
@@ -102,23 +120,30 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
             continue                                            # missing entry bar: skip the day
         pre_lo = l[i0:k].min(); pre_hi = h[i0:k].max(); last_c = c[k - 1]
         gap_pts = abs(r['open_0930'] - r['pd_close'])
+        stop_dist = max(p['stop_mult'] * gap_pts, p['stop_floor_atr'] * r['atr'])
         if side > 0:
             if pre_hi >= r['pd_close']:
                 continue                                        # gap-down already filled (price rose to prior close)
-            sp = r['open_0930'] - p['stop_mult'] * gap_pts
+            sp = r['open_0930'] - stop_dist
             tp = r['open_0930'] + p['fill_frac'] * (r['pd_close'] - r['open_0930'])
             if p['skip_beyond_stop'] and last_c <= sp:
                 continue
         else:
             if pre_lo <= r['pd_close']:
                 continue                                        # gap-up already filled (price fell to prior close)
-            sp = r['open_0930'] + p['stop_mult'] * gap_pts
+            sp = r['open_0930'] + stop_dist
             tp = r['open_0930'] - p['fill_frac'] * (r['open_0930'] - r['pd_close'])
             if p['skip_beyond_stop'] and last_c >= sp:
                 continue
-        idx.append(k); sides.append(side); sps.append(sp); tps.append(tp)
+        ep = (r['open_0930'] - side * p['limit_frac'] * gap_pts) if use_limit else np.nan
+        idx.append(k); sides.append(side); sps.append(sp); tps.append(tp); eps.append(ep)
+        trl.append(p['trail_frac'] * gap_pts if p['trail_frac'] > 0 else np.nan)
+        trla.append(p['trail_act_frac'] * gap_pts)
     if idx:
-        it.place(np.array(idx, dtype=int), np.array(sides, dtype=np.int8), stop_px=np.array(sps), tgt_px=np.array(tps))
+        it.place(np.array(idx, dtype=int), np.array(sides, dtype=np.int8), entry_px=np.array(eps),
+                 kind='limit' if use_limit else 'stop', valid_bars=int(p['limit_valid']) if use_limit else 0,
+                 stop_px=np.array(sps), tgt_px=np.array(tps), trail_pts=np.array(trl), trail_act_pts=np.array(trla),
+                 max_hold=int(p['max_hold']))
     # time exit: first bar >= exit_time in every session (harmless when flat)
     ex = hm(p['exit_time'])
     after = (tod >= ex) & (tod < hm('18:00'))
@@ -126,4 +151,5 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
     it.exit_at(first_after, which=2)
     it.set_session(contract.rth_open, p['exit_time'], p['flat'])
     it.max_trades_day = p['max_trades']
+    it.daily_loss_stop = float(p['daily_loss_stop'])
     return it

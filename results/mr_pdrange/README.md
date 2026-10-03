@@ -22,7 +22,7 @@ Module: `strategies/mr_pdrange.py`. Verdict: **marginal** (MNQ, stop-entry varia
 
 Defaults = the published rule (market mode, max_dist 0.30, stop_mult 1.0, tgt_ext 0, entry_delay 5, both sides).
 
-## Raw statistics (no engine; `scratchpad/funnel.py`)
+## Raw statistics (no engine; `results/mr_pdrange/funnel_study.py`)
 - The 09:30 open is outside the prior RTH range on 40-45% of sessions (MNQ MAIN: 202/445; 75 below PDL, 127 above PDH).
   With dist >= 0.05%: 181; <= 0.30%: 78; <= 0.5 ATR: 78; gap <= 1%: 70. The 0.30% cap is the binding filter.
 - Touch rates confirm the published numbers and their decay: MNQ MAIN touch-by-12:00 = 81% (0-0.1%), 88% (0.1-0.2%),

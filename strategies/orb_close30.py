@@ -16,6 +16,9 @@ Rules as implemented (all times ET):
 - Stop: 'opposite' = far side of the OR; 'mid' = OR midpoint; in both modes the distance is capped at max_stop_atr*ATR from
   the entry (cap applied relative to the actual fill when the level is too far). Target = fill +/- tgt_frac*rng. No trailing.
 - Exits: stop, target, or forced flat at `flat`. One trade per day, no re-entry.
+- Optional (improvement rounds, default off): trend_fast (second SMA that must agree with SMA(trend_len); KEPT in the chosen
+  config: 50), min_on_range_atr (overnight-range volatility context), be_act_frac/trail_frac (breakeven trail), max_hold_min
+  (time stop), reentry (every confirming close is a signal; engine's max_trades limits the count).
 Gold (MGC/GC): OR anchored at 08:20 (contract.rth_open), defaults last_entry 09:30, flat 13:25 (overridable).
 """
 import os
@@ -23,14 +26,21 @@ import numpy as np
 import pandas as pd
 from backtest.engine import Intents
 from backtest.data import hm, resample, PQ
-from strategies.common import opening_range, daily_atr
+from strategies.common import opening_range, daily_atr, overnight_range
 
 NAME = 'ORB-30 close-confirmed, capped 0.5x-range target'
 DESCRIPTION = __doc__
 CONTRACTS = ['MES', 'MNQ']
 PARAMS = {'or_minutes': 30, 'direction': 'both', 'trend_len': 200, 'or_dir_filter': False, 'last_entry': '10:30',
           'stop_mode': 'opposite', 'max_stop_atr': 0.6, 'tgt_frac': 0.5, 'min_range_atr': 0.1, 'max_range_atr': 0.8,
-          'flat': '15:55', 'max_trades': 1, 'bar': 5}
+          'flat': '15:55', 'max_trades': 1, 'bar': 5,
+          # improvement-round parameters (defaults = original rule, i.e. off)
+          'be_act_frac': 0.0,    # >0: once MFE >= be_act_frac*target, trail the stop (see trail_frac)
+          'trail_frac': 0.0,     # trail distance as a fraction of the target distance (0 = same as be_act_frac -> stop at breakeven on activation)
+          'max_hold_min': 0,     # >0: time stop, exit at market after this many minutes in the trade
+          'reentry': False,      # True: every confirming close in the allowed direction is a signal (engine enforces max_trades)
+          'trend_fast': 0,       # >0: additionally require the prior close vs SMA(trend_fast) to agree with the SMA(trend_len) side
+          'min_on_range_atr': 0.0}  # >0: require the overnight (18:00 -> rth_open) range to be >= this many ATRs (volatility context)
 GOLD_DEFAULTS = {'last_entry': '09:30', 'flat': '13:25'}
 GRID = {'or_minutes': [15, 30], 'direction': ['both', 'long', 'trend'], 'stop_mode': ['opposite', 'mid'], 'tgt_frac': [0.5, 0.75]}
 DAILY_FILE = {'SPXUSD': 'SPX_1d.parquet', 'NSXUSD': 'NDX_1d.parquet', 'XAUUSD': 'GC_1d.parquet', 'WTIUSD': 'CL_1d.parquet'}
@@ -73,9 +83,16 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
     orr = orr.join(datr.rename('atr'))
     orr['rng'] = orr['or_high'] - orr['or_low']
     ok = orr['atr'].notna() & (orr['rng'] >= p['min_range_atr'] * orr['atr']) & (orr['rng'] <= p['max_range_atr'] * orr['atr']) & (orr['rng'] > 0)
+    if float(p['min_on_range_atr']) > 0:
+        onr = overnight_range(df1, contract.rth_open)
+        onw = (onr['on_high'] - onr['on_low']).reindex(orr.index)
+        ok &= onw.notna() & (onw >= float(p['min_on_range_atr']) * orr['atr'])
     orr = orr[ok]
     if p['direction'] == 'trend':
         trend = daily_trend(df1, contract.data_symbol, int(p['trend_len']))
+        if int(p['trend_fast']) > 0:
+            tf = daily_trend(df1, contract.data_symbol, int(p['trend_fast']))
+            trend = trend.where(tf == trend)        # both SMAs must agree, else NaN = no trade
         orr = orr.join(trend.rename('trend'))
     else:
         orr['trend'] = np.nan
@@ -86,9 +103,14 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
     oh = cand['day_id'].map(orr['or_high']).values; ol = cand['day_id'].map(orr['or_low']).values
     sig = np.where(cand['close'].values > oh, 1, np.where(cand['close'].values < ol, -1, 0))
     cand = cand.assign(sig=sig)
-    first = cand[cand['sig'] != 0].groupby('day_id').head(1)   # only the first break of the day counts
+    if p['reentry']:
+        first = cand[cand['sig'] != 0]                              # every confirming close is a signal; engine limits trades/day
+    else:
+        first = cand[cand['sig'] != 0].groupby('day_id').head(1)   # only the first break of the day counts
+    be_act = float(p['be_act_frac']); trail_f = float(p['trail_frac']) if float(p['trail_frac']) > 0 else be_act
+    max_hold = int(p['max_hold_min'])
 
-    idx, side, stop_px, stop_pts, tgt_pts = [], [], [], [], []
+    idx, side, stop_px, stop_pts, tgt_pts, trail_pts, trail_act = [], [], [], [], [], [], []
     for _, r in first.iterrows():
         d = int(r['day_id']); s = int(r['sig']); o = orr.loc[d]
         # direction permission
@@ -113,13 +135,17 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
         if dist <= 0:
             continue
         idx.append(int(r['i_next'])); side.append(s); tgt_pts.append(tgt)
+        if be_act > 0:
+            trail_act.append(be_act * tgt); trail_pts.append(trail_f * tgt)
+        else:
+            trail_act.append(0.0); trail_pts.append(np.nan)
         if dist > cap:                    # too far: cap the stop distance relative to the actual fill
             stop_px.append(np.nan); stop_pts.append(cap)
         else:
             stop_px.append(float(sl)); stop_pts.append(np.nan)
     if idx:
         it.place(np.array(idx, dtype=int), np.array(side, dtype=np.int8), stop_px=np.array(stop_px), stop_pts=np.array(stop_pts),
-                 tgt_pts=np.array(tgt_pts))
+                 tgt_pts=np.array(tgt_pts), trail_pts=np.array(trail_pts), trail_act_pts=np.array(trail_act), max_hold=max_hold)
     # entries only from the OR end up to the close of the last admissible signal bar (bar start < last_entry => fill <= last_entry)
     it.set_session(_tod_str(or_end), _tod_str(last_entry + bar), p['flat'])
     it.max_trades_day = int(p['max_trades'])

@@ -1,0 +1,27 @@
+     start                                                                                                params  trades       net  win_rate  profit_factor  max_dd_intraday  sharpe_daily_ann  pct_pos_days  largest_day_share
+2023-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 60}     163 2462.3420  0.638037       1.395504        -710.6220          1.250508      0.638037           0.122290
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 240}     163 1890.1940  0.638037       1.230240       -1294.1435          0.825100      0.638037           0.159306
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 120}     163 1870.0415  0.668712       1.250682        -958.7175          0.857792      0.668712           0.161023
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 240}     184 5605.7500  0.690217       1.413522       -1285.4165          1.554798      0.690217           0.070317
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 120}     184 5200.5795  0.673913       1.424050       -1155.1635          1.538843      0.673913           0.075796
+2025-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "max_hold_min": 60}     184 3437.3985  0.663043       1.306036       -1756.2610          1.125660      0.663043           0.114674
+{
+ "2023-01-01..2024-12-31": {
+  "n": 3,
+  "pct_profitable": 1.0,
+  "median_net": 1890.1939999999972,
+  "best_net": 2462.341999999988,
+  "median_pf": 1.250682054539164,
+  "best_pass_rate": NaN
+ },
+ "2025-01-01..2026-09-30": {
+  "n": 3,
+  "pct_profitable": 1.0,
+  "median_net": 5200.579499999946,
+  "best_net": 5605.749999999932,
+  "median_pf": 1.413521837670903,
+  "best_pass_rate": NaN
+ },
+ "rank_corr_first_two_periods": -0.5
+}
+6 runs in 20s

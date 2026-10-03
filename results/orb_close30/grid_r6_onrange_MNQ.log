@@ -1,0 +1,27 @@
+     start                                                                                                                      params  trades       net  win_rate  profit_factor  max_dd_intraday  sharpe_daily_ann  pct_pos_days  largest_day_share
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 50, "min_on_range_atr": 0.5}      65 2120.6080  0.738462       1.782764         -513.632          1.460580      0.738462           0.093697
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 50, "min_on_range_atr": 0.4}      88 1968.9320  0.681818       1.479338         -668.740          1.177467      0.681818           0.100915
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 50, "min_on_range_atr": 0.3}     107 1255.4600  0.635514       1.227505        -1033.875          0.681112      0.635514           0.158265
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 50, "min_on_range_atr": 0.3}     134 5916.6195  0.723881       1.712783        -1323.833          2.051092      0.723881           0.060375
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 50, "min_on_range_atr": 0.4}     114 5705.7365  0.728070       1.800308        -1043.025          2.071911      0.728070           0.062607
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 50, "min_on_range_atr": 0.5}      89 4664.3370  0.719101       1.817480         -901.152          1.863850      0.719101           0.076585
+{
+ "2023-01-01..2024-12-31": {
+  "n": 3,
+  "pct_profitable": 1.0,
+  "median_net": 1968.932000000002,
+  "best_net": 2120.6080000000034,
+  "median_pf": 1.4793380864669115,
+  "best_pass_rate": NaN
+ },
+ "2025-01-01..2026-09-30": {
+  "n": 3,
+  "pct_profitable": 1.0,
+  "median_net": 5705.736499999939,
+  "best_net": 5916.619499999946,
+  "median_pf": 1.8003079771078214,
+  "best_pass_rate": NaN
+ },
+ "rank_corr_first_two_periods": -1.0
+}
+6 runs in 16s

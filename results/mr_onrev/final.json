@@ -1,0 +1,47 @@
+{
+ "id": "mr_onrev",
+ "family": "intraday_mean_reversion",
+ "contract": "MNQ",
+ "params": {},
+ "period_main": {
+  "trades": 221,
+  "net": 2509.27,
+  "win_rate": 0.534,
+  "avg_trade": 11.35,
+  "profit_factor": 1.061,
+  "max_dd_closed": -4794.16,
+  "max_dd_intraday": -5180.76,
+  "sharpe_daily_ann": 0.254,
+  "pct_pos_days": 0.534,
+  "largest_day": 2072.91,
+  "worst_day": -1543.78,
+  "largest_day_share": 0.826,
+  "pct_pos_months": 0.619,
+  "worst_month": -4203.91
+ },
+ "period_prior": {
+  "trades": 206,
+  "net": -2055.48,
+  "win_rate": 0.476,
+  "avg_trade": -9.98,
+  "profit_factor": 0.918,
+  "max_dd_closed": -6049.33,
+  "max_dd_intraday": -6336.52,
+  "sharpe_daily_ann": -0.336,
+  "pct_pos_days": 0.476,
+  "largest_day": 982.34,
+  "worst_day": -717.13,
+  "pct_pos_months": 0.375,
+  "worst_month": -1575.19
+ },
+ "lucid": {
+  "micros": null,
+  "pass_rate": null,
+  "p_first_payout_unconditional": null,
+  "expected_net_per_eval": null,
+  "median_days_to_pass": null,
+  "note": "lucid_scan run was OOM-killed while the background grids held memory; with max_dd_intraday -5181 per micro even 1 micro breaches the $2,000 trailing limit, so no size can be recommended"
+ },
+ "verdict": "dead",
+ "notes": "MNQ MAIN PF 1.06 (221 tr, Sharpe 0.25, worst month -4204, intraday DD -5181/micro); PRIOR PF 0.92. MES MAIN PF 1.075 carried by 2025-04-08/09 (+3793 of +885 net); PRIOR 0.95. MGC dead both periods (PF 0.84/0.63): gold overnight return CONTINUES intraday (reversal t=-2.3 on PRIOR). corr(demeaned overnight, 09:31-15:55 return) ~ -0.06 MAIN, ~0 PRIOR for equities; equity-only demeaning has no edge. 36-combo MAIN grids per contract were launched in the background (results/mr_onrev/grid_main_{MNQ,MES,MGC}.csv when finished)."
+}

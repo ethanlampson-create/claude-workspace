@@ -1,0 +1,27 @@
+     start                                                                                              params  trades         net  win_rate  profit_factor  max_dd_intraday  sharpe_daily_ann  pct_pos_days  largest_day_share
+2023-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 20}     133 -1294.39375  0.533835       0.684778      -1439.56750         -1.367810      0.533835                NaN
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 100}     152 -1296.91750  0.546053       0.728129      -1512.15000         -1.229933      0.546053                NaN
+2023-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 50}     139 -1396.91500  0.532374       0.684658      -1578.63000         -1.394611      0.532374                NaN
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 100}     188  1196.22125  0.664894       1.178239       -950.19875          0.731182      0.664894           0.156497
+2025-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 50}     165  1136.41875  0.666667       1.200390       -950.19875          0.756591      0.666667           0.164732
+2025-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 20}     134  1084.12375  0.656716       1.263733       -705.73875          0.892980      0.656716           0.172679
+{
+ "2023-01-01..2024-12-31": {
+  "n": 3,
+  "pct_profitable": 0.0,
+  "median_net": -1296.9175000000523,
+  "best_net": -1294.3937500000313,
+  "median_pf": 0.6847781881233473,
+  "best_pass_rate": NaN
+ },
+ "2025-01-01..2026-09-30": {
+  "n": 3,
+  "pct_profitable": 1.0,
+  "median_net": 1136.418750000014,
+  "best_net": 1196.2212500000264,
+  "median_pf": 1.2003896548167072,
+  "best_pass_rate": NaN
+ },
+ "rank_corr_first_two_periods": -0.5
+}
+6 runs in 25s

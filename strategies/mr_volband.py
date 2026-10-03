@@ -13,7 +13,12 @@ Exits: time exit after `hold` minutes (paper), protective stop stop_mult * w bey
 (tgt_mode 'none' = paper, 'ref' = C_ref, 'band' = the breached band). Force flat 15:55 ET.
 Regime gate (gate=True): trade only when vix_lag1 < vix_low or vix_lag1 >= vix_high (skip 20 <= VIX < 30). The gate
 always uses the VIX even when vol_src='rv20'. NaN VIX / C_ref / RV -> no trade.
-Contract-dependent defaults (vol_mult, vol_src, entry_start, entry_end) are resolved when the param is None."""
+Contract-dependent defaults (vol_mult, vol_src, entry_start, entry_end) are resolved when the param is None.
+Improvement parameters (all default to the paper rule): entry_mode 'breach' (paper) | 'reclaim' (enter on the first
+1-min close back inside the band after the breach, same session and window; stop/target unchanged); trend_n > 0 =
+only fade in the direction of the daily trend (long only when C_ref > SMA_n of prior RTH closes, short only when
+below; SMA uses days < d); vix_cap > 0 = skip sessions with vix_lag1 >= vix_cap; daily_loss > 0 = engine daily loss
+stop in $ per contract; trail_mult > 0 = trailing stop of trail_mult * w activated after trail_act_mult * w profit."""
 import numpy as np
 import pandas as pd
 from backtest.engine import Intents
@@ -25,7 +30,8 @@ DESCRIPTION = __doc__
 CONTRACTS = ['MNQ', 'MES']
 PARAMS = {'divisor': 16, 'hold': 30, 'stop_mult': 0.5, 'tgt_mode': 'none', 'gate': True, 'vix_low': 20, 'vix_high': 30,
           'vol_mult': None, 'vol_src': None, 'entry_start': None, 'entry_end': None, 'flat': '15:55', 'sides': 'both',
-          'max_trades': 2, 'allow_open_outside': False, 'rv_n': 20}
+          'max_trades': 2, 'allow_open_outside': False, 'rv_n': 20,
+          'entry_mode': 'breach', 'trend_n': 0, 'vix_cap': 0, 'daily_loss': 0, 'trail_mult': 0, 'trail_act_mult': 0}
 GRID = {'divisor': [14, 16, 20], 'hold': [30, 60], 'stop_mult': [0.5, 1.0], 'gate': [True, False]}
 GRID_FOLLOWUP = {'tgt_mode': ['none', 'ref', 'band'], 'sides': ['both', 'long']}
 
@@ -65,7 +71,15 @@ def bands(df1, contract, p):
     ok = c_ref.notna() & V.notna() & vix.notna() & (w > 0)
     if p['gate']:
         ok &= (vix < p['vix_low']) | (vix >= p['vix_high'])
+    if p['vix_cap'] and p['vix_cap'] > 0:
+        ok &= vix < p['vix_cap']
     out['ok'] = ok
+    n_tr = int(p['trend_n'] or 0)
+    if n_tr > 0:   # SMA of prior RTH closes over days < d (c_ref is already the shifted close)
+        sma = d['close'].rolling(n_tr, min_periods=n_tr).mean().shift(1).reindex(all_days)
+        out['long_ok'] = (c_ref > sma).fillna(False); out['short_ok'] = (c_ref < sma).fillna(False)
+    else:
+        out['long_ok'] = ok; out['short_ok'] = ok
     return out
 
 
@@ -79,6 +93,7 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
     win = (tod >= s) & (tod < e)
     up = b['upper'].reindex(day).values; lo = b['lower'].reindex(day).values; ok = b['ok'].reindex(day).fillna(False).values.astype(bool)
     cref = b['c_ref'].reindex(day).values; w = b['w'].reindex(day).values
+    lok = b['long_ok'].reindex(day).fillna(False).values.astype(bool); sok = b['short_ok'].reindex(day).fillna(False).values.astype(bool)
     below = win & ok & (close < lo); above = win & ok & (close > up)
     # first window bar per day -> pre-breach check
     wi = np.flatnonzero(win & ok)
@@ -95,6 +110,17 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
         first = pd.Series(j).groupby(day[j]).first()                    # first breach bar per day
         if not p['allow_open_outside']:
             first = first[~pre.reindex(first.index).fillna(False).values.astype(bool)]
+        if p['entry_mode'] == 'reclaim':
+            # first bar AFTER the breach bar whose close is back inside the band (same session, inside the window)
+            inside = win & ~mask
+            rc = []
+            for j0 in first.values:
+                k = j0 + 1
+                while k < n and day[k] == day[j0] and tod[k] < e:
+                    if inside[k]:
+                        rc.append(k); break
+                    k += 1
+            first = pd.Series(np.array(rc, dtype=int))
         sig = first.values + 1                                          # order live from the open of the NEXT bar
         keep = (sig < n)
         sig = sig[keep]
@@ -104,6 +130,7 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
         idx_s = []
     elif p['sides'] == 'short':
         idx_l = []
+    idx_l = [i for i in idx_l if lok[i]]; idx_s = [i for i in idx_s if sok[i]]
     for idx, side in ((np.array(idx_l, dtype=int), 1), (np.array(idx_s, dtype=int), -1)):
         if len(idx) == 0:
             continue
@@ -115,7 +142,12 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
             tgt_px = band
         else:
             tgt_px = np.full(len(idx), np.nan)
-        it.place(idx, side, stop_px=stop_px, tgt_px=tgt_px, max_hold=int(p['hold']))
+        tr = np.full(len(idx), np.nan); tra = 0.0
+        if p['trail_mult'] and p['trail_mult'] > 0:
+            tr = p['trail_mult'] * wd; tra = p['trail_act_mult'] * wd
+        it.place(idx, side, stop_px=stop_px, tgt_px=tgt_px, max_hold=int(p['hold']), trail_pts=tr, trail_act_pts=tra)
     it.set_session(p['entry_start'], p['entry_end'], p['flat'])
     it.max_trades_day = p['max_trades']
+    if p['daily_loss'] and p['daily_loss'] > 0:
+        it.daily_loss_stop = float(p['daily_loss'])
     return it

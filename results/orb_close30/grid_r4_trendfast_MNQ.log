@@ -1,0 +1,27 @@
+     start                                                                                              params  trades       net  win_rate  profit_factor  max_dd_intraday  sharpe_daily_ann  pct_pos_days  largest_day_share
+2023-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 50}     117 1301.1200  0.641026       1.222034        -983.5500          0.692309      0.641026           0.152711
+2023-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 20}     114 1214.6195  0.649123       1.214042       -1111.1460          0.659430      0.649123           0.163586
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 100}     143  571.1545  0.629371       1.070630       -1867.0050          0.258815      0.629371           0.347883
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 100}     167 6595.0520  0.712575       1.574101       -1371.1365          1.929572      0.712575           0.059769
+2025-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 50}     142 6216.9730  0.725352       1.716634       -1212.4230          2.121669      0.725352           0.057458
+2025-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "trend_fast": 20}     120 5549.5430  0.733333       1.805574       -1217.0120          2.108879      0.733333           0.065081
+{
+ "2023-01-01..2024-12-31": {
+  "n": 3,
+  "pct_profitable": 1.0,
+  "median_net": 1214.6194999999832,
+  "best_net": 1301.1199999999903,
+  "median_pf": 1.2140415599794847,
+  "best_pass_rate": NaN
+ },
+ "2025-01-01..2026-09-30": {
+  "n": 3,
+  "pct_profitable": 1.0,
+  "median_net": 6216.972999999953,
+  "best_net": 6595.051999999943,
+  "median_pf": 1.7166337915106404,
+  "best_pass_rate": NaN
+ },
+ "rank_corr_first_two_periods": -0.5
+}
+6 runs in 18s

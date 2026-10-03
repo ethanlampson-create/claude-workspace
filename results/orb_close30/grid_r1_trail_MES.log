@@ -1,0 +1,33 @@
+     start                                                                                                                   params  trades         net  win_rate  profit_factor  max_dd_intraday  sharpe_daily_ann  pct_pos_days  largest_day_share
+2023-01-01   {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.75, "trail_frac": 0}     166 -372.376250  0.584337       0.904381      -940.014688         -0.380103      0.584337                NaN
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.35, "trail_frac": 1.0}     166 -451.987500  0.409639       0.869760     -1085.861250         -0.528078      0.409639                NaN
+2023-01-01   {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.35, "trail_frac": 0}     166 -524.480562  0.674699       0.785176      -847.639250         -0.745675      0.674699                NaN
+2023-01-01    {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.5, "trail_frac": 0}     166 -601.390625  0.644578       0.812808      -865.537500         -0.700589      0.644578                NaN
+2023-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.75, "trail_frac": 1.0}     166 -631.386250  0.500000       0.847141     -1087.311250         -0.641869      0.500000                NaN
+2023-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.5, "trail_frac": 1.0}     166 -687.120000  0.427711       0.819591     -1076.717500         -0.746567      0.427711                NaN
+2025-01-01   {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.75, "trail_frac": 0}     196 1639.987188  0.729592       1.296468      -942.752500          1.068545      0.729592           0.114150
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.75, "trail_frac": 1.0}     196 1451.790000  0.571429       1.245137      -988.018750          0.931024      0.571429           0.128948
+2025-01-01 {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.35, "trail_frac": 1.0}     196  485.843750  0.479592       1.085091     -1047.061250          0.339742      0.479592           0.385319
+2025-01-01  {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.5, "trail_frac": 1.0}     196  195.665000  0.500000       1.031496     -1154.748750          0.129531      0.500000           0.956763
+2025-01-01    {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.5, "trail_frac": 0}     196   19.371875  0.734694       1.003690      -993.370625          0.013765      0.734694           9.663752
+2025-01-01   {"or_minutes": 15, "direction": "trend", "max_range_atr": 0.5, "tgt_frac": 0.75, "be_act_frac": 0.35, "trail_frac": 0}     196 -228.643375  0.729592       0.943985      -933.951187         -0.191399      0.729592                NaN
+{
+ "2023-01-01..2024-12-31": {
+  "n": 6,
+  "pct_profitable": 0.0,
+  "median_net": -562.9355937499845,
+  "best_net": -372.3762500000505,
+  "median_pf": 0.8333662090280625,
+  "best_pass_rate": NaN
+ },
+ "2025-01-01..2026-09-30": {
+  "n": 6,
+  "pct_profitable": 0.8333333333333334,
+  "median_net": 340.7543750000282,
+  "best_net": 1639.987187500023,
+  "median_pf": 1.058293602417252,
+  "best_pass_rate": NaN
+ },
+ "rank_corr_first_two_periods": 0.3142857142857143
+}
+12 runs in 29s
