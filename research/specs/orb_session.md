@@ -12,7 +12,7 @@ rth_only=True)` (gives `i_next`, the first 1-minute index after an N-minute bar 
 | module | report section | status (per micro, MAIN 2025-01..2026-09 / PRIOR 2023-24) |
 |---|---|---|
 | `strategies/orb_close30.py` | 3.2 / 3.3 | **marginal**: MNQ, OR-15, 5-min close confirm, SMA200 trend bias, far stop capped 0.6 ATR, OR width 0.1-0.5 ATR, 0.75x target: PF 1.43 / 190 trades / Sharpe 1.64 / 69.5% positive days; PRIOR PF 1.08; 12-cell plateau. Lucid: 5 micros, pass 0.47, P(payout) 0.20, +$711/eval. MES, MGC, shorts, `direction=both` all dead. |
-| `strategies/orb_sma_rr.py` | 3.1 | **marginal**: published 150-tick cap is dead now (0.09-0.11 ATR vs 0.14-0.16 when published); stop re-expressed as 0.15 x ATR14: MNQ PF 1.16 / 1.08, 312 trades, Sharpe 0.9, 40% positive days; 82 of 312 trades were flat-at-close carries (+$9.2k, 84% winners) -> the edge is trend-day carry, not the 2R target. Monthly pass rate 0.0-1.0 (not consistent). |
+| `strategies/orb_sma_rr.py` | 3.1 | **marginal**: published 150-tick cap is dead now (0.09-0.11 ATR vs 0.14-0.16 when published); stop re-expressed as 0.15 x ATR14: MNQ PF 1.16 / 1.08, 312 trades, Sharpe 0.9, 40% positive days; in the neighbouring grid row (OR15 / 0.25 ATR / rr 2.0) 82 trades were flat-at-close carries (+$9.2k, 84% winners) -> a large part of the edge is trend-day carry, not the 2R target. Monthly pass rate 0.0-1.0 (not consistent). |
 | `strategies/orb_onmid.py` | 5.1 / 5.2 | **dead**: the 70-75% first-break-direction statistic replicates on our NQ data, but the break is shallow (0.5x range reached only 40-48% of the time; midpoint revisited 53-57%). MNQ PF 0.84/0.83, MES 0.74/0.79 in all 32 cells; MGC positive only in 2025-26 (9 of 12 years negative). |
 | `strategies/orb_reclaim.py` | 5.3 | grid in progress: MAIN 24 cells, median PF 0.97, best PF 1.08 (rr 2.0, 45 pts, am_pm, London only), 42% of cells profitable. |
 | `strategies/orb_ib_c.py` | 4.1 | grid in progress (MES main/prior logs only). |
@@ -157,7 +157,7 @@ routine; the monthly pass rate swung 0.0-1.0 at 5 micros. Only a portfolio leg; 
 
 Priority **3**, complexity **2**, instruments **MNQ** (then MES), bar size: 15- or 25-min OR, 5-min confirmation. EQ 3-4 for the
 direction of the effect (Mesfin walk-forward: ORB long hold-15-bars +2.4 / +7.0 / +15.1 pts net per trade in 2023/24/25, T=0.88,
-shorts negative every year; our orb_sma_rr diagnostic: 82 flat-at-close carries +$9.2k, 84% winners), 2 for a tradable rule.
+shorts negative every year; our orb_sma_rr diagnostic on the OR15 / 0.25 ATR / rr 2.0 row: 82 flat-at-close carries +$9.2k, 84% winners), 2 for a tradable rule.
 
 Why it is its own spec: specs 1 and 2 cap the winner (range target / 2R). This one keeps the capped-loss, close-confirmed entry
 and lets the winner run by time, trail or EOD, with a hard `tgt_cap_atr` so one day cannot breach the consistency rule.
@@ -202,7 +202,7 @@ STATE per day (B5 bars with tod >= rth_open+or_minutes, tod < deadline), state i
   BROKEN: E = max(E, high) if first>0 else min(E, low)
           if (first>0 and close < or_high) or (first<0 and close > or_low): state=FAILED     # closed back inside
           elif (first>0 and close < or_low) or (first<0 and close > or_high): treat as FAILED+SECOND in one bar (fall through)
-  FAILED: E keeps updating only while price is still beyond the first edge (it is not); second break:
+  FAILED: E is frozen (the failed extreme); second break:
           if first>0 and close < or_low: side=-1; fire
           if first<0 and close > or_high: side=+1; fire
           (a re-break of the FIRST side after failure is ignored: one setup per day)

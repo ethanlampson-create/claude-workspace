@@ -111,12 +111,16 @@
   }
  },
  "lucid": {
-  "micros": 5,
-  "pass_rate": 0.21549636803874092,
-  "p_first_payout_unconditional": 0.0,
-  "expected_net_per_eval": -146.0,
-  "median_days_to_pass": 88.0,
-  "p_first_payout_given_pass": 0.0,
+  "micros": 10,
+  "pass_rate": 0.2988235294117647,
+  "p_first_payout_unconditional": 0.15294117647058822,
+  "expected_net_per_eval": 129.29411764705884,
+  "median_days_to_pass": 79.0,
+  "p_first_payout_given_pass": 0.5118110236220472,
+  "exp_net_lb": -146.0,
+  "pass_rate_lb": 0.0,
+  "pass_within_21": 0.0,
+  "selection": "row with max point-estimate expected_net_per_eval (lucid_scan best-by-lower-bound returns 5 micros / -146 for every size)",
   "monthly_pass_rate": {
    "2025-01": 0.0,
    "2025-02": 0.0,
@@ -143,9 +147,9 @@
    "2025-01": 0.0,
    "2025-02": 0.0,
    "2025-03": 0.0,
-   "2025-04": 0.0,
-   "2025-05": 0.55,
-   "2025-06": 0.67,
+   "2025-04": 0.67,
+   "2025-05": 0.91,
+   "2025-06": 0.81,
    "2025-07": 1.0,
    "2025-08": 1.0,
    "2025-09": 0.86,
@@ -156,12 +160,12 @@
    "2026-02": 0.0,
    "2026-03": 0.0,
    "2026-04": 0.0,
-   "2026-05": 0.0,
+   "2026-05": 0.62,
    "2026-06": 0.0,
    "2026-07": 0.0,
    "2026-08": 0.0
   }
  },
  "verdict": "marginal",
- "notes": "PLACEHOLDER"
+ "notes": "Published market-entry rule (09:35 fade to PDH/PDL, both sides) is dead on MNQ/MES 2025-26 except its one narrow default cell (27 trades) and does not form a plateau (MNQ MAIN/PRIOR rank corr -0.21; market cells with PF 4-5 on PRIOR collapse on MAIN). The Williams 'Oops' stop-entry variant (buy/sell stop at the prior-day extreme, 09:31-11:30, both sides, cap 0.5%) is the only region that holds on both periods: all 6 stop/both cells PF >= 1.0 on both periods except the 0.2/1.5 corner. Best cell MNQ stop/0.5/1.0/both with tgt_atr 0.5: MAIN 47 trades PF 1.39 net +$774/micro Sharpe 0.71, PRIOR 53 trades PF 1.56 net +$793 (tgt_atr 0.5 vs 1.0 is MAIN-only: PRIOR identical; tgt_atr 1.0 gives PF 1.29/1.56). Long-only stop mode is a MAIN-only artifact (PRIOR PF 0.8-1.0). MES: stop/0.2 cells hold (PF 1.58/1.19) but only 25-37 trades; cap 0.5 is < 1.0 on PRIOR. Too infrequent for a standalone eval: ~2.2 trades/month, median 79 days to pass at 10 micros, pass rate 0.30, P(first payout) 0.15, exp net +$129 point estimate but lower bound -$146 (fee); monthly 21-day pass rate 0 in every month. Candidate portfolio leg only. Engine notes: (1) backtest/engine.py, run.py, lucid.py, batch.py were modified by another session mid-run (16:43-16:44 and lucid.py again ~16:55); all grids were re-run on the new engine (engine md5 a9d7a48d), trade metrics consistent across run/batch/jobs; (2) backtest.run --mc crashes: monthly_pass_rate keys are pandas Period, json.dumps(default=float) cannot serialise keys; (3) lucid_scan 'best' now picks by exp_net_lb which is -146 for every size here, returning 5 micros even when 10 micros has +129 point estimate."
 }
