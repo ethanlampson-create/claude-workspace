@@ -5,7 +5,11 @@ from the OPEN of bar i (the decision was made on information up to the close of 
 strategy-timeframe bar ending at i-1). The engine fills market orders at the open (+slippage), stop-entry
 orders when touched (at max(open, level) + slippage), protective stops when touched (at level - slippage),
 and limit targets only when price trades THROUGH the level by `through_ticks` (no slippage).
-When a bar touches both stop and target, the STOP is assumed to be hit first (conservative).
+When a bar touches both stop and target, the STOP is assumed to be hit first (conservative). On the entry bar the
+stop is checked against the bar extreme (and the target too, except after an intrabar limit fill whose favourable
+extreme may predate the fill); a protective stop already through at the fill executes immediately at the market.
+Pending stop/limit orders are live for exactly `valid_bars` bars (min 1). A session that ends before the flat time
+(early close) closes the position at the session's last bar.
 One position at a time, fixed 1 contract; position sizing is applied by the account simulator.
 
 Per-day outputs include the intraday minimum of (realized + unrealized) equity so the account simulator can
@@ -15,7 +19,7 @@ import numpy as np
 import pandas as pd
 from numba import njit
 
-REASON = {1: 'stop', 2: 'target', 3: 'trail', 4: 'max_hold', 5: 'flat', 6: 'exit_signal', 7: 'session_gap'}
+REASON = {1: 'stop', 2: 'target', 3: 'trail', 4: 'max_hold', 5: 'flat', 6: 'exit_signal', 7: 'session_end'}
 
 
 @njit(cache=True)
@@ -32,7 +36,7 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
     t_reason = np.empty(maxt, np.int8); t_day = np.empty(maxt, np.int64)
     nt = 0
     d_pnl = np.zeros(ndays); d_min = np.zeros(ndays); d_max = np.zeros(ndays); d_trades = np.zeros(ndays, np.int32)
-    b_low = np.zeros(n); b_close = np.zeros(n)  # per-bar intraday equity (realized today + unrealized), worst point and at close
+    b_low = np.zeros(n); b_close = np.zeros(n)  # per-bar intraday equity (realized today + unrealized): worst point, at close
     slip = slip_ticks * tick; thr = through_ticks * tick
     pos = 0; ep = 0.0; sp = np.nan; tp = np.nan; trl = np.nan; trla = 0.0; mh = 0; held = 0; ei = 0; mae = 0.0; mfe = 0.0
     pend = 0; pkind = 1; ppx = 0.0; pexp = 0; psp = np.nan; ptp = np.nan; pspts = np.nan; ptpts = np.nan; ptrl = np.nan; ptrla = 0.0; pmh = 0
@@ -44,7 +48,7 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                 # the session ended (early close / holiday / feed stop) before the forced-flat time: a trader would
                 # flatten before the close, so exit at the last bar of the ending session (its close, with slippage)
                 j = i - 1
-                xpx = c[j] - slip if pos > 0 else c[j] + slip
+                xpx = c[j] - slip * pos
                 pnl = (xpx - ep) * pos * point_value - commission_rt
                 t_ei[nt] = ei; t_xi[nt] = j; t_side[nt] = pos; t_ep[nt] = ep; t_xp[nt] = xpx; t_pnl[nt] = pnl
                 t_mae[nt] = mae; t_mfe[nt] = mfe; t_reason[nt] = 7; t_day[nt] = cur_day; nt += 1
@@ -59,10 +63,11 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                 pos = 0
             cur_day = d; realized = 0.0; trades_today = 0; halted = False; pend = 0
         if pos != 0:
-            exit_now = False; xpx = 0.0; reason = 0
+            # ---------------- manage an open position: exits
+            exit_now = False; xpx = 0.0; reason = 0; at_open = False
             if force_flat[i] or exit_flag[i] == 2 or (exit_flag[i] == 1 and pos > 0) or (exit_flag[i] == -1 and pos < 0) or (mh > 0 and held >= mh):
-                xpx = o[i] - slip if pos > 0 else o[i] + slip
-                exit_now = True
+                xpx = o[i] - slip * pos
+                exit_now = True; at_open = True
                 if force_flat[i]:
                     reason = 5
                 elif mh > 0 and held >= mh:
@@ -72,37 +77,35 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
             else:
                 if pos > 0:
                     if sp == sp and o[i] <= sp:
-                        xpx = o[i] - slip; exit_now = True; reason = 1
+                        xpx = o[i] - slip; exit_now = True; at_open = True; reason = 1
                     elif tp == tp and o[i] >= tp + thr:
-                        xpx = o[i]; exit_now = True; reason = 2
+                        xpx = o[i]; exit_now = True; at_open = True; reason = 2
                     elif sp == sp and l[i] <= sp:
                         xpx = sp - slip; exit_now = True; reason = 1
                     elif tp == tp and h[i] >= tp + thr:
                         xpx = tp; exit_now = True; reason = 2
                 else:
                     if sp == sp and o[i] >= sp:
-                        xpx = o[i] + slip; exit_now = True; reason = 1
+                        xpx = o[i] + slip; exit_now = True; at_open = True; reason = 1
                     elif tp == tp and o[i] <= tp - thr:
-                        xpx = o[i]; exit_now = True; reason = 2
+                        xpx = o[i]; exit_now = True; at_open = True; reason = 2
                     elif sp == sp and h[i] >= sp:
                         xpx = sp + slip; exit_now = True; reason = 1
                     elif tp == tp and l[i] <= tp - thr:
                         xpx = tp; exit_now = True; reason = 2
-                if exit_now and reason == 1 and trl == trl and held > 0:
-                    reason = 3 if (pos > 0 and sp > ep) or (pos < 0 and sp < ep) else 1
+                if exit_now and reason == 1 and trl == trl and held > 0 and ((pos > 0 and sp > ep) or (pos < 0 and sp < ep)):
+                    reason = 3
             if pos > 0:
                 worst = l[i] - ep; bestb = h[i] - ep
             else:
                 worst = ep - h[i]; bestb = ep - l[i]
             if exit_now:
-                # bound the excursion by the exit price: at-open exits never saw the rest of the bar, and a stop exit
-                # closed the position at the stop so the bar's further extreme is not ours
-                if reason == 5 or reason == 4 or reason == 6:
-                    worst = (xpx - ep) * pos; bestb = worst
+                if at_open:
+                    worst = (xpx - ep) * pos; bestb = worst          # nothing of this bar was held
                 elif reason == 1 or reason == 3:
-                    worst = (xpx - ep) * pos
-                    if bestb > 0.0:
-                        bestb = 0.0
+                    worst = (xpx - ep) * pos; bestb = 0.0            # closed at the stop; no favourable excursion credited
+                else:
+                    bestb = (xpx - ep) * pos                         # target: favourable excursion bounded by the fill
             if worst < mae:
                 mae = worst
             if bestb > mfe:
@@ -146,29 +149,29 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                             if sp != sp or ns < sp:
                                 sp = ns
             continue
-        # ---------------- flat
+        # ---------------- flat: pending order, then new signal
         b_low[i] = realized; b_close[i] = realized
         if (not allow_entry[i]) or halted or (max_trades_day > 0 and trades_today >= max_trades_day):
             pend = 0
             continue
-        filled = False; side = 0; fill = 0.0; entry_is_stop = False
+        filled = False; side = 0; fill = 0.0; fill_at_open = False; kind = 0; base = 0.0
         if pend != 0:
             if i > pexp:
                 pend = 0
             else:
                 if pkind == 1:
                     if pend > 0 and h[i] >= ppx:
-                        fill = max(o[i], ppx) + slip; filled = True; side = 1
+                        fill_at_open = o[i] >= ppx; fill = max(o[i], ppx) + slip; filled = True; side = 1
                     elif pend < 0 and l[i] <= ppx:
-                        fill = min(o[i], ppx) - slip; filled = True; side = -1
+                        fill_at_open = o[i] <= ppx; fill = min(o[i], ppx) - slip; filled = True; side = -1
                 else:
-                    # limit entry: needs price to trade through the level; no slippage; better fill if the open gaps through
+                    # limit entry: price must trade through the level; no slippage; a gap through fills at the open
                     if pend > 0 and l[i] <= ppx - thr:
-                        fill = min(o[i], ppx); filled = True; side = 1
+                        fill_at_open = o[i] <= ppx; fill = min(o[i], ppx); filled = True; side = 1
                     elif pend < 0 and h[i] >= ppx + thr:
-                        fill = max(o[i], ppx); filled = True; side = -1
+                        fill_at_open = o[i] >= ppx; fill = max(o[i], ppx); filled = True; side = -1
                 if filled:
-                    entry_is_stop = True
+                    kind = pkind; base = o[i] if fill_at_open else ppx
                     sp = psp; tp = ptp; trl = ptrl; trla = ptrla; mh = pmh
                     if sp != sp and pspts == pspts:
                         sp = fill - pspts * side
@@ -177,28 +180,31 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                     pend = 0
         if (not filled) and sig[i] != 0:
             if entry_px[i] != entry_px[i]:
-                side = sig[i]; fill = o[i] + slip * side; filled = True
+                side = sig[i]; fill = o[i] + slip * side; filled = True; fill_at_open = True; kind = 0; base = o[i]
                 sp = stop_px[i]; tp = tgt_px[i]; trl = trail_pts[i]; trla = trail_act_pts[i]; mh = max_hold[i]
                 if sp != sp and stop_pts[i] == stop_pts[i]:
                     sp = fill - stop_pts[i] * side
                 if tp != tp and tgt_pts[i] == tgt_pts[i]:
                     tp = fill + tgt_pts[i] * side
             else:
-                pend = sig[i]; pkind = entry_kind[i]; ppx = entry_px[i]; pexp = i + valid_bars[i]
+                vb = valid_bars[i]
+                if vb < 1:
+                    vb = 1
+                pend = sig[i]; pkind = entry_kind[i]; ppx = entry_px[i]; pexp = i + vb - 1   # live on exactly vb bars
                 psp = stop_px[i]; ptp = tgt_px[i]; pspts = stop_pts[i]; ptpts = tgt_pts[i]
                 ptrl = trail_pts[i]; ptrla = trail_act_pts[i]; pmh = max_hold[i]
                 if pkind == 1:
                     if pend > 0 and h[i] >= ppx:
-                        fill = max(o[i], ppx) + slip; filled = True; side = 1
+                        fill_at_open = o[i] >= ppx; fill = max(o[i], ppx) + slip; filled = True; side = 1
                     elif pend < 0 and l[i] <= ppx:
-                        fill = min(o[i], ppx) - slip; filled = True; side = -1
+                        fill_at_open = o[i] <= ppx; fill = min(o[i], ppx) - slip; filled = True; side = -1
                 else:
                     if pend > 0 and l[i] <= ppx - thr:
-                        fill = min(o[i], ppx); filled = True; side = 1
+                        fill_at_open = o[i] <= ppx; fill = min(o[i], ppx); filled = True; side = 1
                     elif pend < 0 and h[i] >= ppx + thr:
-                        fill = max(o[i], ppx); filled = True; side = -1
+                        fill_at_open = o[i] >= ppx; fill = max(o[i], ppx); filled = True; side = -1
                 if filled:
-                    entry_is_stop = True
+                    kind = pkind; base = o[i] if fill_at_open else ppx
                     sp = psp; tp = ptp; trl = ptrl; trla = ptrla; mh = pmh
                     if sp != sp and pspts == pspts:
                         sp = fill - pspts * side
@@ -207,15 +213,13 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                     pend = 0
         if filled:
             pos = side; ep = fill; held = 0; ei = i; mae = 0.0; mfe = 0.0
-            # same-bar exit checks on the entry bar
-            exit_now = False; xpx = 0.0; reason = 0
-            if entry_is_stop:
-                # order filled somewhere inside the bar; only use the close for the stop check
-                if pos > 0 and sp == sp and c[i] <= sp:
-                    xpx = sp - slip; exit_now = True; reason = 1
-                elif pos < 0 and sp == sp and c[i] >= sp:
-                    xpx = sp + slip; exit_now = True; reason = 1
-            else:
+            exit_now = False; xpx = 0.0; reason = 0; at_open = False
+            if sp == sp and ((pos > 0 and sp >= base) or (pos < 0 and sp <= base)):
+                # the protective stop is already through at the fill: it executes immediately at the market
+                xpx = base - slip * pos; exit_now = True; reason = 1; at_open = fill_at_open
+            elif fill_at_open or kind == 1:
+                # everything after the fill is in this bar (open fill) or price moved through the trigger toward the
+                # target (stop entry): check the stop first (conservative), then the target
                 if pos > 0:
                     if sp == sp and l[i] <= sp:
                         xpx = sp - slip; exit_now = True; reason = 1
@@ -226,14 +230,23 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                         xpx = sp + slip; exit_now = True; reason = 1
                     elif tp == tp and l[i] <= tp - thr:
                         xpx = tp; exit_now = True; reason = 2
+            else:
+                # limit filled intrabar: the bar's favourable extreme may predate the fill, so only the stop is checked
+                if pos > 0 and sp == sp and l[i] <= sp:
+                    xpx = sp - slip; exit_now = True; reason = 1
+                elif pos < 0 and sp == sp and h[i] >= sp:
+                    xpx = sp + slip; exit_now = True; reason = 1
             if pos > 0:
                 worst = l[i] - ep; bestb = h[i] - ep
             else:
                 worst = ep - h[i]; bestb = ep - l[i]
-            if exit_now and reason == 1:
-                worst = (xpx - ep) * pos
-                if bestb > 0.0:
-                    bestb = 0.0
+            if exit_now:
+                if at_open:
+                    worst = (xpx - ep) * pos; bestb = worst
+                elif reason == 1:
+                    worst = (xpx - ep) * pos; bestb = 0.0
+                else:
+                    bestb = (xpx - ep) * pos
             if worst < mae:
                 mae = worst
             if bestb > mfe:
@@ -245,10 +258,8 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
             if eq_high > d_max[d]:
                 d_max[d] = eq_high
             b_low[i] = eq_low
-            b_close[i] = realized + (c[i] - ep) * pos * point_value - commission_rt
-            if force_flat[i]:
-                # should not happen (allow_entry false at flat time) but be safe: exit at close
-                xpx = c[i] - slip if pos > 0 else c[i] + slip; exit_now = True; reason = 5
+            if force_flat[i] and not exit_now:
+                xpx = c[i] - slip * pos; exit_now = True; reason = 5
             if exit_now:
                 pnl = (xpx - ep) * pos * point_value - commission_rt
                 t_ei[nt] = ei; t_xi[nt] = i; t_side[nt] = pos; t_ep[nt] = ep; t_xp[nt] = xpx; t_pnl[nt] = pnl
@@ -267,6 +278,7 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                 if daily_profit_stop > 0 and realized >= daily_profit_stop:
                     halted = True
             else:
+                b_close[i] = realized + (c[i] - ep) * pos * point_value - commission_rt
                 held = 1
                 if trl == trl:
                     if pos > 0 and (h[i] - ep) >= trla:
@@ -277,14 +289,18 @@ def _simulate(o, h, l, c, day_id, allow_entry, force_flat,
                         ns = l[i] + trl
                         if sp != sp or ns < sp:
                             sp = ns
-    # close any position left at the very end
     if pos != 0:
         i = n - 1
-        xpx = c[i] - slip if pos > 0 else c[i] + slip
+        xpx = c[i] - slip * pos
         pnl = (xpx - ep) * pos * point_value - commission_rt
         t_ei[nt] = ei; t_xi[nt] = i; t_side[nt] = pos; t_ep[nt] = ep; t_xp[nt] = xpx; t_pnl[nt] = pnl
         t_mae[nt] = mae; t_mfe[nt] = mfe; t_reason[nt] = 5; t_day[nt] = cur_day; nt += 1
-        d_pnl[cur_day] += pnl; d_trades[cur_day] += 1
+        realized += pnl; d_pnl[cur_day] = realized; d_trades[cur_day] += 1
+        if realized < d_min[cur_day]:
+            d_min[cur_day] = realized
+        if realized < b_low[i]:
+            b_low[i] = realized
+        b_close[i] = realized
     return (t_ei[:nt], t_xi[:nt], t_side[:nt], t_ep[:nt], t_xp[:nt], t_pnl[:nt], t_mae[:nt], t_mfe[:nt], t_reason[:nt], t_day[:nt],
             d_pnl, d_min, d_max, d_trades, b_low, b_close)
 
@@ -323,7 +339,11 @@ class Intents:
             win = (tod >= s) | (tod < e)
         self.allow_entry &= win
         # force flat from flat_time until the session ends (17:00) -- session bars after 17:00 belong to next day
-        fl = (tod >= f) & (tod < hm('17:00') + 1) if f >= hm('17:00') else ((tod >= f) & (tod <= hm('17:00')))
+        if f >= hm('18:00'):
+            # evening flat time (overnight strategies): flat from flat_time through the rest of the session (< 18:00)
+            fl = (tod >= f) | (tod < hm('18:00'))
+        else:
+            fl = (tod >= f) & (tod < hm('18:00'))   # 17:xx bars still belong to the same session
         self.force_flat |= fl
         self.allow_entry &= ~self.force_flat
 

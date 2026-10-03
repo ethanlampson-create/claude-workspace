@@ -1,6 +1,6 @@
 """Download free 1-minute bar data from histdata.com for index/commodity CFD proxies.
 
-Timestamps are US Eastern time with DST (verified empirically, see download_symbol); localised to America/New_York.
+Timestamps are US-Eastern offsets on the European DST calendar (= Europe/London minus 5h), verified empirically; converted to America/New_York.
 Volume column is always 0 on histdata (no volume available).
 Usage: python3 data/download_histdata.py [SYMBOL ...]
 """
@@ -73,11 +73,13 @@ def download_symbol(pair, today):
     if not frames:
         print(pair, 'NO DATA'); return
     df = pd.concat(frames).drop_duplicates('ts').sort_values('ts').reset_index(drop=True)
-    # histdata documents its stamps as EST without DST, but for these index/metal files the stamps empirically follow
-    # US Eastern time WITH DST for every year (Sunday Globex open is stamped 18:00 in summer and winter, and the
-    # 09:30 ET cash-open bar is the widest bar in both seasons). Localise directly; DST transition hours fall on
-    # Sunday 02:00 when the market is closed, so no bars are lost.
-    df['ts'] = df['ts'].dt.tz_localize('America/New_York', ambiguous='NaT', nonexistent='NaT')
+    # histdata documents its stamps as EST without DST. Empirically (Sunday Globex open stamped 18:00 in summer AND
+    # winter; 09:30 ET cash open widest bar in both seasons; but a one-hour shift during the weeks when US and EU
+    # daylight-saving dates differ) the stamps are US-Eastern *offsets* switched on the EUROPEAN DST calendar, i.e.
+    # exactly Europe/London wall-clock time minus 5 hours. Convert accordingly: London-localise, to UTC, +5h, to ET.
+    # London DST transitions happen Sunday 01:00/02:00 UK when markets are closed, so no bars are lost.
+    ts = df['ts'].dt.tz_localize('Europe/London', ambiguous='NaT', nonexistent='NaT')
+    df['ts'] = (ts.dt.tz_convert('UTC') + pd.Timedelta(hours=5)).dt.tz_convert('America/New_York')
     df = df.dropna(subset=['ts'])
     df = df.drop(columns=['vol'])
     out = os.path.join(PQ, f"{pair.upper()}_1m.parquet")

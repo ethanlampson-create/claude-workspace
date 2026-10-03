@@ -12,16 +12,19 @@ from backtest.data import load_1m
 from backtest import engine
 from backtest.metrics import metrics
 from backtest.lucid import Rules, monte_carlo, constant_micros
+from backtest.run import prepare, slice_window, WARMUP_DAYS
 import strategies
+
+
+def _warm(start):
+    return (pd.Timestamp(start) - pd.Timedelta(days=WARMUP_DAYS)).strftime('%Y-%m-%d')
 
 MICRO_SCAN = (5, 10, 15, 20, 30, 40)
 
 
 def to_micro(daily, contract):
-    if contract.name in ('ES', 'NQ', 'GC', 'CL'):
-        d = daily.copy(); d['pnl'] /= contract.micro_ratio; d['min_eq'] /= contract.micro_ratio; d['max_eq'] /= contract.micro_ratio
-        return d
-    return daily
+    from backtest.run import micro_daily
+    return micro_daily(daily, contract)
 
 
 def lucid_scan(daily_micro, rules=None, micros=MICRO_SCAN, start_every=1, funded_same=True, min_profit_to_request=4000.0):
@@ -53,12 +56,12 @@ def _worker(args):
     contract = CONTRACTS[contract_name]
     key = (contract.data_symbol, start, end)
     if key not in _DF:
-        _DF[key] = load_1m(contract.data_symbol, start, end)
+        _DF[key] = load_1m(contract.data_symbol, _warm(start), end)
     df1 = _DF[key]
-    mod = strategies.load(strategy_id)
     try:
-        it = mod.generate(df1, contract, params)
+        df1, it, contract = prepare(strategy_id, contract_name, start, end, params, df1)
         trades, daily = engine.run(it, contract, slip_ticks=slip)
+        trades, daily = slice_window(trades, daily, start)
         m = metrics(trades, daily)
         row = {'strategy': strategy_id, 'contract': contract_name, 'start': start, 'end': end, 'params': json.dumps(params)}
         row.update({k: v for k, v in m.items() if k != 'monthly'})
@@ -80,7 +83,7 @@ def grid_search(strategy_id, contract_name, periods, grid=None, base_params=None
     tasks = [(strategy_id, contract_name, s, e, c, slip, do_lucid) for (s, e) in periods for c in combos]
     # preload data in parent so forked workers share it
     for (s, e) in periods:
-        _DF[(CONTRACTS[contract_name].data_symbol, s, e)] = load_1m(CONTRACTS[contract_name].data_symbol, s, e)
+        _DF[(CONTRACTS[contract_name].data_symbol, s, e)] = load_1m(CONTRACTS[contract_name].data_symbol, _warm(s), e)
     if jobs > 1 and len(tasks) > 1:
         import multiprocessing as mp
         with mp.get_context('fork').Pool(jobs) as pool:

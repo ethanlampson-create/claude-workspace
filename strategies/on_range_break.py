@@ -39,7 +39,7 @@ def generate(df1, contract, params):
         while k < len(df1) and day[k] == d and tod[k] < last_entry and (k - i0) < p['valid_minutes']:
             up = h[k] >= hi; dn = l[k] <= lo
             if up and dn:
-                side = 0; break
+                side = 1 if (hi - df1['open'].values[k]) <= (df1['open'].values[k] - lo) else -1; break
             if up:
                 side = 1; break
             if dn:

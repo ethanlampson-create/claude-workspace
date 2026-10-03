@@ -29,3 +29,5 @@ CONTRACTS = {
     'MCL': Contract('MCL', 'WTIUSD', 100.0, 0.01, 1.30, rth_open='09:00', rth_close='14:30'),
     'CL':  Contract('CL',  'WTIUSD', 1000.0, 0.01, 4.20, rth_open='09:00', rth_close='14:30'),
 }
+
+MICRO_OF = {'ES': 'MES', 'NQ': 'MNQ', 'GC': 'MGC', 'CL': 'MCL'}

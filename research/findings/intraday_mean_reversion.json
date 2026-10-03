@@ -1,0 +1,479 @@
+{
+ "family": "Intraday mean-reversion strategies",
+ "notes": "Report: /home/user/claude-workspace/research/families/intraday_mean_reversion.md. Key cross-cutting findings: (1) level-reversion (gap fill, prior-day high/low, weekly open, IB edges, implied-vol band) has large-sample 1-min evidence 2014-2026 with 60-93% hit rates when the excursion is SMALL (<0.25-0.5% or <0.5x ATR); hit rates collapse for large moves (26% fill for 1-2% gaps, 20% fade for >1 ATR extremes). (2) Shorts lost in 2014-2026 (StatOasis: 970/971 short z-fade variants on ES lost; gap-ups keep going ~90%); default long-only/long-biased. (3) Regime gating is required: Seeck NQ band fade Sharpe positive only at VXN<20 (0.38) and VXN>=30 (0.64); MNQ regime paper: reversal-dominant 2022-23, continuation-dominant 2024; exclude top VIX quartile. (4) Indicator fades (RSI2, Bollinger, Keltner, z-score) on 1-5 min bars are marginal after costs; genuine reversion exists only at 2-30 minute horizons (arXiv 2501.16772). (5) Do not fade ES/NQ into the close (intraday momentum from hedging; late extremes are trend legs). (6) Data flag: VWAP needs volume; approximate with cumulative TWAP of typical price; VIX/VXN daily from Yahoo suffices for #19 and VIX gates. Top candidates for the Lucid 50K Flex backtest, ranked: NQ/ES implied-vol band fade (VXN/16), small-gap fade (gap-down longs), weekly-open Tuesday fade, outside-day re-entry, IB failed-break fade (long bias), cross-sectional overnight reversal across ES/NQ/GC/CL, Bollinger fade with ADX<25 as a consistency filler. Vendor benchmark (Phoenix) shows a PF-1.3/70%-win M5 system passes ~70% of $50k evals at 2 MNQ but only 32% at 1 MNQ and 56% at 5 MNQ: contract sizing drives pass rate; sweep it in the Lucid simulator. Several sources were 403-blocked (Unger Academy, Benzinga, rattibha, SSRN full text); numbers for those were taken from search snippets and are marked.",
+ "strategies": [
+  {
+   "name": "VWAP standard-deviation band reversion (\u00b12\u03c3)",
+   "origin": "Practitioner standard (VWAP/Market Profile community; TradingView 'VWAP SD2 Reversion', LuxAlgo VWAP bands, NexusFi), 2010s-2025",
+   "entry": "Session VWAP anchored 09:30 ET; bands = VWAP \u00b1 k\u00d7cumulative stdev of typical price. Long when 5-min bar closes below VWAP\u22122\u03c3 and next bar closes back above the band (optional RSI(14)>30 and MACD cross within 5 bars). Short mirror only if trend filter allows.",
+   "exit": "Target VWAP (or VWAP\u22120.25\u03c3 front-run). Stop 1\u00d7ATR(14) beyond signal-bar extreme or close beyond \u22123\u03c3. Time stop 12 bars (60 min). Flat 15:55 ET.",
+   "filters": "Skip first 15 min; skip ADX(14,5m)>25; skip |open gap|>0.75%; long-only bias on ES/NQ; require VWAP-to-band distance >=0.15% of price",
+   "parameters": "k=2.0 (1.5-3.0); ATR stop 1.0 (0.75-1.5); time stop 12 bars (6-24); confirmation window 5 bars",
+   "timeframe_session": "5-min (or 1-min with 3-bar confirm), 09:45-15:30 ET",
+   "instruments": "ES/MES, NQ/MNQ; also GC, CL",
+   "claimed_performance": "Descriptive only: \u00b12\u03c3 is 'where mean-reversion plays out most consistently'; on trend days price rides the band for hours. No audited ES backtest numbers published.",
+   "evidence_quality": 2,
+   "data_requirements": "Needs volume for true VWAP; with OHLC only approximate as cumulative TWAP of typical price and its cumulative stdev (flag)",
+   "prop_fit": "Flat daily, many small trades (consistency-friendly); trend-day tail is the EOD-drawdown killer; needs ADX/gap kill switch and ~$300-400 daily loss cap on 50K Flex.",
+   "sources": [
+    "https://www.luxalgo.com/library/concept/vwap-bands.md",
+    "https://tr.tradingview.com/script/oSV81CXs-VWAP-SD2-Reversion-Long/",
+    "https://nexusfi.com/a/indicators/vwap-standard-deviation-bands"
+   ]
+  },
+  {
+   "name": "VWAP \u00b1 K\u00d7ATR reversion (StockSharp #0235)",
+   "origin": "StockSharp open strategy library (C#/Python), 2024-25",
+   "entry": "Long when Close < VWAP \u2212 K\u00d7ATR(14); short when Close > VWAP + K\u00d7ATR(14); K=2.0 on 5-min candles",
+   "exit": "Long exits when Close >= VWAP; short when Close <= VWAP; protective stop 2\u00d7ATR; add flat 15:55 ET",
+   "filters": "None in original; add ADX<25 and long bias",
+   "parameters": "K=2.0 (1.5-3.0); ATR period 14 (10-20); candle 5-min (3/5/15)",
+   "timeframe_session": "5-min, RTH 09:30-16:00 ET (add 15:55 flat)",
+   "instruments": "ES, YM, MES, MYM per vendor; NQ",
+   "claimed_performance": "Vendor: ~58% average annual return; one sample PF 1.37, win rate 37-48%, drawdown <1% (period/instrument unspecified, unverified)",
+   "evidence_quality": 1,
+   "data_requirements": "Needs volume for VWAP (approximate with TWAP)",
+   "prop_fit": "Low win rate (37-48%) with target-at-VWAP means long waits and streaky days; not clearly profitable net of costs; use only as a variant of #1.",
+   "sources": [
+    "https://doc.stocksharp.com/en/api-examples/0235_VWAP_Mean_Reversion",
+    "https://stocksharp.com/store/strategies.0235_vwap_mean_reversion/"
+   ]
+  },
+  {
+   "name": "Bollinger (20,2) band rejection fade with ADX filter",
+   "origin": "Classic (Bollinger 1980s); codified rules crosstrade.io 'Bollinger Mean Reversion' (2025); Unger Academy futures BB work",
+   "entry": "5-min BB(20,2.0). Long: bar touches/closes below lower band AND closes above its low with lower wick >=50% of range (or bullish engulfing); short mirror at upper band; enter next bar open",
+   "exit": "Target middle band (SMA20); stop 1\u00d7ATR(14) beyond rejection-bar extreme; time stop 15 bars (5-min)/10 bars (15-min); flat 15:55 ET",
+   "filters": "Skip if ADX(14)>25; skip if 20-bar structure trending (HH/HL for shorts, LL/LH for longs); long bias on ES/NQ",
+   "parameters": "BB len 20 (15-30); SD 2.0 (1.8-2.5); ADX cutoff 25 (20-30); ATR stop 1.0 (0.75-1.5); time stop 15 bars",
+   "timeframe_session": "5-min, 09:35-15:55 ET",
+   "instruments": "ES, NQ, CL, GC (liquid futures)",
+   "claimed_performance": "crosstrade (ES, range regimes): win rate 58-65%, avg win/loss 0.8R/1R, PF 1.3-1.6, 3-8 trades/day in range regimes, 0 on trend days; outlier losses on trend breakouts. No audited backtest.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only",
+   "prop_fit": "High frequency, small per-trade risk helps 50% consistency; fat-tailed trend-day losses threaten $2k EOD trail; use MES/MNQ, daily loss cap ~$350, stop after 2 consecutive losers.",
+   "sources": [
+    "https://crosstrade.io/learn/trading-strategies/bollinger-mean-reversion",
+    "https://benzinga.com/z/34175944"
+   ]
+  },
+  {
+   "name": "Keltner channel reversion (EMA20 \u00b1 2\u00d7ATR)",
+   "origin": "Chester Keltner (1960); reversion variant StockSharp #0031/#0073 (2024-25)",
+   "entry": "5-min. Long when Close < EMA(20) \u2212 2.0\u00d7ATR(14) and flat; short when Close > EMA(20) + 2.0\u00d7ATR(14)",
+   "exit": "Long closes when Close > EMA(20); short when Close < EMA(20); stop 2\u00d7ATR; flat 15:55 ET (added)",
+   "filters": "Add ADX<25 and long-only bias",
+   "parameters": "EMA 20 (10-30); ATR 14 (10-20); multiplier 2.0 (1.5-3.0); stop 2.0\u00d7ATR (1.0-3.0)",
+   "timeframe_session": "5-min, RTH",
+   "instruments": "ES, NQ, GC, CL",
+   "claimed_performance": "Vendor claims ~106-130% annual (no period/instrument, unverified); no independent ES test found",
+   "evidence_quality": 1,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Equivalent to Bollinger with ATR width; same trend-day tail; only with regime filter.",
+   "sources": [
+    "https://doc.stocksharp.com/en/api-examples/0031_Keltner_Reversion",
+    "https://stocksharp.com/store/strategies.0073_keltner_channel_reversal/"
+   ]
+  },
+  {
+   "name": "Connors RSI(2) applied intraday",
+   "origin": "Larry Connors & Cesar Alvarez, Short Term Trading Strategies That Work (2008), daily bars; intraday ports by ProRealCode/FMZ users",
+   "entry": "Close > MA(200) and Close < MA(5) and RSI(2) < 10 -> buy; short: Close < MA(200), Close > MA(5), RSI(2) > 90",
+   "exit": "Long exit when Close > MA(5); short when Close < MA(5); intraday: flat 15:55 ET; add 1.5\u00d7ATR stop",
+   "filters": "MA(200) trend filter (original); add VIX gate",
+   "parameters": "RSI 2 (2-4); thresholds 10/90 (5-15/85-95); MA200; MA5",
+   "timeframe_session": "Designed for daily; intraday ports on 1-min/15-min",
+   "instruments": "Indices/ETFs (SPY), stocks; ES/NQ ports",
+   "claimed_performance": "Robust on daily bars (Connors, many replications). Intraday: users report 'catastrophic' on 1-min and poor on 15-min; 'not designed for day trading'.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Poor as-is intraday; use only the regime-gated cousin (RSI(3)<20 + MA190 + VIX quadrant gate).",
+   "sources": [
+    "https://prorealcode.com/prorealtime-trading-strategies/rsi-2-strategy-larry-connors",
+    "https://steemit.com/fmz/@fmz.com/larry-connors-rsi2-mean-reversion-strategy"
+   ]
+  },
+  {
+   "name": "RSI(3) dip-buy with VIX-quadrant regime gate",
+   "origin": "algotr Substack (2025), EasyLanguage; ES/NQ/RTY",
+   "entry": "Long when RSI(3) < 20 and Close > MA(190); VIX regime gate: VIX 100-bar rolling high/low split into 4 equal bands; allow regimes 1-3, exclude regime 4 (top quartile)",
+   "exit": "RSI(3) > 80, or after 39 bars, or 1,100-tick stop (disaster); day-trade version: 1\u00d7ATR stop, flat 15:55 ET",
+   "filters": "VIX top-quartile exclusion; MA190 trend filter",
+   "parameters": "RSI 3; entry 20; exit 80; MA 190; max bars 39; VIX lookback 100",
+   "timeframe_session": "Author's bar size ambiguous (daily/intraday); our port: 5-min RTH",
+   "instruments": "ES, NQ, RTY",
+   "claimed_performance": "Author: ~34% improvement in Return/Drawdown with the VIX gate, fewer trades, shallower drawdowns; absolute numbers not given",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC + daily VIX (Yahoo)",
+   "prop_fit": "Transferable idea is the VIX quartile gate; base system holds too long for day-trade-only unless re-parameterized to 5-min.",
+   "sources": [
+    "https://algotr.substack.com/p/stop-leaving-money-on-the-table-a"
+   ]
+  },
+  {
+   "name": "Small opening-gap fade (fill-the-gap) with size and trend filters",
+   "origin": "Classic floor-trader play; stats from thetrading.tools, VT Markets, shareplanner (SPY/QQQ 5-yr), tradethatswing, edgeful; academic antecedents Fung-Mok-Lam (J. Banking & Finance 2000) and Grant-Wolf-Yu (JBF 2005, 1987-2002)",
+   "entry": "Gap = 09:30 RTH open vs prior 16:00 RTH close. At 09:31-09:35 ET fade toward prior close if 0.10% <= |gap| <= 0.50% (or <= 0.7\u00d7ATR14-day); prefer gap-down longs",
+   "exit": "Target prior close (full fill) or 75% fill; stop 1.0\u00d7gap distance beyond the open (or 0.5\u00d7ATR-day); time exit 11:00 ET (median fill ~45 min), latest 12:00; flat",
+   "filters": "Skip |gap|>0.75-1%; skip opens outside prior-day range by >0.5\u00d7ATR (gap-and-go); skip FOMC/CPI days; skip VIX top quartile; optional: gap against 20-day trend only; Monday gap-ups worst",
+   "parameters": "gap band 0.10-0.50% (0.05-0.70%); stop mult 1.0 (0.5-1.5); fill fraction 1.0 (0.5-1.0); time exit 11:00 (10:30-12:00)",
+   "timeframe_session": "1-min entry at 09:31-09:35 ET, exit by 12:00 ET",
+   "instruments": "ES/MES, NQ/MNQ (also tested SPY/QQQ)",
+   "claimed_performance": "S&P same-day fill: 78% (0.1-0.25%), 60% (0.25-0.5%), 46% (0.5-1%), 26% (1-2%), 27% (>2%). SPY/QQQ 1%+ gaps: ~50% fill intraday; avg open-to-close after 1%+ gap-up \u22120.2% SPY/\u22120.5% QQQ yet ~90% close above prior close; after gap-down +0.21% SPY. edgeful NQ: gap-ups fill ~60%, gap-downs ~56%, Mondays ~77%. Academic: S&P futures reversals after large opens significant but largely eaten by bid-ask cost proxy. Stock-level gap-fade t-stat decayed to noise in last 24 months (Concretum).",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only (consistent close definition needed); daily VIX optional",
+   "prop_fit": "One early trade/day with objective target and time stop: ideal for consistency and EOD trail; flat days are fine. Main risk gap-and-go trend days; strict stop sizing on 2-4 MES.",
+   "sources": [
+    "https://www.thetrading.tools/gap-analysis",
+    "https://www.shareplanner.com/blog/strategies-for-trading/fading-the-gap-how-large-overnight-moves-in-spy-and-qqq-play-out-during-the-trading-day.html",
+    "https://tradethatswing.com/high-probability-stock-market-statistics/",
+    "https://scholars.hkbu.edu.hk/en/publications/intraday-price-reversals-for-index-futures-in-the-us-and-hong-kon/",
+    "https://researchwith.montclair.edu/en/publications/intraday-price-reversals-in-the-us-stock-index-futures-market-a-1/",
+    "https://sentimentrader.com/blog/third-gap-of-1",
+    "https://concretumgroup.substack.com/p/identifying-stocks-to-fade"
+   ]
+  },
+  {
+   "name": "Full-gap (outside prior-day range) fade - SP500 Session Gap Fade",
+   "origin": "TradingView open-source strategy (2025), ES 5-min",
+   "entry": "Full gap down = first bar high < yesterday's low -> long at bar close; full gap up = first bar low > yesterday's high -> short",
+   "exit": "Target entry \u00b1 gap distance\u00d70.7-1.0; stop entry \u2213 gap distance\u00d71.0; forced flat N min before session end (15:45 ET); optional candle-colour exit",
+   "filters": "None built in (no trend/vol filters)",
+   "parameters": "TP mult 0.7-1.0; SL mult 1.0 (0.75-1.5); flat 15:45",
+   "timeframe_session": "5-min, 09:30-16:30 ET (08:30-15:30 CT per script)",
+   "instruments": "ES1!, NQ, YM",
+   "claimed_performance": "Script metadata: avg risk 0.4% over 200 trades, $2 RT commission, 1-tick slippage; no net profit/win rate disclosed",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Rare, binary; fine as a sub-case of the small-gap fade, not standalone.",
+   "sources": [
+    "https://www.tradingview.com/script/J1U1NNgx-SP500-Session-Gap-Fade-Strategy/"
+   ]
+  },
+  {
+   "name": "Larry Williams 'Oops' gap reversal",
+   "origin": "Larry Williams (Long-Term Secrets to Short-Term Trading, 1999); tested by Oxfordstrat (42 futures, 1980-2011) and Unger Academy (2024-25)",
+   "entry": "Bull Oops: Open[today] < Low[yesterday] -> buy stop at Low[yesterday]; Bear Oops: Open > High[yesterday] -> sell stop at High[yesterday]; order active 09:30-11:30 ET",
+   "exit": "Original: exit close of day n (1-40), ATR exit Entry\u2212ATR(20)\u00d7k, disaster stop 6\u00d7ATR. Day-trade: stop today's low (or 0.5\u00d7ATR), target prior close or 1\u00d7ATR, flat 15:55 ET",
+   "filters": "None original; add gap size cap (<1%) and VIX gate",
+   "parameters": "Time_Index 1 (day-trade); ATR_Index 1-2; ATR length 20",
+   "timeframe_session": "Daily setup, 1-min execution 09:30-15:55 ET",
+   "instruments": "42 US futures incl. equity indices; ES/NQ",
+   "claimed_performance": "Oxfordstrat 32-yr 42-market sensitivity study: profitable but overall 'C' grade; folklore '93% reverse to close the gap' unverified",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Objective stop-order rule = outside-day re-entry with failure confirmation; low frequency; good risk definition.",
+   "sources": [
+    "https://oxfordstrat.com/trading-strategies/bull-oops-pattern/",
+    "https://ungeracademy.com/?p=7737",
+    "https://www.luxalgo.com/library/concept/classic-bar-setups.md"
+   ]
+  },
+  {
+   "name": "Outside-day / prior-day-range re-entry (open beyond PDH/PDL, fade to the level)",
+   "origin": "edgeful 'outside days' and 'previous day range' reports (2024-25); tradethatswing SPY stats; Taylor/Raschke prior-day fades",
+   "entry": "If 09:30 open > prior-day RTH high: short at 09:31-09:45 ET targeting PDH; if open < PDL: long targeting PDL. Require |open \u2212 level| <= 0.2-0.3% and <= 0.5\u00d7ATR",
+   "exit": "Target PDH/PDL touch (extended: prior close); stop 1\u00d7 open-to-level distance (min 0.15%); time exit 12:00 ET; flat 15:55",
+   "filters": "Skip gap >1%; test long bias (short-side tails worse 2023-26); day-of-week (ES Friday open-below-PDL ~100% small sample)",
+   "parameters": "max distance 0.3% (0.1-0.5%); stop mult 1.0 (0.5-1.5); time exit 12:00 (11:00-13:00)",
+   "timeframe_session": "1-min, 09:31-12:00 ET",
+   "instruments": "NQ/MNQ, ES/MES",
+   "claimed_performance": "edgeful NQ: 75% reverse to touch PDH after opening above it, 64% touch PDL after opening below; tradethatswing SPY: 71%/71%, diminishes beyond ~0.2% gap; reversion velocity reported slower recently (touch may come hours later)",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Single early trade, objective target; good for consistency; time stop essential because touches can be late.",
+   "sources": [
+    "https://docs.edgeful.com/trade-using-edgeful/price-action-reports/outside-days",
+    "https://r.til.io/r/FuturesTrading/comments/1bxkwdr/es_reverses_back_into_yesterdays_range_100_of_the",
+    "https://tradethatswing.com/high-probability-stock-market-statistics/"
+   ]
+  },
+  {
+   "name": "Prior-session low/high re-cross (Unger Academy Strategy 1)",
+   "origin": "Andrea Unger / Unger Academy, 'Two Proven Mean-Reverting Strategies for Trading S&P 500 Futures' (2024)",
+   "entry": "15-min ES bars: long when a bar closes back above the previous session's low (after trading below it); short when a bar closes back below the previous session's high; undisclosed extra filters esp. on shorts",
+   "exit": "Stop $1,300 (26 ES pts), target $4,000 (80 ES pts) per ES; session-end time exit (day-trade: flat 15:55 ET)",
+   "filters": "Undisclosed; standard interpretation: trade only first re-cross of the day, before 13:00",
+   "parameters": "bar 15-min; stop $1,300; target $4,000",
+   "timeframe_session": "15-min, RTH ET",
+   "instruments": "ES (MES)",
+   "claimed_performance": "~750 trades over ~6-7 yrs incl. OOS; avg trade ~$300/ES; 2022 +$15k, 2023 +$18k (1 ES). Win rate/DD not disclosed.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only",
+   "prop_fit": "3:1 target/stop implies low win rate -> poor for 50% consistency; $1,300 ES stop = $130 MES; cut stop to ~0.5\u00d7ATR and target prior close for prop use.",
+   "sources": [
+    "https://blog2.ungeracademy.com/?p=102"
+   ]
+  },
+  {
+   "name": "Session-low-minus-offset limit dip-buy (Unger Academy Strategy 2)",
+   "origin": "Unger Academy (2024)",
+   "entry": "Limit buy at current session low \u2212 offset (optimized; standard 0.25-0.5\u00d7ATR14-day); separate parameters for short side",
+   "exit": "Stop $800, target $3,000 per ES; session-end exit (flat 15:55 ET)",
+   "filters": "Not disclosed",
+   "parameters": "offset 0.25-0.5\u00d7ATR; stop $800; target $3,000",
+   "timeframe_session": "Intraday RTH, limit orders",
+   "instruments": "ES (MES)",
+   "claimed_performance": "~1,800 trades; avg ~$140/trade; 2020 +$40k, 2023 +$33k (1 ES)",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only (limit fills assumed at touch)",
+   "prop_fit": "Large target/stop ratio -> low win rate, streaky; $14/trade on MES; net profit OK but consistency poor unless sized small.",
+   "sources": [
+    "https://blog2.ungeracademy.com/?p=102"
+   ]
+  },
+  {
+   "name": "Turtle Soup / Turtle Soup Plus One (intraday adaptation)",
+   "origin": "Connors & Raschke, Street Smarts (1995)",
+   "entry": "Original daily: new 20-day low with prior 20-day low >=4 days old; buy stop 5-10 ticks above prior low; Plus One: enter next day if failure occurs then. Intraday: 5-min RTH, price breaks prior-day low (or 20-bar low, prior low >=4 bars old) by >=2 ticks then a bar closes back above -> buy stop 1 tick above level",
+   "exit": "Stop 1 tick below breakout extreme (max 0.5\u00d7ATR); target 1\u00d7ATR(5-min,20) or VWAP; trail to breakeven after 1R; flat 15:55 ET",
+   "filters": "Rotational/range regime; long bias (failed upside breaks weaker 2023-26)",
+   "parameters": "lookback 20; prior-extreme age >=4; entry offset 1-2 ticks; stop 0.5\u00d7ATR max",
+   "timeframe_session": "5-min, 09:35-15:55 ET",
+   "instruments": "ES, NQ, GC, CL",
+   "claimed_performance": "No quantified results in the book; LuxAlgo: 'regime-dependent: better in rotational markets, poor in persistent trends'",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Failure-confirmed stop entries keep losses small; moderate frequency; overlaps IB failed-break stats.",
+   "sources": [
+    "https://www.luxalgo.com/library/concept/turtle-soup.md",
+    "https://roboforex.com/blog/education/trading-strategies-that-were-a-revolution-three-strategies-of-linda-raschke/"
+   ]
+  },
+  {
+   "name": "80-20s (Taylor technique fade of prior-day extremes)",
+   "origin": "Connors & Raschke, Street Smarts (1995), citing George Taylor and Steve Moore; MQL5 implementation (2017)",
+   "entry": "Setup: yesterday opened in top 20% of range and closed in bottom 20% (bullish) or opened bottom 20%/closed top 20% (bearish); yesterday's range > 10-day avg range. Trigger: today trades >=5 ticks beyond yesterday's extreme; buy stop at yesterday's low (sell stop at yesterday's high); active 09:30-13:00 ET",
+   "exit": "Initial stop at today's extreme; trail; exit at close (day-trade); alt: target prior close or 1\u00d7ATR, flat 15:55 ET",
+   "filters": "Range > average range; day-trade only",
+   "parameters": "open/close percentile 20% (10-20%); penetration 5 ticks (3-10); range filter 10-day",
+   "timeframe_session": "Daily setup, 1-min execution 09:30-15:55 ET",
+   "instruments": "ES, NQ, GC, CL (FX tested)",
+   "claimed_performance": "Book: close in top/bottom 10% -> 80-90% follow-through next morning but only 50% close higher/lower; MQL5 daily FX test positive on EURUSD/USDJPY/USDCHF over 17 yrs but 'needs serious upgrade'",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Rare, objective, small risk; use as a filter upgrading outside-day fades rather than standalone.",
+   "sources": [
+    "https://www.mql5.com/en/articles/2785",
+    "https://www.forex.academy/analysis-of-the-connors-rashckes-80-20-strategy/"
+   ]
+  },
+  {
+   "name": "Initial-balance failed-breakout fade",
+   "origin": "Market Profile (Steidlmayer); statistics tradingstats.net ES/NQ 2015-2025 1-min, trevortrades, Linnsoft forum",
+   "entry": "IB = 09:30-10:30 ET high/low. After 10:30, if price breaks IB high/low and a 5-min bar closes back inside the IB within 30 min of the break (before 11:30), fade: short failed upside break, long failed downside break (long bias: downside breaks fail 53% vs 45%)",
+   "exit": "Target IB midpoint then opposite IB edge; stop 1 tick beyond breakout extreme (<=0.25\u00d7ATR-day); time exit 13:00 ET; flat 15:55",
+   "filters": "Skip Extreme IB (>1.5\u00d7ATR, 33% stay contained); don't trade the first break itself; Wednesday highest double-break rate",
+   "parameters": "IB 60 min (30-60); failure window 30 min (15-45); stop 0.25\u00d7ATR; targets mid/opposite edge",
+   "timeframe_session": "5-min decisions on 1-min data, 10:30-13:00 ET",
+   "instruments": "ES/MES, NQ/MNQ",
+   "claimed_performance": "ES 2,686 days: 34.0% of first breaks fail (close inside IB), 46.8% of failed breaks become double breakouts, 55.7% of breakouts retrace 50% into IB, 29.8% reach opposite edge; deep retrace (>=50%) -> only 24.8% close in break direction; median breakout MAE 0.20-0.26\u00d7ATR. NQ similar; stable 2015-2025.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only",
+   "prop_fit": "0-1 trades/day mid-morning, small defined stop, partial targets: consistency-friendly; combine with OR whipsaw fade.",
+   "sources": [
+    "https://tradingstats.net/initial-balance-breakout-statistics/",
+    "https://www.trevortrades.com/initial-balance",
+    "https://www.linnsoft.com/comment/543",
+    "https://www.luxalgo.com/library/concept/initial-balance.md"
+   ]
+  },
+  {
+   "name": "IB over-extension fade (>=1.4-1.5\u00d7 IB range after retest)",
+   "origin": "tradingstats.net 'Initial Balance Retest: Continue or Reverse?' (NQ/ES, Feb 2014-May 2026, 1-min)",
+   "entry": "After an IB break, when price has extended to >=1.4\u00d7 (NQ)/1.5\u00d7 (ES) the IB range, the move was a slow grind (>45 min) and it is after 12:00 ET, fade on first 5-min close back below the extension level; also fade a deep retest (>=50% retrace into IB)",
+   "exit": "Target broken IB edge then IB midpoint; stop 0.25\u00d7IB range beyond extension high; time exit 15:45 ET",
+   "filters": "Never fade at the level before a failure (runaway cohort 55% at 1.5\u00d7); afternoon only; slow moves only",
+   "parameters": "extension threshold 1.4-1.5\u00d7 (1.2-2.0); speed threshold 45 min; stop 0.25\u00d7IB",
+   "timeframe_session": "1-min data, 12:00-15:45 ET",
+   "instruments": "NQ, ES",
+   "claimed_performance": "At 1.1\u00d7 extension continuation 71-77% vs reversal 16%; at 1.5\u00d7 continuation 18-25%, reversal 27%, runaway 55%; afternoon 1.2\u00d7 retests continue only 23% vs 58% morning; fast moves continue 62% vs slow 42%",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Low frequency, afternoon, counter-trend; runaway tail is the drawdown risk; better as exit logic for breakout longs than standalone.",
+   "sources": [
+    "https://tradingstats.net/initial-balance-retest-statistics/"
+   ]
+  },
+  {
+   "name": "Opening-range whipsaw / fade-the-first-move",
+   "origin": "SMB Capital 'First Ticks - Wrong Ticks' (ES opening-drive study); tradingstats.net 'Opening Range Close-Outside Statistics' (NQ/ES 2014-2026); tradethatswing",
+   "entry": "OR = 09:30-10:00 ET. If first OR break occurs by 10:30 and price then closes (5-min) back inside the OR, enter opposite direction targeting the opposite OR edge; condition on 'in value' open (inside prior-day range/value area). Scalp variant: after a directional drive >=0.15% within first 5-10 min, fade toward the opening print",
+   "exit": "Target opposite OR edge (whipsaw) or opening print (drive fade); stop 1 tick beyond failed-break extreme (or 0.25\u00d7OR width); time exit 11:30 ET",
+   "filters": "In-value open (whipsaw rate 41.5% NQ / 47.0% ES); skip gap-extreme opens; skip narrow OR (coiled, 71-74% breakout)",
+   "parameters": "OR 30 min (15-60); failure deadline 10:30; stop 0.25\u00d7OR; time exit 11:30",
+   "timeframe_session": "5-min on 1-min data, 09:30-11:30 ET",
+   "instruments": "ES, NQ",
+   "claimed_performance": "On whipsaw days first break was the fake-out 73-78% (NQ 78.4%, ES 73.4%); whipsaws 37-43% of outside-close days; base rate 70-73% of days close outside 30-min OR. SMB: price trades back through open tick within 30 min 84.3%, median 2 min; fade after opening drive 57.9% winners, avg win 0.75 ES pts (old data, thin).",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only (value area needs volume; use prior-day range as proxy)",
+   "prop_fit": "Early, small stop, quick resolution: consistency-friendly; edge thin after costs without the in-value filter.",
+   "sources": [
+    "https://tradingstats.net/opening-range-close-probability/",
+    "https://www.smbtraining.com/blog/first-ticks-wrong-ticks",
+    "https://tradethatswing.com/high-probability-stock-market-statistics/"
+   ]
+  },
+  {
+   "name": "Overnight (Globex) range fade",
+   "origin": "Practitioner (futures.io/NexusFi threads; TradingView Globex/ORB-failure scripts; edgeful overnight-range reports)",
+   "entry": "ON range = 18:00 prior day to 09:30 ET high/low. If RTH open inside ON range: fade first touch of ON high (short)/ON low (long) 09:35-11:30 when the touch bar closes back inside; or fade a failed break (break then 5-min close back inside within 15 min)",
+   "exit": "Target ON midpoint then opposite edge; stop 0.25\u00d7ON range beyond edge (max 0.3\u00d7ATR-day); time exit 12:00 ET",
+   "filters": "Skip ON range <0.3\u00d7ATR-day or >1.2\u00d7ATR-day; skip 08:30 data days (CPI/NFP); news blackout 08:00-09:30",
+   "parameters": "stop 0.25\u00d7ON range; failure window 15 min; time exit 12:00",
+   "timeframe_session": "1-min, 09:35-12:00 ET",
+   "instruments": "ES, NQ, (GC, CL with different sessions)",
+   "claimed_performance": "No large-sample public P&L statistics; scripts only; OR studies suggest failure fades beat level fades",
+   "evidence_quality": 1,
+   "data_requirements": "OHLC only (needs full Globex session data)",
+   "prop_fit": "Variant of IB/OR fades with a different reference range; low priority to test.",
+   "sources": [
+    "https://my.tradingview.com/scripts/multitimeframe/page-4",
+    "https://futures.io/traders-hideout/446-10-tick-open-range-play-2.html",
+    "https://www.edgeful.com/blog/posts/edgeful-reports-the-complete-guide"
+   ]
+  },
+  {
+   "name": "NQ implied-volatility band fade (\u00b1VXN/16 from prior close)",
+   "origin": "Leander Seeck, 'Volatility as a Signal Switch: Regime-dependent Intraday Mean Reversion in Nasdaq-100 Futures', SSRN 7364204 (2026)",
+   "entry": "Daily band = prior-session close \u00d7 (1 \u00b1 VXN/16 %) (VXN/16 \u2248 annualised vol \u00f7 \u221a256 = 1-day 1-SD). On first 1-min close beyond the band, enter toward prior close (long on lower-band breach, short on upper)",
+   "exit": "30-minute time exit (paper's rule); alternatives: band re-entry or prior close; stop not specified (standard: 0.5\u00d7 band width beyond band)",
+   "filters": "Trade only when VXN < 20 or VXN >= 30 (Sharpe negative at 20-30); for ES use VIX/16",
+   "parameters": "divisor 16 (12-20); hold 30 min (15-60); stop 0.5\u00d7band; VXN buckets <20 / >=30",
+   "timeframe_session": "1-min, RTH 09:30-16:00 ET",
+   "instruments": "NQ/MNQ (ES/MES analog with VIX)",
+   "claimed_performance": "860 breach events 2018-2026; unconditional same-session reversion 85.2%; reversion significant in all VXN buckets (BH p<0.001); 30-min exit Sharpe: VXN<20 0.38, VXN>=30 0.64, slightly negative in between; walk-forward IS 2018-2022 n=298 Sharpe 0.47, OOS 2023-2026 n=191 Sharpe 1.29",
+   "evidence_quality": 3,
+   "data_requirements": "1-min OHLC + daily VXN/VIX (Yahoo ^VXN, ^VIX)",
+   "prop_fit": "Top candidate: objective, 1-min executable, ~100 events/yr, built-in time stop, OOS overlaps prime window; size risk at 0.25\u00d7 band width per trade on MNQ; big-range days need daily loss cap.",
+   "sources": [
+    "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7364204"
+   ]
+  },
+  {
+   "name": "Intraday z-score fade (rolling-mean deviation, long-only)",
+   "origin": "Generic; quantified by StatOasis (2,400 variants, SPY 1993-2026, ES 2007-2026, daily) and arXiv 2501.16772 (tick data 2010-2023, S&P and other futures)",
+   "entry": "z = (Close \u2212 SMA(N))/StdDev(N) on 1- or 5-min bars; long when z < \u22122.0 (optionally after bar closes back above \u22122\u03c3); short when z > +2.0 (expected loser on ES/NQ)",
+   "exit": "z > 0 (or \u22120.5/+0.5); time stop 5-10 bars; 1\u00d7ATR stop; flat 15:55 ET",
+   "filters": "Long-only; 09:35-11:30 ET; VIX>20 raises per-trade magnitude; skip ADX>25",
+   "parameters": "N 20-60 bars (1-min 30; 5-min 20); entry \u22122 (\u22121.5..\u22123); exit 0 (\u22120.5..+0.5); time stop 5-10 bars",
+   "timeframe_session": "1-min or 5-min, 09:35-11:30 ET",
+   "instruments": "ES, NQ (S&P futures in arXiv; SPY/ES in StatOasis)",
+   "claimed_performance": "arXiv (14 yrs tick data): significant reversion at 2-16 min horizons (t=13.6), reverting regime up to ~30 min, persistence beyond ~1 h. StatOasis (daily): long-only z-fades profitable in 99-100% of variants (median R-expectancy 0.15-0.20, win ~70%) but none beat buy-and-hold; 970 of 971 short variants lost; ES max DD 31.6% on featured variant.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Short-horizon reversion is real but basis-point sized; marginal after $1-2 commission + 1 tick on MES/MNQ; only viable long-only on high-vol mornings.",
+   "sources": [
+    "https://statoasis.com/overfit/research/understanding-z-score-and-its-application-in-mean-reversion-strategies",
+    "https://arxiv.org/html/2501.16772v1"
+   ]
+  },
+  {
+   "name": "Lunch reversal (11:00 short / 12:00 long / 14:00 exit)",
+   "origin": "Quantpedia 'Lunch Effect in the U.S. Stock Market Indices' (2024; SPY May 2010-May 2024) citing Parness 'The Art of Trend Trading'; related R_Omega 'buy the losers at 12:30' (PLoS One 2023, S&P 500/NASDAQ-100 stocks)",
+   "entry": "Short SPY/ES at 11:00 ET; at 12:00 cover and go long; (stock variant: rank first six half-hours, buy 5 worst S&P 500 / 2 worst NDX stocks at 12:30)",
+   "exit": "Exit long at 14:00 ET (stock variant: close 16:00); add 0.5\u00d7ATR-day disaster stop",
+   "filters": "None; index drift is small",
+   "parameters": "times 11:00/12:00/14:00 (\u00b130 min)",
+   "timeframe_session": "Time-based, 11:00-14:00 ET",
+   "instruments": "SPY/ES (index); S&P 500 / NDX stocks (R_Omega)",
+   "claimed_performance": "Quantpedia: equity curve positive, no numbers in text; drift of a few bp per hour. R_Omega: +0.335%/day in 2020-21 vs +0.098% index (stocks, after costs).",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only (stock variant needs single-stock data)",
+   "prop_fit": "Per-day index drift too small for $3k target without heavy size; use 11:30-13:00 as a no-trade window and 13:00-14:00 as a long-bias filter instead.",
+   "sources": [
+    "https://quantpedia.com/lunch-effect-in-the-u-s-stock-market-indices/",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC10490999/"
+   ]
+  },
+  {
+   "name": "Mean reversion into the close (last-hour fade) - NOT RECOMMENDED for index futures",
+   "origin": "End-of-day reversal literature (Quantpedia Awards 2025 runner-up, stock-level retail effect); Baltussen, Da, Lammers, Martens 'Hedging demand and market intraday momentum' (JFE 2021)",
+   "entry": "Standard rule: at 15:00 ET, if open-to-15:00 return beyond \u00b10.5\u00d7ATR-day (or \u00b11%), fade it; stock version: buy day's worst decile at 15:30",
+   "exit": "15:55 ET (stocks: 16:00)",
+   "filters": "n/a",
+   "parameters": "threshold 0.5\u00d7ATR (0.3-1.0); entry 15:00 (14:30-15:30)",
+   "timeframe_session": "15:00-15:55 ET",
+   "instruments": "ES/NQ (index: evidence negative); single stocks (evidence positive)",
+   "claimed_performance": "Index futures: first half-hour return positively predicts last half-hour (intraday momentum); late-session extremes are 'genuine trend legs' with low fade rates (tradingstats). End-of-day reversal is a single-stock retail effect.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Do not fade ES/NQ into the close; last 30 min favour continuation. Flagged negative.",
+   "sources": [
+    "https://www.eur.nl/en/news/end-day-reversal-pattern-second-place-quantpedia-awards-2025",
+    "https://academicweb.nd.edu/~zda/intramom.pdf",
+    "https://tradingstats.net/high-of-the-day-hold/"
+   ]
+  },
+  {
+   "name": "High/low-of-day extreme fade (ATR-depth gated)",
+   "origin": "tradingstats.net 'How often does the NQ high of the day hold? 7-year study' (NQ/ES/YM/RTY 2019-2026, ~14,300 extremes per market)",
+   "entry": "When price sets a new session extreme that is shallow (<0.3\u00d7ATR-day from RTH open) during the morning and the next 5-min bar closes back from the extreme, fade toward the open",
+   "exit": "Target 50% retrace of the excursion; stop 0.10-1.0\u00d7ATR (sweep); time exit 2 hours; flat 15:55 ET",
+   "filters": "Only shallow excursions (<0.3 ATR); never fade >1.0 ATR; morning only; lows fade more than highs",
+   "parameters": "depth gate 0.3\u00d7ATR; target 50% retrace; stop 0.1-1.0\u00d7ATR",
+   "timeframe_session": "5-min on 1-min data, 09:35-13:00 ET",
+   "instruments": "NQ, ES, YM, RTY",
+   "claimed_performance": "58-59% of extremes retrace 50%+; lows 61% vs highs 55%; shallow ~85% vs deep ~20%. Mechanical: 0.10-ATR stop -> 37% win/1.6:1; 1.0-ATR stop -> 91% win/0.17:1; 'expectancy approaches breakeven regardless of stop width'. Author's discretionary A/A+ calls: 70% hit, 75% profitable months, two 9-trade losing streaks.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only",
+   "prop_fit": "Mechanical version ~breakeven before costs - not standalone; the depth gate is a reusable filter for band/indicator fades.",
+   "sources": [
+    "https://tradingstats.net/high-of-the-day-hold/"
+   ]
+  },
+  {
+   "name": "Weekly-open reversion (Tuesday fade toward Monday 09:30 open)",
+   "origin": "tradingstats.net 'Mean Reversion Trading Strategy: 565 weeks of NQ data' (NQ, Jan 2015-Dec 2025, 1-min RTH)",
+   "entry": "WO = Monday 09:30 ET RTH open. Tuesday 09:30-10:00: if |Tuesday open \u2212 WO| < 0.25% (best) or < 0.50%, enter toward WO; prefer Tuesday open below WO (long); bonus if WO already touched in ETH",
+   "exit": "Target WO touch; stop 1\u00d7 open-to-WO distance (min 0.15%); time exit 11:30 ET (73% of first touches by 11:30, median 43 min); flat 15:55; optional Wednesday re-entry if <0.25% away",
+   "filters": "Distance <0.25-0.5%; below-WO preferred; ETH-touch confirmation",
+   "parameters": "max distance 0.25% (0.25-0.5%); stop mult 1.0; time exit 11:30 (11:00-13:00)",
+   "timeframe_session": "1-min, Tuesday 09:30-11:30 ET",
+   "instruments": "NQ/MNQ (ES/GC/CL untested)",
+   "claimed_performance": "69.7% of weeks revert to WO (394/565); 92.9% when Tuesday opens within 0.25% (n=127); 75.5% at 0.25-0.50%; below-WO + tiny 98.2% (54/55); ETH-touched-first 82.7%; three-factor cell 100% (42); annual 59.6% (2020-21) to 86.3% (2016); no-touch weeks are gap-and-go 66.7%",
+   "evidence_quality": 3,
+   "data_requirements": "1-min OHLC incl. overnight session for ETH confirmation",
+   "prop_fit": "Excellent for consistency: one defined Tuesday-morning trade with high touch rate at small distance; ~15-25 trades/yr on NQ; extend to ES/GC/CL to raise frequency.",
+   "sources": [
+    "https://tradingstats.net/mean-reversion-trading-strategy/"
+   ]
+  },
+  {
+   "name": "Overnight-return reversal, cross-sectional across ES/NQ/GC/CL (open-to-close hold)",
+   "origin": "Academic overnight-intraday reversal (Akbas, Boehmer, Jiang & Koch 2022; Quantpedia 'Overnight-Intraday Daily Reversal'); quantreturns.substack replication on ES/YM/NQ/EMD/NKD/RTY 2007-2025",
+   "entry": "At 09:30 ET compute each instrument's overnight return (prior 16:00 close -> 09:30 open), demean cross-sectionally, winsorize; long lowest overnight return instrument(s), short highest; equal-weight dollar-neutral",
+   "exit": "Flat 15:55 ET (open-to-close); disaster stop 1\u00d7ATR-day per leg",
+   "filters": "Minimum overnight-return spread (e.g., >0.3%) to avoid noise trades; test GC/CL separately (overnight dominates their range)",
+   "parameters": "legs per side 1-2; spread threshold 0.3% (0.2-0.5%); winsorize 1-99%",
+   "timeframe_session": "09:30-15:55 ET",
+   "instruments": "ES, NQ, GC, CL micros (papers used 6+ equity futures or stock universes)",
+   "claimed_performance": "quantreturns equity-futures basket: ~0.09%/day, Sharpe 3.2+ gross, 2007-2025; sector ETFs Sharpe 4-7 gross; academic: excess return 5\u00d7 conventional reversal, robust across equity index, rate, commodity, FX futures 1982-2014. Our 4-instrument universe will be far weaker.",
+   "evidence_quality": 4,
+   "data_requirements": "OHLC for all 4 instruments with consistent 16:00/09:30 timestamps",
+   "prop_fit": "Day-trade only by construction; cross-asset legs unhedged so EOD exposure is the sum of legs; 1 micro per leg; expect lower Sharpe with 4 instruments.",
+   "sources": [
+    "https://quantreturns.substack.com/p/overnight-mean-reversion",
+    "https://quantpedia.com/strategies/short-term-reversal-with-futures",
+    "https://www.cxoadvisory.com/technical-trading/overnightintraday-return-reversal-trading/"
+   ]
+  },
+  {
+   "name": "Vendor benchmark: 'Phoenix' NQ M5 mean reversion (aeromir)",
+   "origin": "aeromir.com commercial automated strategy (2025-26); proprietary",
+   "entry": "Undisclosed rule-based mean reversion on 5-min NQ/MNQ (ES/MES bonus), zero overnight",
+   "exit": "Undisclosed; flat daily",
+   "filters": "Undisclosed",
+   "parameters": "Undisclosed; contracts 1-5 MNQ swept in prop simulation",
+   "timeframe_session": "5-min, intraday (session not disclosed)",
+   "instruments": "NQ/MNQ primary; ES/MES",
+   "claimed_performance": "Vendor: NQ Jan 2020-May 2026, 2,626 trades, 69.8% win, PF 1.30, max DD $17,611 (9.4%), ~1.7 trades/day, 75% profitable months, max losing streak 5; ES untrained $135k, 64.2% win. Simulated $50k evals ($3k target, $2.5k trailing, MNQ, 5,000 sims): pass 32.1% at 1 MNQ, 70.4% at 2 (median 88 trades), 65.9% at 3, 59.3% at 4, 56.3% at 5.",
+   "evidence_quality": 1,
+   "data_requirements": "n/a (proprietary); benchmark only",
+   "prop_fit": "Lesson: even a PF 1.3 / 70%-win M5 system passes ~70% at the right size and only 32% at 1 micro; sizing drives pass rate; sweep contracts in the Lucid simulator.",
+   "sources": [
+    "https://futures.aeromir.com/phoenix"
+   ]
+  }
+ ]
+}

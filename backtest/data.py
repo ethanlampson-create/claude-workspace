@@ -23,9 +23,10 @@ def load_1m(symbol: str, start=None, end=None) -> pd.DataFrame:
         df = pd.read_parquet(os.path.join(PQ, f'{symbol}_1m.parquet'))
         df = df.sort_values('ts').reset_index(drop=True)
         ts = df['ts']
-        # session date = date of (ts - 18h) + 1 day  (18:00 Sun -> Monday)
-        shifted = ts - pd.Timedelta(hours=18)
-        df['session'] = (shifted.dt.tz_localize(None).dt.normalize() + pd.Timedelta(days=1)).dt.date
+        # session date = date of (wall-clock ts - 18h) + 1 day  (18:00 Sun -> Monday). Wall-clock arithmetic: an
+        # absolute-time subtraction would cross the DST switch on DST-start Sundays and mislabel the evening bars.
+        shifted = ts.dt.tz_localize(None) - pd.Timedelta(hours=18)
+        df['session'] = (shifted.dt.normalize() + pd.Timedelta(days=1)).dt.date
         df['tod'] = (ts.dt.hour * 60 + ts.dt.minute).astype(np.int32)
         df['dow'] = ts.dt.dayofweek.astype(np.int8)  # 0=Mon
         # drop Saturday sessions (should not exist) and empty sessions

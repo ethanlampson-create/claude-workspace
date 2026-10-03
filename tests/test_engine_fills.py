@@ -249,15 +249,18 @@ def test_BUG6_set_session_flat_time_between_1700_and_midnight_sets_no_force_flat
     assert not it.allow_entry[tod == 23 * 60].any()
 
 
-def test_BUG7_session_carry_close_allows_reentry_on_same_bar_and_stale_mae():
-    """A position carried across a session boundary is closed at the open of the first bar of the new session and
-    a NEW entry is allowed on that very bar (the engine otherwise forbids re-entry on an exit bar)."""
+def test_BUG7_session_end_closes_at_last_bar_of_ending_session_and_new_session_may_reenter():
+    """A position still open when the session ends (early close / feed stop) is closed at the LAST bar of the ending
+    session (its close with slippage, reason 'session_end'), never at the next session's open. The next session's first
+    bar is then a legitimate fresh entry opportunity."""
     df = make_df([(100, 100.5, 99.5, 100), (100, 100.5, 99.5, 100), (90, 91, 89, 90), (90, 90.5, 89.5, 90)],
                  day_ids=[0, 0, 1, 1])
     it = Intents(df); it.place([1, 2], 1)
     tr, d = run(it)
-    assert tr.reason[0] == 'session_gap' and bar_of(df, tr.exit_ts[0]) == 2
-    assert not (len(tr) > 1 and bar_of(df, tr.entry_ts[1]) == 2), "re-entered on the session-gap exit bar"
+    assert tr.reason[0] == 'session_end' and bar_of(df, tr.exit_ts[0]) == 1 and tr.day_id[0] == 0
+    assert tr.exit_px[0] == pytest.approx(100.0 - SLIP)
+    assert len(tr) == 2 and bar_of(df, tr.entry_ts[1]) == 2 and tr.day_id[1] == 1
+    assert d.min_eq[0] <= d.pnl[0] + 1e-9
 
 
 def test_BUG8_end_of_data_close_not_reflected_in_min_eq():
@@ -287,7 +290,7 @@ def test_BUG10_flat_time_not_enforced_when_session_ends_before_flat_time():
     (10 of 424 ORB trades on 2025-2026 SPXUSD, two of them held Fri->Sun) is a fill that cannot happen."""
     df = make_df([(100, 100.5, 99.5, 100), (100, 100.5, 99.5, 100), (100, 100.5, 99.5, 100.2), (100.2, 100.5, 99.5, 100.4),
                   (90, 91, 89, 90), (90, 90.5, 89.5, 90)], day_ids=[0, 0, 0, 0, 1, 1])
-    df.loc[4:, 'tod'] = [18 * 60, 18 * 60 + 1]
+    df['tod'] = np.array(list(df['tod'].values[:4]) + [18 * 60, 18 * 60 + 1], dtype=np.int32)
     it = Intents(df); it.set_session('09:30', '11:30', '15:55'); it.place([1], 1)
     tr, d = run(it)
     assert len(tr) == 1

@@ -1,0 +1,484 @@
+{
+ "family": "Opening range breakouts and session-structure strategies (ORB 5/15/30/60, Crabel stretch ORB, Fisher ACD, initial balance / first hour, overnight / London / Asia session-range breakouts, prior-day high/low, published ORB research and replications)",
+ "notes": "Report: /home/user/claude-workspace/research/families/orb_session.md. Key conclusions: (1) Plain wick-entry ORB with symmetric/fixed brackets is not an edge net of costs on ES/NQ (TradingView 18-yr NQ PF 0.87; Mesfin 2026 arXiv MNQ walk-forward: ORB long +2.82 pts T=0.88 year-unstable, shorts negative every year, pullback entries 80.7% stop-out; mql5 replication of Zarattini rule on NQ/SPX/Dow/DAX/FTSE 2015-2026 net ~0; Quantified Strategies: ORB obsolete on S&P/GC/SI/CL). (2) Published academic ORB returns rely on things we lack: 2024 stocks paper 1,637%/Sharpe 2.81 is from the relative-volume (stocks-in-play) filter (unfiltered ORB: Sharpe 0.48); 2023 QQQ paper assumes zero slippage (break-even at 2.2c/share; 76% of filtered PnL in 2022). (3) What holds up 2022-2026: close-confirmed ORB-30 continuation ~71% (stable 2014-2025), ORB with daily SMA200 trend filter + 1.4-4.4R exit + one-loss-per-session (OOS 2023-2026 Sharpe 1.10, PF 1.32, MDD 12.8%), overnight/London midpoint bias (76%/83% first-break direction), London-level sweep+retest 3.5R (2019-2026 PF 1.26 Sharpe 1.44 DD $2.1k at $100 risk), IB C-period confirmation (ES 100% extension 45.5% vs 18.8%). (4) For Lucid 50K Flex: prefer capped-target close-confirmed ORB-15/30 and session-level midpoint-bias trades in 09:30-11:00 with noon time stops, micro sizing (stop <= $150-250), daily profit cap for the 50% consistency rule, longs favored on NQ; avoid 10R/EOD-only exits in eval. Engine must use >= 1 tick slippage/side; 2-pt NQ friction killed most 5-min-bar signals academically. 14 distinct searches and ~35 page fetches; several pages were blocked (quantifiedstrategies.com, nexusfi ORB page, researchgate, x.com, ieee) and are cited from search snippets or mirrors.",
+ "strategies": [
+  {
+   "name": "Zarattini-Aziz 5-minute ORB (first-candle direction, 10R or EOD)",
+   "origin": "Carlo Zarattini & Andrew Aziz, 'Can Day Trading Really Be Profitable?', SSRN 4416622, April 2023 (Concretum Research / Peak Capital Trading)",
+   "entry": "Range = 09:30-09:35 bar. If the bar closed up, buy at the 09:35 open; if it closed down, sell short at the 09:35 open; no trade if doji (open ~ close). (Not a stop-order breakout.)",
+   "exit": "Stop at the low (long) / high (short) of the 09:30-09:35 bar (= 1R). Target 10R; else liquidate at 16:00 close. Sensitivity variant: stop = 5% of 14-day ATR, no target, EOD exit.",
+   "filters": "None in base version. Replication added NQ 09:25 bar direction confirmation (t=2.05 but 76% of PnL from 2022). Sensitivity: tight ATR stops + EOD exit best in-sample.",
+   "parameters": "ORB length 5 min; stop = OR extreme (alt 5-10% of ATR14); target 10R (1R-10R tested; EOD best); risk 1% equity/trade; max leverage 4x; commission $0.0005/share; no slippage",
+   "timeframe_session": "5-min bars; entry 09:35 ET; exit by 16:00 ET",
+   "instruments": "QQQ, TQQQ (replicated on NQ, SPX, Dow, DAX, FTSE cash CFDs)",
+   "claimed_performance": "QQQ 2016-01 to 2023-02: +675% total, 31%/yr, Sharpe 1.12, alpha 33%, win 24%, +0.13R/trade, 1,795 trades; TQQQ +1,485%, Sharpe 1.18, 0.18R/trade; 5%-ATR stop + EOD variant +9,350% (authors flag as unrealistic). Replications: break-even at 2.2c/share slippage (GitHub); net ~0 on NQ/SPX/Dow/DAX/FTSE 2015-2026 after spread (mql5); ~75% stop exits, ~22% EOD, 10R hit 2-3%.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only (1-min or 5-min). Fully reproducible on our data.",
+   "prop_fit": "Poor as published: 24% win rate with 1R losses and rare 10R winners means long strings of small losing days plus a few huge days, which violates the 50% consistency rule and grinds the $2k EOD trailing drawdown; edge is within slippage on futures. Only the EOD-exit/tight-stop variant with micro sizing is worth testing.",
+   "sources": [
+    "https://papers.ssrn.com/abstract=4416622",
+    "https://concretumgroup.com/can-day-trading-really-be-profitable/",
+    "https://github.com/giovannibrusco/zarattini-2023-orb-qqq",
+    "https://www.mql5.com/en/blogs/post/776235",
+    "https://www.cxoadvisory.com/technical-trading/day-trading-with-an-opening-range-breakout-strategy",
+    "https://wealth-lab.com/api/discussion/download/pdf/6590-ORB-Strategy-pdf"
+   ]
+  },
+  {
+   "name": "Zarattini-Barbon-Aziz 5-minute ORB on Stocks in Play (relative volume top-20)",
+   "origin": "Zarattini, Barbon & Aziz, 'A Profitable Day Trading Strategy for the U.S. Equity Market', SSRN 4729284 / Swiss Finance Institute RP 24-98, 2024",
+   "entry": "Universe: open > $5, 14-day avg volume > 1M shares, ATR14 > $0.50. Stop (entry) order at the 09:30-09:35 high if the first bar was bullish, at the low if bearish; no order on doji. Trade only stocks with Relative Volume >= 100% (first-5-min volume / 14-day average first-5-min volume) and only the top-20 RV stocks each day.",
+   "exit": "Stop loss 10% of 14-day ATR from fill; no target; close at 16:00 ET.",
+   "filters": "Relative volume >= 100%, top-20 by RV; price/volume/ATR liquidity filters; 1% risk per position, max 4x leverage.",
+   "parameters": "ORB 5 min (15/30/60 tested: 5m >> 15m >> 60m > 30m); stop 10% ATR14; risk 1%; commission $0.0035/share; no slippage",
+   "timeframe_session": "1-min data; entry after 09:35 ET on stop order; exit 16:00 ET",
+   "instruments": "7,000+ US stocks",
+   "claimed_performance": "2016-2023: 5m ORB+RV top-20: +1,637% total, IRR 41.6%, Sharpe 2.81, hit 48.4%, MDD 12%, alpha 35.8%; unfiltered ORB base: +29%, Sharpe 0.48, hit 41.4%, MDD 13%; 15m +272% Sharpe 1.43; 30m +21% Sharpe 0.21; 60m +39% Sharpe 0.40; COMBO +234% Sharpe 1.99 MDD 7%. QuantConnect 2016 replication Sharpe 2.40.",
+   "evidence_quality": 4,
+   "data_requirements": "NEEDS VOLUME (relative volume) and single-stock data. Cannot be reproduced on OHLC-only futures; 'in play' can only be proxied by OR width vs ATR / gap size.",
+   "prop_fit": "Not usable on a futures prop account (equities, needs volume). Transferable lesson: the ORB edge concentrates in abnormally active sessions; expect unfiltered futures ORB to behave like the Sharpe-0.48 base case.",
+   "sources": [
+    "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4729284",
+    "https://www.wealth-lab.com/api/discussion/download/pdf/8007-ssrn-4729284-1-pdf",
+    "https://www.quantconnect.com/research/18444/opening-range-breakout-for-stocks-in-play/",
+    "https://danfin.net/opening-range-breakout-research",
+    "https://concretumgroup.com/a-profitable-day-trading-strategy-for-the-u-s-equity-market/"
+   ]
+  },
+  {
+   "name": "Timely Opening Range Breakout (TORB) on index futures",
+   "origin": "Tsai, Wu, Syu, Lei, Wu, Ho, Wang, IEEE Access vol. 7 pp. 32061-32071, 2019",
+   "entry": "Observe the range from the session open to a market-specific 'probe time' t; after t, buy a break above the probe-range high / sell a break below the low. Optimal probe time for US index futures is very short (within ~5 minutes of the open); for TAIEX up to ~200 minutes.",
+   "exit": "Close position at session close (base version has no stop/target; standard interpretation adds a stop at the opposite side of the probe range).",
+   "filters": "Probe-time optimization per market; none other reported.",
+   "parameters": "probe time t (US: ~5 min; range 1-60 min); exit at close",
+   "timeframe_session": "1-minute data; US day session",
+   "instruments": "DJIA, S&P 500, NASDAQ, HSI, TAIEX index futures, 2003-2013",
+   "claimed_performance": ">8% annual return with p<3% in all five markets; TAIEX best at 20.28%/yr (p=3.1e-5%); US markets significantly better with early probe times; transaction costs not reported.",
+   "evidence_quality": 4,
+   "data_requirements": "OHLC 1-min only.",
+   "prop_fit": "Essentially the Zarattini rule without a stop; EOD-only exits give fat-tailed daily P&L and no drawdown control. Needs a stop, daily loss cap and micro sizing before it fits a $2k EOD-trailing account; sample ends 2013.",
+   "sources": [
+    "https://www.semanticscholar.org/paper/Assessing-the-Profitability-of-Timely-Opening-Range-Tsai-Wu/4492a7792de759178a2110beaafce9a2fc3590b8",
+    "https://www.researchgate.net/publication/331076454_Assessing_the_Profitability_of_Timely_Opening_Range_Breakout_on_Index_Futures_Markets",
+    "https://www.zeiierman.com/blog/profit-potential-with-torb-strategy-in-index-futures-trading"
+   ]
+  },
+  {
+   "name": "MNQ 09:30-09:55 ORB with N-bar hold (academic falsification test)",
+   "origin": "M. Mesfin, 'Structural Limits of OHLCV-Based Intraday Momentum Signals in MNQ Futures', arXiv 2605.04004, May 2026",
+   "entry": "OR = 09:30-09:55 ET (first six 5-min bars). Long on a close above the OR high (signal at bar close, fill next bar open); short on close below OR low. Pullback variant: enter on pullback into the range with a 20-pt stop.",
+   "exit": "Time exit after 1 bar (5 min) or 15 bars (75 min); session end. Pullback variant 20-point stop.",
+   "filters": "None (deliberately unfiltered). Walk-forward: train 2022, OOS 2023/2024/2025-partial; friction 2.0 NQ pts round trip.",
+   "parameters": "OR length 25 min; hold 1 or 15 bars (75 min); friction 2.0 pts",
+   "timeframe_session": "5-min bars (from 1-min), RTH 09:30-16:00 ET",
+   "instruments": "MNQ 2021-12 to 2025-08 (947 days); MGC cross-check",
+   "claimed_performance": "ORB long hold-15: +2.82 pts/trade net, T=0.88, N=447 OOS (2023 +2.43, 2024 +7.04, 2025 +15.05) - fails T and year-stability gates; ORB long hold-1: -0.82; ORB short hold-1: -3.45 (T=-3.16), hold-15: -2.16; pullback entry -4.44 with 80.7% stop-out. Unconditional 09:30 long benchmark -2.60 pts. Asia-session range-expansion and gap-fill fades all negative.",
+   "evidence_quality": 4,
+   "data_requirements": "OHLC only for the ORB tests (positive controls need volume).",
+   "prop_fit": "Negative/neutral result: tells us unfiltered ORB shorts on NQ lose and longs with a longer hold are marginal but improving into 2025; use it as the null baseline the engine must beat, and bias toward longs with 60-90 min holds.",
+   "sources": [
+    "https://arxiv.org/abs/2605.04004",
+    "https://arxiv.org/pdf/2605.04004"
+   ]
+  },
+  {
+   "name": "Crabel ORB with Stretch (+ NR4/NR7/inside-day setups)",
+   "origin": "Toby Crabel, 'Day Trading with Short Term Price Patterns and Opening Range Breakout', 1990",
+   "entry": "Stretch = SMA(10) of daily min(High-Open, Open-Low). Buy stop at today's Open + Stretch (x multiplier), sell stop at Open - Stretch; first fill is the position, the other order becomes the protective stop; one trade per day, no reversal. Optional: trade only after NR4 / NR7 / inside day / ID-NR4 / 2-bar NR days. Optional entry cutoff: no fills after 10:30-11:30 (early fills are more profitable at the close).",
+   "exit": "Protective stop at Open - Stretch (long) / Open + Stretch (short); exit at session close (day trade). Oxfordstrat swing variant: exit day 10 or 6x ATR20 stop.",
+   "filters": "NR4, NR7, inside day, ID/NR4, 2-bar NR, hook/doji days; entry-time cutoff",
+   "parameters": "Stretch lookback 10 (5-20); multiplier 1.0 (Crabel) to 2.0 (oxfordstrat); entry cutoff 10:30-11:30 ET; exit 15:55-16:00 ET",
+   "timeframe_session": "Daily OHLC for stretch + 1-min for fills; US day session",
+   "instruments": "Originally S&P, bonds, currencies; oxfordstrat 42 US futures 1980-2013",
+   "claimed_performance": "Crabel tables: 60-70% profitable-at-close after NR4/ID setups (1980s). Oxfordstrat (swing version, 42 futures, 1980-2013, 1% fixed-fractional): positive before costs, deteriorates significantly with $50 RT costs, rating C. No modern ES day-trade numbers found.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Reasonable shape: stop = 2x stretch (~0.4-0.6x daily range, $300-700 per ES, so use MES/MNQ), 1 trade/day, flat at close. NR7/ID filters cut frequency to ~2-4 trades/week (slow eval, good consistency). EOD exit adds tail days; consider 0.5x-1x range targets.",
+   "sources": [
+    "https://oxfordstrat.com/trading-strategies/narrow-range/",
+    "https://nexusfi.com/a/strategies/opening-range-breakout",
+    "https://www.tradingview.com/script/hzvhXCy9-PumpC-Opening-Range-Breakout-ORB-Stretch-Range",
+    "https://www.edgeful.com/blog/posts/inside-day-in-trading-breakout-data"
+   ]
+  },
+  {
+   "name": "Mark Fisher ACD (A-up/A-down with time confirmation, C-level failure)",
+   "origin": "Mark B. Fisher, 'The Logical Trader', Wiley 2002; MBF Clearing",
+   "entry": "Opening range: ES/NQ 15 min (09:30-09:45; Fisher used ~20 min S&P pit), CL 30-45 min from 09:00 ET (book: 45 min, A=0.08, C=0.13 $/bbl), GC 30 min from 08:20. A-up = OR high + A, A-down = OR low - A with A ~ 20-25% of 5/10-day ATR (or of 30-day avg daily range). Long only after price holds above A-up for at least half the OR length (7.5 min for 15-min OR); short mirror. Failed A-up that then trades to C-down (OR low - C, C>A) = C-down short.",
+   "exit": "Stop at the OR low (long) or just below A-up / low of the confirmation bar; Fisher: 'minimize risk by time' (exit if no follow-through); exit at session close.",
+   "filters": "Daily 3-day pivot range (narrow pivot -> volatile session expected); number line (A-up +1, A-down -1) multi-day bias; avoid day after parabolic A-day trend.",
+   "parameters": "OR length 15 (ES/NQ) / 30-45 (CL) min; A = 0.20-0.25 x ATR(5-10); C ~ 1.5-2x A; confirmation time = 0.5 x OR length",
+   "timeframe_session": "1-min; OR from 09:30 ET (ES/NQ), 09:00 ET (CL), 08:20 ET (GC); flat 15:55 ET",
+   "instruments": "ES, NQ, CL, GC (Fisher's home market CL)",
+   "claimed_performance": "Anecdotal/practitioner; Fisher stats: 5-min OR is the day's high or low ~15-18% of the time on CL, 10-min OR 17-23%; 'confirmed A trades hit the ATR a majority of the time'. No rigorous public backtest found.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Time confirmation filters whipsaws vs raw ORB; stop ~0.25-0.5x ATR (micros). 0-2 signals/day, EOD exit; fits a 'safe' configuration but needs our own backtest for any numbers.",
+   "sources": [
+    "https://nexusfi.com/a/strategies/acd-trading-method",
+    "https://www.elitetrader.com/et/threads/excerpts-from-the-1400-page-acd-method-thread-mark-fisher.377419/",
+    "https://www.tradingview.com/script/iwAJMMbv-ACD-Indicator-TradingFinder-M-Fisher-Pivots-Methodology-Signal"
+   ]
+  },
+  {
+   "name": "Larry Williams volatility breakout (open +/- k x prior day range)",
+   "origin": "Larry Williams, 'Long-Term Secrets to Short-Term Trading', 1999 (vendor implementations WH SelfInvest, TradingView)",
+   "entry": "Buy stop at today's open + k x (yesterday high - low); sell stop at open - k x range; k = 0.25 (WH default) to 0.5-0.7 (Williams).",
+   "exit": "Exit at session close (or next open); stop = opposite trigger level; optional ATR trailing stop.",
+   "filters": "Trend filter (close > SMA/EMA, SuperTrend), day-of-week, inside/narrow-range days, ATR volatility floor.",
+   "parameters": "k 0.25-0.7; exit at close; optional SMA 20-200 filter",
+   "timeframe_session": "Daily OHLC for range, 1-min for fills; 09:30-16:00 ET",
+   "instruments": "Index futures, generic",
+   "claimed_performance": "WH SelfInvest: 'variable profits over several years but none negative' (no numbers); no modern ES statistics.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Same family as Crabel; with k=0.25 on ES (~60-pt daily range) trigger 15 pts and stop-and-reverse width 30 pts ($1,500/ES) -> MES only; EOD exit gives tail days.",
+   "sources": [
+    "https://whselfinvest.com/en-be/trading-platform/free-trading-strategies/tradingsystem/56-volatility-break-out-larry-williams-free",
+    "https://www.capmint.com/learn/videos/larry-williams-volatility-breakout-strategy"
+   ]
+  },
+  {
+   "name": "ORB with daily SMA(200) trend filter, R:R exit, one loss per session (MNQ, walk-forward)",
+   "origin": "'Backtests, Not Signals' substack, 2026 (independent walk-forward on MNQ)",
+   "entry": "Opening range = first 30 min after 09:30 (standard). If daily close > SMA(200) take only long breakouts; if below only shorts. Enter on break of the range.",
+   "exit": "Stop = opposite side of the range, capped at 150 ticks (37.5 NQ pts). Target = RR x stop distance (RR 1.4-4.4). Stop trading for the session after one losing trade. Force exit at session end.",
+   "filters": "SMA length 150-300 (step 10) one-directional filter; one-loss-per-session; smooth parameter heat map.",
+   "parameters": "OR 30 min; SMA 200 (150-300); RR 1.4-4.4 (step 0.2); stop cap 150 ticks; $10k with ~20x leverage",
+   "timeframe_session": "Intraday bars (1-5 min); 09:30-16:00 ET",
+   "instruments": "MNQ (applies to NQ/ES)",
+   "claimed_performance": "In-sample 2020-02-12 to 2022-12-30: +108.6%, Sharpe 1.37, MDD -10.9%, 451 trades, win 30.4%, PF 1.43. Out-of-sample 2023-01-03 to 2026-02-27: +94.6%, Sharpe 1.10, MDD -12.8%, 474 trades, win 24.9%, PF 1.32.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only (daily SMA from daily closes).",
+   "prop_fit": "Good: defined stop <= 37.5 NQ pts ($75/MNQ), one loss per day caps the daily loss, targets capped at 1.4-4.4R so no single day dominates (consistency rule OK). Low win rate (25-30%) means routine 3-5 day losing streaks; size 1-3 MNQ so the MDD (~12% of margin-leveraged equity) stays under $2k EOD trailing.",
+   "sources": [
+    "https://backtestsnotsignals.substack.com/p/opening-range-breakout-real-edge"
+   ]
+  },
+  {
+   "name": "ORB-30 with 5-minute close confirmation and capped 0.25-0.5x target (tradingstats 'conservative setup')",
+   "origin": "tradingstats.net ORB research, ES/NQ 6,142+ days 2014-2026 (statistics, published 2025-2026)",
+   "entry": "OR = 09:30-10:00 ET. Enter long on the first 5-min bar close above the OR high (short below OR low). Skip if no break by 10:30. Strongest when the 30-min OR candle closed in the breakout direction; optional wide-OR filter (OR > 0.6 x ATR14).",
+   "exit": "Stop at the opposite OR boundary (~11 ES / ~51.5 NQ pts median 2025) or OR midpoint; target 0.25x-0.5x OR extension beyond the break; flat by 15:55. Aggressive variant: wick entry on 5-min OR, stop 10.25 ES / 43.5 NQ pts, target 1.0x range, time stop 10:00.",
+   "filters": "OR candle internal direction (77-80% alignment, +3-7 pts continuation; NQ 30m up 70.3%); day of week (Mon/Fri best, Wed worst: ES 30m Wed 61.3% cont./54.7% double); wide OR > 0.6x ATR14 (cont. 77.5% ES / 74.2% NQ, doubles 20.8%); gap direction and ATR regime negligible.",
+   "parameters": "OR 30 min (5/15 tested); confirmation = 5-min close; target 0.25-0.5x (1.0x hit by close only 32-34% ES / 26-28% NQ for 30m); time stop 10:30",
+   "timeframe_session": "1-min/5-min; OR 09:30-10:00 ET; trades 10:00-15:55 ET",
+   "instruments": "ES, NQ (ES/NQ 30m, 15m, 5m)",
+   "claimed_performance": "Continuation (close in break direction) with 5-min close confirmation: ES 30m 70.7%, 15m 65.8%, 5m 63.3%; NQ 30m 71.5%, 15m 67.3%; wick-entry ES 30m 64.6%. Double-break rates ES 5/15/30m 74.3/61.0/47.9%, NQ 69.2/52.6/39.4%. Edge stable by year 2014-2025 (ES 30m 60.5-68.5%). No net P&L published; expectancy must be computed (0.25x target vs full-range stop is negative at 70% win; 0.5x target or midpoint stop needed).",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Best shape for the consistency rule and payout rule: many small positive days (0.5x11 = 5.5 ES pts = $27/MES, $275/ES); stop $55/MES. Needs 4-8 MES for $150+/day with worst day ~$220-440. Must verify expectancy with midpoint stops; slippage-sensitive on 5-min ranges.",
+   "sources": [
+    "https://tradingstats.net/orb-strategy-research/",
+    "https://tradingstats.net/orb-breakout-strategy-guide/"
+   ]
+  },
+  {
+   "name": "ORB-15 NQ close-confirmed, 50%-range target, long-only in uptrend (Trade That Swing)",
+   "origin": "Cory Mitchell, tradethatswing.com, 2025-2026 (updated July 2026)",
+   "entry": "OR = 09:30-09:45 ET. Long when a 5-minute candle closes above the OR high; long only when the trend is up (short side dropped). One trade per day; if the first 5-min close is below the OR, no trade that day. Skip if OR > 0.8% of price.",
+   "exit": "Stop = opposite side of OR, capped at $1,000 (50 NQ pts); target = 50% of OR size; flat by close.",
+   "filters": "Uptrend only; OR size cap 0.8%; exclude Mondays and Thursdays (in-sample, July 2026); one trade/day",
+   "parameters": "OR 15 min; target 0.5x OR; stop cap 50 NQ pts; 1 contract",
+   "timeframe_session": "5-min bars; OR 09:30-09:45 ET; flat by 16:00 ET",
+   "instruments": "NQ / MNQ",
+   "claimed_performance": "Backtest ~1 year to Oct 2025 (1 NQ): +$43,310 on $10k (433%), 114 trades, 74.56% win, PF 2.51, max DD $2,725; avg win ~$846, avg loss ~$987. Author warns monthly re-tuning needed.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "With MNQ: ~+$4.3k/yr, DD ~$272, avg loss ~$99 per contract -> 3-5 MNQ fits $2k EOD trailing; 75% win + capped target keeps days small and even (consistency rule). Day-of-week exclusions are curve-fit; expect OOS to halve.",
+   "sources": [
+    "https://tradethatswing.com/opening-range-breakout-strategy-up-400-this-year/"
+   ]
+  },
+  {
+   "name": "ORB-5 ES, 50%-range target / 100%-range stop with range cap (edgeful)",
+   "origin": "edgeful.com blog, 2025; NQ 15-min variant on X (edgeful) 2026",
+   "entry": "OR = 09:30-09:35 ET; buy a break above the OR high / sell a break below the OR low (stop order).",
+   "exit": "Target 50% of OR size; stop at opposite edge (100% of OR) with $700 max loss; flat by close.",
+   "filters": "Skip if OR > 0.55% of price; no long breakouts on Tuesday (in-sample).",
+   "parameters": "OR 5 min; target 0.5x; stop 1.0x capped $700; 1 ES",
+   "timeframe_session": "1-min/5-min; 09:35 ET onward; flat 16:00 ET",
+   "instruments": "ES (NQ variant with 15-min OR)",
+   "claimed_performance": "ES 6 months 2025: +$10,825 on $10k, 115 trades, 72.17% win, PF 1.62, DD undisclosed. NQ 15-min 2025-08-04 to 2026-08-03: +$85,230, 69.5% win, PF 2.21, 141 trades, max DD -$10,815 (1 NQ).",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Thin expectancy on 5-min ES OR (median 5.5 pts): target $137 vs stop $275 at 72% win = ~+$22/trade before ~$25-30 costs; very slippage-sensitive. NQ 15-min variant DD ~$1,080 per MNQ -> max 1 MNQ under $2k EOD trailing.",
+   "sources": [
+    "https://www.edgeful.com/blog/posts/5-minute-opening-range-breakout-es-strategy",
+    "https://x.com/edgeful/article/2085119983152153086"
+   ]
+  },
+  {
+   "name": "ORB-30 ES 1.5x target / 0.75x stop, exit 15:45 (insigtrade)",
+   "origin": "insigtrade.com, 'Automated Futures Trading Strategies That Work in 2026'",
+   "entry": "Record 09:30-10:00 ET high/low; stop orders: long above OR high, short below OR low.",
+   "exit": "Target 1.5 x OR width; stop 0.75 x OR width; exit by 15:45 ET.",
+   "filters": "None stated.",
+   "parameters": "OR 30 min; target 1.5x; stop 0.75x",
+   "timeframe_session": "09:30-10:00 OR; 10:00-15:45 ET",
+   "instruments": "ES",
+   "claimed_performance": "Sharpe ~0.8, 2021-2025 (no other numbers).",
+   "evidence_quality": 1,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Stop 0.75 x 11 pts = ~8 ES pts ($400/ES, $40/MES); 2:1 reward; low win rate expected (~40%); OK with 3-5 MES.",
+   "sources": [
+    "https://insigtrade.com/blog/automated-futures-trading-strategies-that-work-in-2026"
+   ]
+  },
+  {
+   "name": "ORB-15 fixed-dollar 1:1 bracket, close confirmation (TradingView 'Winning-Day ORB') - negative evidence",
+   "origin": "joetroyer, TradingView open-source strategy, 2025-2026",
+   "entry": "OR = 09:30-10:00 ET on 15-min chart; enter when a candle closes beyond the range during 10:00-15:00; one long and one short attempt per day.",
+   "exit": "Fixed-dollar bracket: $150 net target, 1:1 risk:reward (or stop = % of OR width, target = multiple e.g. 1.52R); flat 16:00 ET.",
+   "filters": "None beyond close confirmation; $2.50/side + 1 tick slippage modeled.",
+   "parameters": "OR 30 min; $150 target; 1:1; fees $20/RT",
+   "timeframe_session": "15-min bars; 10:00-16:00 ET",
+   "instruments": "NQ, MNQ, ES, YM",
+   "claimed_performance": "NQ1! ~18 years: 48.0% win (2,096/4,364), PF 0.866, net negative; last 365 days NQ 44.5% win, PF 0.632; ES last 365 days 57.1% win (n=338), MNQ 53.5% (fixed-dollar mode).",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Shows that an unfiltered symmetric-bracket ORB loses after costs; do not use as-is. Useful as the control configuration in the engine.",
+   "sources": [
+    "https://www.tradingview.com/script/R3JrEIKY-Opening-Range-Breakout-Winning-Day-ORB-NQ-MNQ-ES-YM/"
+   ]
+  },
+  {
+   "name": "ORB double-break / failed-breakout reversal (second break)",
+   "origin": "tradingstats.net ES/NQ 2014-2026 statistics; edgeful ES/NQ reports 2024-2025; generic 'ORB fade' practice",
+   "entry": "After the first break of the N-minute OR fails (price closes back inside the range) and price then breaks the opposite side of the OR (second break), enter in the second-break direction (5-min close confirmation).",
+   "exit": "Stop beyond the failed first-break extreme or at the OR midpoint; target 0.5x-1.0x OR range or EOD; flat 15:55 ET.",
+   "filters": "Best on 15/30-min ranges (second break wins 63.9% 15m; 67.9% ES / 72.2% NQ 30m); expect the reversal ~50-58 min after the first break (15m) / 88-96 min (30m); 5-min ranges weaker (55.3%).",
+   "parameters": "OR 15 or 30 min; stop at failed extreme; target 0.5-1.0x range",
+   "timeframe_session": "5-min bars; typically 10:30-12:00 ET entries; flat 15:55 ET",
+   "instruments": "ES, NQ",
+   "claimed_performance": "Second-break 'wins' (close in its direction): 55.3% (5m), 63.9% (15m), 67.9% ES / 72.2% NQ (30m). Edgeful: ES 15-min double breaks on 66.9% of days (6 months to Nov 2024); NQ 15-min second-breakout entries 57% win, avg win 1.8R, avg loss 1.0R, ~+0.43R/trade (sample undisclosed).",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Medium-size defined-risk trades, frequent (double breaks are 48-61% of days on 15/30m), suits consistency rule; complements the breakout by trading the days when the breakout fails.",
+   "sources": [
+    "https://tradingstats.net/orb-strategy-research/",
+    "https://www.edgeful.com/blog/posts/the-opening-range-breakout-orb-trading-strategy"
+   ]
+  },
+  {
+   "name": "ORB break-and-retest (midpoint / edge retest)",
+   "origin": "QuantCrawler 'ORB Break & Retest 15m' TradingView script (2025); common SMC/retail practice",
+   "entry": "OR = first 15 minutes (script default 08:00-08:15 premarket; use 09:30-09:45 for RTH). Breakout confirmed by a close beyond the range by X ticks; then wait for a pullback that touches the OR midpoint (or the broken edge); enter on touch in the breakout direction. Resets after each signal (multiple setups/session).",
+   "exit": "Not specified in script; standard: stop beyond the opposite OR edge, target 1-2R or 1.0x range; session end 16:00 ET.",
+   "filters": "Breakout distance threshold; session end time.",
+   "parameters": "OR 15 min; breakout distance X ticks; retest level = midpoint",
+   "timeframe_session": "1-min; 09:45-16:00 ET",
+   "instruments": "Index futures, generic",
+   "claimed_performance": "None published. Related negative evidence: Mesfin 2026 pullback entry into the OR on MNQ: 80.7% stop-out, -4.44 pts/trade. Positive evidence for retest entries only on session levels (London Reclaim).",
+   "evidence_quality": 1,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Unproven; pullback-into-range entries tested badly academically. Low priority.",
+   "sources": [
+    "https://www.tradingview.com/script/KxfvieAq-QuantCrawler-ORB-Break-Retest-15m-Opening-Range-Strategy",
+    "https://arxiv.org/abs/2605.04004"
+   ]
+  },
+  {
+   "name": "Initial Balance (first hour) breakout with C-period confirmation / narrow-IB filter",
+   "origin": "Market Profile (Steidlmayer / James Dalton, 'Mind over Markets', 'Markets in Profile'); statistics by tradingstats.net ES/NQ 2015-2025",
+   "entry": "IB = 09:30-10:30 ET high/low. Variant A (C-period confirmation): at 11:00 if the 10:30-11:00 30-min bar closed above the IB high, go long (below IB low, short). Variant B (narrow IB): if IB width < 0.5 x ATR14, place stop orders at IB high/low from 10:30; cancel after 12:00. Note: IB tends to break opposite to whichever extreme formed first (low-first -> single up break 52.5% ES).",
+   "exit": "Stop at IB midpoint (~0.5 IB) or 0.25 x ATR; target 50%-100% IB extension; if the post-break retracement exceeds 50% of IB, exit (52.7% become double breaks); flat 15:55 ET.",
+   "filters": "IB width tier vs ATR14 (narrow <0.5x: 98.7% break, 74.8% median extension; extreme >1.5x: 66.7% break, 22.3% ext.); C-period close outside IB (doubles the 100%-extension probability); shallow (<25%) retracement = 93.8% continuation; Wednesday highest conviction but most doubles; skip if first break fails (34% fail; downside breaks fail 53%).",
+   "parameters": "IB 60 min; stop = midpoint or 0.25 ATR; target 0.5-1.0x IB; time cutoff 12:00-13:30",
+   "timeframe_session": "30-min TPO periods on 1-min data; entries 10:30-11:00 ET (65% of first breaks occur in C period); flat 15:55 ET",
+   "instruments": "ES (2,686 days), NQ (2,833 days) 2015-01-05 to 2025-12-29",
+   "claimed_performance": "Statistics only: any IB break by close ES 97.8% / NQ 96.2%; 25% extension by close 52.0% up / 47.3% down (ES); 100% extension 18.8% / 20.5%; with C-period close outside IB: ES 100% up-extension 45.5%, down 50.0%; NQ 33.2% / 41.7%. Median MAE from break ES 7.25 (up) / 9.0 (down) pts, MFE 8.25 / 9.75. No net P&L.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "IB width on ES ~30-60 pts in 2025 -> full-range stops $1,500-3,000/ES, so use midpoint stops and MES (2-4). ~1 trade/day, exposure 11:00-15:55; suited to the 'safe' config; conservative 25-50% extension targets give modest, consistent days.",
+   "sources": [
+    "https://tradingstats.net/initial-balance-breakout-statistics/",
+    "https://tradingstats.net/initial-balance-retest-statistics/",
+    "https://www.tradingview.com/script/UYVre3kq-Initial-Balance-Breakout-Extension-Statistics-ES-NQ/",
+    "https://steady-turtle.com/knowledge/initial-balance-trading-strategy"
+   ]
+  },
+  {
+   "name": "thinkorswim FirstHourBreakout (first-hour range stop orders with overnight-volume filter)",
+   "origin": "thinkorswim (TD Ameritrade / Schwab) built-in strategy reference",
+   "entry": "09:30 ET: compare overnight volume to 5-day average; trade only if higher (filter can be disabled). 10:30: record first-hour high/low. 10:45-15:45: buy stop above the high, sell stop below the low on any breach.",
+   "exit": "Close all positions at 16:15 ET (use 15:55 for prop). No stop/target specified (add opposite side or ATR stop).",
+   "filters": "Overnight volume > 5-day average (optional, 'use filter').",
+   "parameters": "first hour 09:30-10:30; entry window 10:45-15:45; close 16:15",
+   "timeframe_session": "1-min; 10:45-16:15 ET",
+   "instruments": "Any (ES/NQ)",
+   "claimed_performance": "None published.",
+   "evidence_quality": 1,
+   "data_requirements": "Volume for the filter (optional); OHLC otherwise.",
+   "prop_fit": "Reference implementation of the IB breakout; without a stop it is unsuitable; with midpoint stop and EOD exit it becomes the IB strategy above.",
+   "sources": [
+    "https://toslc.thinkorswim.com/center/reference/Tech-Indicators/strategies/E-K/FirstHourBreakout"
+   ]
+  },
+  {
+   "name": "Overnight (Globex 18:00-09:30) range breakout with midpoint bias",
+   "origin": "tradingstats.net 'Overnight Range Breakout: Which Side Breaks First?' NQ 2015-2025; common practitioner setup",
+   "entry": "At 09:30 ET compute overnight high/low/midpoint (18:00-09:29). Bias = side of the midpoint the RTH open is on (above -> expect high to break first 76.2%; below -> low first 75.6%). Place a stop order at the biased ON level (or enter on first 5-min close beyond it); if the open is already beyond the level, enter on the first pullback/retest or skip. Strongest with gap > 0.69% in the bias direction (81.9% / 84.1%).",
+   "exit": "Stop at ON midpoint (or 0.5 x distance to midpoint capped at ~0.3 x ATR); target 0.5-1.0 x ON range beyond the level; time stop 11:00-12:00 ET (median first break at 09:41, 81% within 60 min); flat 15:55 ET.",
+   "filters": "Open vs ON midpoint; gap size (>0.69%: sweep risk 12.9% vs 32.3% for tiny gaps); Tuesday + below midpoint + gap down (99.1% break, 75.5% low first, n=222); skip when open is more than one ON-range beyond the level.",
+   "parameters": "ON session 18:00-09:30 ET; bias = midpoint; target 0.5-1.0x ON range; time stop 11:00-12:00",
+   "timeframe_session": "1-min; entries 09:30-10:30 ET; exit by 12:00-15:55 ET",
+   "instruments": "NQ (2,827 days 2015-01-02 to 2025-12-30); applies to ES/GC/CL",
+   "claimed_performance": "Statistics only: 94.2% of days break an ON level in RTH (only-high 38.7%, only-low 32.6%, both 22.9%); first-break direction 76% accurate with the midpoint filter; conditional sweep of the other side 24%; 33.5% of breaks occur in the first 5 minutes.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only (needs Globex session bars, which we have).",
+   "prop_fit": "Good: early-session, defined level and stop, 76% directional accuracy; 24% sweep risk handled by a noon time stop. Works on all four of our instruments from 1-min OHLC. Daily P&L modest and frequent (consistency-friendly).",
+   "sources": [
+    "https://tradingstats.net/overnight-high-low-breakout-strategy/"
+   ]
+  },
+  {
+   "name": "London session (02:00-08:00) range breakout at NY open with midpoint bias",
+   "origin": "tradingstats.net 'London Breakout Strategy: 2,839 Days of NQ Data' (2015-2025); nqstats ALN sessions (NQ 2016-2025); Quantified Strategies / insigtrade London breakout (CL)",
+   "entry": "At 08:00 ET mark London high/low/midpoint (02:00-08:00). If price is above the midpoint expect the London high to break first (82.7%, n=1,232); below -> low first (82.4%, n=823); at midpoint no edge. Enter on the break (stop order or 5-min close) of the biased London level. For a day-trade-only account, use the 09:30 open vs London midpoint as bias and trade the not-yet-broken London level from 09:30. nqstats pattern filter: 'partial engulf up' (41% of days) -> NY breaks London high 80.8%; 'partial engulf down' -> breaks low 75.0%.",
+   "exit": "Stop beyond the opposite London level capped at 0.5 x London range or a fixed 40-50 NQ pts; target = median penetration (~42 NQ pts above high / ~46 below low; 75th pct 96-112) or 0.5 x London range; exit at 12:00 ET to avoid the 45.7% sweep-both-sides rate (34.7% AM only); flat 15:55 ET.",
+   "filters": "Open vs London midpoint; London close direction (closed up -> high first 72.4%); day of week (Monday cleanest 38.7% sweep, Friday worst 51.1%); ALN engulfing pattern",
+   "parameters": "London 02:00-08:00 ET (alt 03:00-08:30); bias = midpoint; target ~45 NQ pts or 0.5x range; stop <= 45-50 NQ pts; time stop 12:00",
+   "timeframe_session": "1-min; NY 08:00-16:00 (AM 08:00-12:00); for our account 09:30-12:00 ET",
+   "instruments": "NQ (2,839 days); CL popular; applies to ES/GC",
+   "claimed_performance": "Statistics only: 98.4% break a London level in NY (97.0% AM); 82-83% first-break direction with midpoint filter; median time to first break 58 min after 08:00 (75th pct before 09:35); medium article (generic London breakout, FX): 165 trades, 49.1% win, expectancy +0.044%.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC only (London hours bars available in our 1-min data).",
+   "prop_fit": "Good bias source; note 75% of breaks happen before 09:35 so many setups are gone before our session starts - use remaining unbroken levels and the sweep-back (reclaim) variant. Defined stop, modest targets, noon time stop.",
+   "sources": [
+    "https://tradingstats.net/london-breakout-strategy/",
+    "https://nqstats.com/aln_sessions.html",
+    "https://medium.com/@phitzi/backtest-results-revealed-is-the-london-breakout-strategy-worth-it-0e9df65dd63b",
+    "https://www.quantifiedstrategies.com/london-breakout-strategy/"
+   ]
+  },
+  {
+   "name": "London Reclaim: MNQ/NQ breakout-and-retest on London and PDH/PDL levels (open source, costs included)",
+   "origin": "GitHub AskElira/london-reclaim (2026), research-only MNQ/NQ strategy",
+   "entry": "Levels: London session high/low (02:00-08:30 ET) and previous-day high/low (18:00 session cut). Windows 09:30-11:00 and 13:30-15:30 ET. When price sweeps (trades beyond) a level, wait for a confirmed 3-bar pullback swing, then place a stop order 1 tick beyond the breakout extreme (retest-continuation entry); order must rest beyond current price. Max 4 trades/day (one per direction per level); afternoon window skips levels already swept in the morning.",
+   "exit": "Stop 1 tick beyond the pullback swing extreme, must be <= 45 NQ pts; target 3.5R; flat 15:55 ET.",
+   "filters": "Stop-size cap 45 pts; one trade per direction per level; afternoon skip rule; fixed $100 risk/trade",
+   "parameters": "London 02:00-08:30; pullback = 3-bar swing; stop <= 45 pts; target 3.5R; risk $100; slippage 1 tick; commission $0.37/side",
+   "timeframe_session": "1-min bars; 09:30-11:00 and 13:30-15:30 ET; flat 15:55 ET",
+   "instruments": "MNQ / NQ",
+   "claimed_performance": "2019-05-06 to 2026-08-24: 1,367 trades, PF 1.26, Sharpe 1.44, win 32%, max DD $2,107, +$19,029 on $50k (~4.5%/yr at $100 risk). In-sample 2021-07 to 2026-07: 891 trades, PF 1.29, Sharpe 1.55, DD $1,512. OOS-pre 2019-05 to 2021-07: 470 trades, PF 1.21, Sharpe 1.31, DD $2,107. Avg win ~$211, avg loss ~$77.",
+   "evidence_quality": 3,
+   "data_requirements": "OHLC 1-min only (no volume). Fully reproducible on our data.",
+   "prop_fit": "Closest fit in the family: day-trade only, costs modeled, max DD $2.1k at $100 risk (EOD trailing is more forgiving than intraday). ~190 trades/yr -> slow eval at $100 risk (~+$2.7k/yr); need ~$150-200 risk for the 'fast' config, pushing DD toward $3-4k - so use as a component with other setups. 32% win = frequent small losing days, but no outsized days (consistency OK).",
+   "sources": [
+    "https://github.com/AskElira/london-reclaim"
+   ]
+  },
+  {
+   "name": "Asia session (19:00/20:00-02:00) range breakout / NY-vs-Asia classification",
+   "origin": "TradingView 'NY vs Asia Statistical Levels' (2025); nqstats ALN sessions; edgeful Asian-range reports; Mesfin 2026 Asia-session tests",
+   "entry": "Mark Asia high/low (20:00-02:00 ET; edgeful uses 19:00-02:00). At 08:00 (or 09:30 for our account) classify the open: inside lower half, inside upper half, above Asia high, below Asia low; trade the NY break of the Asia level in the direction of the London/overnight bias; one script variant requires a close outside the range with above-average volume and RSI confirmation.",
+   "exit": "Stop back inside the range; target 1.5R (script) or NY-extension statistics (multiple of Asia range); flat 15:55 ET.",
+   "filters": "ALN engulfing pattern (Asia engulfs London 6.9% of days -> NY breaks both London levels 56%); above-average volume (needs volume) optional",
+   "parameters": "Asia 20:00-02:00 ET; target 1.5R; stop inside range",
+   "timeframe_session": "1-min; NY 08:00-16:00 ET",
+   "instruments": "NQ, ES, CL, GC",
+   "claimed_performance": "No net P&L published. Negative academic evidence: Asia-session range-expansion momentum bars on MNQ all negative after 2-pt friction (T -0.9 to -11.5, Mesfin 2026).",
+   "evidence_quality": 1,
+   "data_requirements": "OHLC only (volume optional for the script's confirmation).",
+   "prop_fit": "Use the Asia range only as a context/level filter inside the overnight/London setups, not standalone.",
+   "sources": [
+    "https://www.tradingview.com/script/Yo04T1a0-NY-vs-Asia-Statistical-Levels/",
+    "https://nqstats.com/aln_sessions.html",
+    "https://arxiv.org/abs/2605.04004",
+    "https://www.edgeful.com/docs/api-reference/reports/asian-range-breakout-standard.md"
+   ]
+  },
+  {
+   "name": "Previous-day high/low (PDH/PDL) breakout, retest and target rules",
+   "origin": "edgeful previous-day-range / inside-bar reports (NQ/ES, rolling 12 months, 2024-2026); tradezella 'Break & Retest' ES/NQ H1-2026 backtest; generic practice",
+   "entry": "Variant A (breakout): after a 5-min close beyond PDH (long) / PDL (short) during 09:30-11:30, enter on the break; Variant B (break-and-retest): enter on the retest of the broken level with a rejection bar; Variant C (target use): when the open is inside yesterday's range, use the midpoint bias (open above mid -> PDH touched 67%; below -> PDL 58%) and trade toward PDH/PDL as the target with an ORB/IB entry.",
+   "exit": "Stop 0.3-0.5 x ATR (or beyond the retest swing); target 0.5 x prior-day range (A/B) or the PDH/PDL level (C); flat 15:55 ET.",
+   "filters": "Inside-day prior bar (next-day break of its range 87.8% ES / 88.4% NQ); avoid FOMC/NFP/CPI days (both retest and fade variants 'degrade sharply'); open-above-PDH days revert into yesterday's range ~100% (ES) so plain breakouts from an outside open are poor.",
+   "parameters": "PDH/PDL from 18:00-17:00 or RTH session; stop 0.3-0.5 ATR; target 0.5x prior range",
+   "timeframe_session": "1-min/5-min; 09:30-15:55 ET",
+   "instruments": "ES, NQ (YM stats cited)",
+   "claimed_performance": "Statistics: open inside range -> ~75% test PDH or PDL (NQ); open above PDH / below PDL -> ~100% trade back into range (ES); YM 81% green when PDH breaks, 63% red when PDL breaks (sample unspecified); tradezella H1-2026: retest entry lower win rate but higher expectancy than fade (no numbers). No net P&L.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only.",
+   "prop_fit": "Best used as targets/levels for the ORB and session trades rather than a standalone breakout; retest logic overlaps London Reclaim. Event-day exclusion needed.",
+   "sources": [
+    "https://www.edgeful.com/blog/posts/inside-day-in-trading-breakout-data",
+    "https://edgeful.com/blog/posts/ultimate-bullish-setup-trading-NQ",
+    "https://www.tradezella.com/strategies/break-retest",
+    "https://r.til.io/r/FuturesTrading/comments/1bxkwdr/es_reverses_back_into_yesterdays_range_100_of_the"
+   ]
+  },
+  {
+   "name": "Gold opening-range new-high breakout (relaxedtrader) and CL pit-open 09:00-09:15 ORB",
+   "origin": "relaxedtrader.com Gold ORB system (backtest 2001-2015, live 2016-2026); damnpropfirms CL pit-open ORB guide (2025); Quantified Strategies GC/CL ORB tests",
+   "entry": "Gold: mark the opening range of the GC session, buy when gold breaks to a new intraday high by a 'statistically significant' amount (threshold undisclosed). CL: mark 09:00-09:15 ET high/low on 1-min; enter on close beyond the range, preferably on the retest of the broken level (CL breakouts fail often).",
+   "exit": "Gold: exit at the next session open (avg hold 1.5 days - overnight, NOT allowed on Lucid; needs EOD-exit adaptation). CL: stop beyond the opposite side of the range; target not specified (use 1-2R); flat 15:55 ET.",
+   "filters": "Gold: long only; CL: retest confirmation",
+   "parameters": "Gold: OR length and breakout threshold proprietary; CL: OR 15 min from 09:00 ET",
+   "timeframe_session": "GC session (08:20 ET pit open commonly used); CL 09:00-09:15 ET OR",
+   "instruments": "GC/MGC, CL/MCL",
+   "claimed_performance": "Gold system: PF 1.69, CAGR 18.1%, win 57.1%, 531 trades, MDD 19.6% at $50k/contract (2001-2026, vendor). CL: no statistics. Quantified Strategies: simple ORB on GC, SI and CL negative in their backtests.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only (gold rule threshold unknown).",
+   "prop_fit": "Gold version holds overnight (disallowed); a day-only adaptation must be re-tested. CL ORB has no evidence. Low priority; GC/CL ORB tests should reuse the ES/NQ ORB engine with 08:20/09:00 ET anchors.",
+   "sources": [
+    "https://relaxedtrader.com/store/gold-opening-range-breakout-trading-strategy/",
+    "https://damnpropfirms.com/trading-guides/opening-range-breakout-strategy-futures-traders/",
+    "https://www.quantifiedstrategies.com/opening-range-breakout-strategy/"
+   ]
+  },
+  {
+   "name": "Capstone 'NQ Open Range' morning trend system (vendor)",
+   "origin": "Capstone Trading Systems, released Dec 2024; hypothetical 2017-2026",
+   "entry": "Proprietary rules-based opening-range setup capturing morning-session trends on NQ (no martingale/grid). Exact rules not disclosed.",
+   "exit": "Rules-based; largest loss capped around -$1,025 per NQ; largest win $16,700 (trend-following exit).",
+   "filters": "Undisclosed",
+   "parameters": "Undisclosed",
+   "timeframe_session": "Morning session, NQ RTH",
+   "instruments": "NQ / MNQ",
+   "claimed_performance": "Hypothetical 2017-01 to 2026-10: net +$254,505, max DD $45,010, win 34.3%, PF 1.18, 2,423 trades, avg win $2,002, avg loss -$885, avg trade $105, Sharpe 0.73.",
+   "evidence_quality": 1,
+   "data_requirements": "Unknown (likely OHLC).",
+   "prop_fit": "DD $45k per NQ = $4.5k per MNQ: fails the $2k EOD trailing even at 1 MNQ; 34% win with huge winners also fights the consistency rule. Catalogued only.",
+   "sources": [
+    "https://capstonetradingsystems.com/products/open-range-nq"
+   ]
+  },
+  {
+   "name": "Mesfin London Session Signal B (regime-transition long, 03:00-08:30 ET) - reference only",
+   "origin": "M. Mesfin, arXiv 2605.04004 (2026), positive control",
+   "entry": "On 15-min London-session bars (03:00-08:30 ET), a 3-component GMM (features: ATR ratio, volume z-score, close position, 15-min return, directional consistency) labels regimes; go long at the next bar open after a clean transition from Regime 0 (bearish chop) to Regime 2 (bullish drift) with no Regime 1 (extreme vol) in the prior two bars.",
+   "exit": "60 minutes after entry or 08:30 ET, whichever first; fixed 20-point stop; 2.0-pt friction.",
+   "filters": "GMM refit each walk-forward fold; one-bar delay flips the sign (T -2.78)",
+   "parameters": "15-min bars; GMM 3 components; stop 20 pts; hold 60 min",
+   "timeframe_session": "03:00-08:30 ET (outside our day-session)",
+   "instruments": "MNQ 2021-12 to 2025-08",
+   "claimed_performance": "Walk-forward OOS N=247, +4.09 pts net/trade, T=4.30 (p=0.000025), win 61.5%, per-trade Sharpe 0.27, bootstrap P(mean>2 pts)=98.9%; static full-sample 289 trades T=5.15.",
+   "evidence_quality": 4,
+   "data_requirements": "NEEDS VOLUME (volume z-score feature) and a fitted GMM; trades before 09:30 ET.",
+   "prop_fit": "Not usable (pre-09:30 trading, volume features, latency-critical). Catalogued as the only statistically robust session-structure signal in the academic test.",
+   "sources": [
+    "https://arxiv.org/abs/2605.04004"
+   ]
+  },
+  {
+   "name": "ORB-length comparison on equities with four bracket rules (orbsetups.com)",
+   "origin": "orbsetups.com research, 614 stocks/ETFs, 2024-12 to 2026-03 (311 days, 1.18M trades)",
+   "entry": "Breakout of the 5/15/30-min opening range (stop order at range high/low).",
+   "exit": "Four brackets: target = full or half range, stop = full or half range; EOD close otherwise.",
+   "filters": "Direction (short breakouts 54.1% vs long 53.4% win on 5-min, but long P&L ~2x); symbol",
+   "parameters": "OR 5/15/30 min; target/stop = 0.5x or 1.0x range",
+   "timeframe_session": "09:30 ET open; US equities RTH",
+   "instruments": "SPY, QQQ, AAPL, TSLA, NVDA, etc. (614 symbols)",
+   "claimed_performance": "Win rate (full target/full stop): 5m 53.8%, 15m 51.0%, 30m 49.4%; half-target/full-stop 68.9% win (5m) but smallest gains; best expectancy 15m full/full $0.044/trade; 30m lowest per-trade but highest cumulative. No costs/Sharpe.",
+   "evidence_quality": 2,
+   "data_requirements": "OHLC only (equities).",
+   "prop_fit": "Only a cross-check that 1:1 brackets are near coin-flips; half-target/full-stop gives ~69% win but negative expectancy unless costs are near zero.",
+   "sources": [
+    "https://orbsetups.com/research/5-minute-vs-15-minute-vs-30-minute-opening-range-which-timeframe-has-the-best-win-rate/"
+   ]
+  }
+ ]
+}

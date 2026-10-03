@@ -15,7 +15,7 @@ DESCRIPTION = __doc__
 CONTRACTS = ['MES', 'MNQ']
 PARAMS = {'or_minutes': 15, 'rr': 2.0, 'stop_frac': 1.0, 'max_stop_atr': 0.5, 'buffer_ticks': 1, 'last_entry': '11:30',
           'flat': '15:55', 'max_trades': 1, 'min_range_atr': 0.05, 'max_range_atr': 0.6, 'valid_minutes': 120}
-GRID = {'or_minutes': [5, 15, 30], 'rr': [1.0, 1.5, 2.0, 3.0], 'stop_frac': [0.5, 1.0], 'max_trades': [1, 2]}
+GRID = {'or_minutes': [5, 15, 30], 'rr': [1.0, 1.5, 2.0, 3.0], 'stop_frac': [0.5, 1.0]}
 
 
 def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
@@ -51,7 +51,9 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
         while k < len(df1) and day[k] == day[i_start] and tod[k] < last_entry and (k - i_start) < p['valid_minutes']:
             up = h[k] >= hi; dn = l[k] <= lo
             if up and dn:
-                first = 0; fill_i = k; break  # ambiguous bar: skip the day (conservative)
+                # both sides touched within one bar: assume the side nearer the open triggered first; the engine will
+                # then stop the trade out on the same bar (conservative: a loss, never a skipped day)
+                first = 1 if (hi - df1['open'].values[k]) <= (df1['open'].values[k] - lo) else -1; fill_i = k; break
             if up:
                 first = 1; fill_i = k; break
             if dn:

@@ -17,11 +17,16 @@ import strategies
 
 
 def run_leg(leg, start, end, slip_ticks=None):
-    contract = CONTRACTS[leg['contract']]
-    df1 = load_1m(contract.data_symbol, start, end)
-    mod = strategies.load(leg['strategy'])
-    it = mod.generate(df1, contract, leg.get('params', {}))
+    from backtest.run import prepare
+    df1, it, contract = prepare(leg['strategy'], leg['contract'], start, end, leg.get('params', {}))
     trades, daily, bars = engine.run(it, contract, slip_ticks=slip_ticks, return_bars=True)
+    s0 = pd.Timestamp(start).date()
+    keep_d = daily['session'].values >= s0
+    daily = daily[keep_d].reset_index(drop=True)
+    bars = bars[np.isin(bars['day_id'].values, np.where(keep_d)[0])].reset_index(drop=True)
+    bars['day_id'] = bars['day_id'] - int(np.where(keep_d)[0].min()) if keep_d.any() else bars['day_id']
+    if len(trades):
+        trades = trades[pd.to_datetime(trades['entry_ts']).dt.tz_convert('America/New_York').dt.date >= s0].reset_index(drop=True)
     scale = leg.get('micros', 1) / (contract.micro_ratio if contract.name in ('ES', 'NQ', 'GC', 'CL') else 1)
     trades = trades.copy(); trades['pnl'] *= scale; trades['leg'] = leg['strategy'] + '/' + leg['contract']
     bars = bars.copy(); bars['eq_low'] *= scale; bars['eq_close'] *= scale

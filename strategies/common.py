@@ -45,7 +45,8 @@ def session_vwap(bars: pd.DataFrame, anchor_tod: int = None) -> pd.Series:
     tp = (bars['high'] + bars['low'] + bars['close']) / 3.0
     key = bars['day_id']
     if anchor_tod is not None:
-        key = bars['day_id'].astype(str) + '_' + (bars['tod'] >= anchor_tod).astype(str)
+        after = (bars['tod'] >= anchor_tod) & (bars['tod'] <= hm('17:00'))   # evening bars (>= 18:00) are pre-anchor
+        key = bars['day_id'].astype(str) + '_' + after.astype(str)
     cs = tp.groupby(key).cumsum(); cnt = tp.groupby(key).cumcount() + 1
     return cs / cnt
 
@@ -82,3 +83,31 @@ def daily_atr(df1: pd.DataFrame, n=14, rth_only=True, rth=('09:30', '16:00')) ->
     """ATR of daily bars, shifted so that value at day_id d uses days < d."""
     d = daily_bars(df1, rth_only=rth_only, rth=rth)
     return atr(d, n).shift(1)
+
+
+def vix_lag1(df1: pd.DataFrame) -> pd.Series:
+    """Prior-day VIX close mapped to day_id (uses only information available before the session)."""
+    import os
+    from backtest.data import PQ
+    vix = pd.read_parquet(os.path.join(PQ, 'VIX_1d.parquet'))['close']
+    vix.index = pd.to_datetime(vix.index).date
+    sessions = df1.groupby('day_id')['session'].first()
+    # prior available VIX close strictly before the session date
+    s = pd.Series(vix.values, index=pd.to_datetime(list(vix.index)))
+    out = []
+    dates = pd.to_datetime(sessions.values)
+    pos = s.index.searchsorted(dates, side='left') - 1
+    vals = np.where(pos >= 0, s.values[np.clip(pos, 0, len(s) - 1)], np.nan)
+    return pd.Series(vals, index=sessions.index)
+
+
+def session_info(df1: pd.DataFrame, rth=('09:30', '16:00')) -> pd.DataFrame:
+    """Per day_id: first/last bar tod, number of RTH bars, early_close flag (last RTH bar before 15:30 ET), dow."""
+    g = df1.groupby('day_id')
+    out = pd.DataFrame({'session': g['session'].first(), 'first_tod': g['tod'].first(), 'last_tod': g['tod'].last()})
+    r = df1[(df1['tod'] >= hm(rth[0])) & (df1['tod'] < hm(rth[1]))].groupby('day_id')
+    out['rth_bars'] = r.size().reindex(out.index).fillna(0).astype(int)
+    out['rth_last_tod'] = r['tod'].last().reindex(out.index)
+    out['early_close'] = (out['rth_last_tod'] < hm('15:30')) | (out['rth_bars'] < 300)
+    out['dow'] = pd.to_datetime(out['session']).dt.dayofweek
+    return out

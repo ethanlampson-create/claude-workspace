@@ -53,33 +53,41 @@ def _mll_update(mll, peak_eod, rules):
     return max(mll, min(new, rules.lock_level))
 
 
-def simulate_eval(pnl, min_eq, start, micros, rules: Rules, horizon=120, micros_schedule=None):
+def simulate_eval(pnl, min_eq, start, micros, rules: Rules, horizon=120, micros_schedule=None, ntrades=None):
     """Run one evaluation starting at day index `start` with `micros` contracts (micro-equivalents; the
-    per-contract daily arrays must be for ONE micro contract). Returns dict with outcome.
+    per-contract daily arrays must be for ONE micro contract). Returns dict with outcome:
+    'pass', 'fail', 'incomplete' (horizon exhausted) or 'censored' (data ended before resolution).
+    A *trading day* is a session with at least one executed trade (ntrades > 0, or pnl/min_eq != 0 when ntrades is
+    not given) on which contracts were actually traded (schedule > 0).
     micros_schedule: optional callable(day_in_eval, balance, mll, largest_day, total_profit) -> micros."""
     bal = rules.start_balance; mll = rules.start_balance - rules.mll_distance; peak = bal
-    largest = 0.0; days = 0
+    largest = 0.0; days = 0; tdays = 0
     n = len(pnl)
-    for k in range(start, min(n, start + horizon)):
+    last = min(n, start + horizon)
+    for k in range(start, last):
         m = micros if micros_schedule is None else micros_schedule(days, bal, mll, largest, bal - rules.start_balance)
         m = min(m, rules.eval_max_micros)
         if m <= 0:
             days += 1
             continue
+        traded = (ntrades[k] > 0) if ntrades is not None else (pnl[k] != 0.0 or min_eq[k] != 0.0)
         # intraday breach check
         if bal + min_eq[k] * m <= mll:
             return {'outcome': 'fail', 'days': days + 1, 'end_day': k, 'balance': mll, 'largest_day': largest}
         day_pnl = pnl[k] * m
         bal += day_pnl; days += 1
+        if traded:
+            tdays += 1
         largest = max(largest, day_pnl)
         peak = max(peak, bal)
         mll = _mll_update(mll, peak, rules)
         if bal <= mll:
             return {'outcome': 'fail', 'days': days, 'end_day': k, 'balance': bal, 'largest_day': largest}
         profit = bal - rules.start_balance
-        if profit >= rules.target and days >= rules.min_days and (rules.consistency <= 0 or largest <= rules.consistency * profit):
+        if profit >= rules.target and tdays >= rules.min_days and (rules.consistency <= 0 or largest <= rules.consistency * profit):
             return {'outcome': 'pass', 'days': days, 'end_day': k, 'balance': bal, 'largest_day': largest}
-    return {'outcome': 'incomplete', 'days': days, 'end_day': min(n, start + horizon) - 1, 'balance': bal, 'largest_day': largest}
+    outcome = 'censored' if last == n and start + horizon > n else 'incomplete'
+    return {'outcome': outcome, 'days': days, 'end_day': last - 1, 'balance': bal, 'largest_day': largest}
 
 
 def simulate_funded(pnl, min_eq, start, micros_policy, rules: Rules, horizon=250, min_profit_to_request=4_000.0,
@@ -131,7 +139,8 @@ def simulate_funded(pnl, min_eq, start, micros_policy, rules: Rules, horizon=250
                 return {'outcome': 'live', 'days': days, 'end_day': k, 'payouts': payouts, 'paid': sum(payouts) * rules.split,
                         'balance': bal, 'first_payout_day': payouts_days[0]}
     return {'outcome': 'alive', 'days': days, 'end_day': min(n, start + horizon) - 1, 'payouts': payouts,
-            'paid': sum(payouts) * rules.split, 'balance': bal, 'first_payout_day': (payouts and payouts_days[0]) or None}
+            'paid': sum(payouts) * rules.split, 'balance': bal, 'first_payout_day': (payouts and payouts_days[0]) or None,
+            'censored': start + horizon > n}
 
 
 def constant_micros(m):
@@ -144,44 +153,57 @@ def monte_carlo(daily: pd.DataFrame, eval_micros, funded_policy, rules: Rules, s
     session. Returns per-start DataFrame and a summary dict. `daily` must have columns session, pnl, min_eq for
     ONE micro contract."""
     pnl = daily['pnl'].values; min_eq = daily['min_eq'].values; sessions = daily['session'].values
+    ntr = daily['trades'].values if 'trades' in daily else None
     rows = []
     n = len(pnl)
-    for s in range(0, n - rules.min_days, start_every):
-        ev = simulate_eval(pnl, min_eq, s, eval_micros, rules, eval_horizon, eval_schedule)
+    for s in range(0, max(0, n - rules.min_days), start_every):
+        ev = simulate_eval(pnl, min_eq, s, eval_micros, rules, eval_horizon, eval_schedule, ntr)
         row = {'start': sessions[s], 'eval': ev['outcome'], 'eval_days': ev['days'], 'eval_largest': ev['largest_day'], 'eval_balance': ev['balance']}
         if ev['outcome'] == 'pass' and funded_follows_eval and ev['end_day'] + 1 < n:
             fd = simulate_funded(pnl, min_eq, ev['end_day'] + 1, funded_policy, rules, funded_horizon, min_profit_to_request)
             row.update({'funded': fd['outcome'], 'funded_days': fd['days'], 'n_payouts': len(fd['payouts']), 'paid': fd['paid'],
-                        'first_payout_day': fd['first_payout_day'], 'funded_balance': fd['balance']})
+                        'first_payout_day': fd['first_payout_day'], 'funded_balance': fd['balance'], 'funded_censored': bool(fd.get('censored', False))})
         rows.append(row)
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(rows, columns=['start', 'eval', 'eval_days', 'eval_largest', 'eval_balance', 'funded', 'funded_days', 'n_payouts', 'paid',
+                                     'first_payout_day', 'funded_balance', 'funded_censored'])
     summ = summarize_mc(df, rules)
     return df, summ
 
 
 def summarize_mc(df: pd.DataFrame, rules: Rules):
+    """Summary over evaluation starts. Evals that could not resolve because the DATA ENDED ('censored') are excluded
+    from every rate; evals that exhausted the horizon ('incomplete') count as non-passes."""
     out = {}
     n = len(df)
     out['n_starts'] = n
-    out['pass_rate'] = float((df['eval'] == 'pass').mean()) if n else np.nan
-    out['fail_rate'] = float((df['eval'] == 'fail').mean()) if n else np.nan
-    out['incomplete_rate'] = float((df['eval'] == 'incomplete').mean()) if n else np.nan
-    p = df[df['eval'] == 'pass']
+    res = df[df['eval'] != 'censored'] if n else df
+    out['n_censored'] = int(n - len(res))
+    m = len(res)
+    out['pass_rate'] = float((res['eval'] == 'pass').mean()) if m else np.nan
+    out['fail_rate'] = float((res['eval'] == 'fail').mean()) if m else np.nan
+    out['incomplete_rate'] = float((res['eval'] == 'incomplete').mean()) if m else np.nan
+    p = res[res['eval'] == 'pass']
     out['median_days_to_pass'] = float(p['eval_days'].median()) if len(p) else np.nan
     out['p90_days_to_pass'] = float(p['eval_days'].quantile(0.9)) if len(p) else np.nan
-    if 'funded' in df.columns and len(p):
-        f = p.dropna(subset=['funded'])
-        out['p_first_payout_given_pass'] = float((f['n_payouts'] >= 1).mean()) if len(f) else np.nan
-        out['p_breach_before_payout'] = float(((f['funded'] == 'breach') & (f['n_payouts'] == 0)).mean()) if len(f) else np.nan
-        out['mean_paid_given_pass'] = float(f['paid'].mean()) if len(f) else np.nan
-        out['median_days_to_first_payout'] = float(f['first_payout_day'].dropna().median()) if f['first_payout_day'].notna().any() else np.nan
-        out['mean_payouts_given_pass'] = float(f['n_payouts'].mean()) if len(f) else np.nan
-        out['p_live_5_payouts'] = float((f['funded'] == 'live').mean()) if len(f) else np.nan
-        out['p_first_payout_unconditional'] = out['pass_rate'] * out['p_first_payout_given_pass'] if len(f) else np.nan
-        out['expected_paid_per_eval'] = out['pass_rate'] * out['mean_paid_given_pass'] if len(f) else np.nan
-        out['expected_net_per_eval'] = out['expected_paid_per_eval'] - rules.eval_fee if len(f) else np.nan
-    # monthly pass rate: evals started in each calendar month
-    if n:
-        m = pd.to_datetime(df['start']).dt.to_period('M')
-        out['monthly_pass_rate'] = df.groupby(m)['eval'].apply(lambda s: float((s == 'pass').mean())).to_dict()
+    f = p.dropna(subset=['funded']) if len(p) else p
+    if len(f):
+        # funded runs still alive with no payout at the data end are censored for the first-payout question
+        fc = f['funded_censored'].fillna(False).astype(bool) if 'funded_censored' in f else pd.Series(False, index=f.index)
+        fr = f[~((f['funded'] == 'alive') & (f['n_payouts'] == 0) & fc)]
+        out['n_funded_resolved'] = int(len(fr))
+        out['p_first_payout_given_pass'] = float((fr['n_payouts'] >= 1).mean()) if len(fr) else np.nan
+        out['p_breach_before_payout'] = float(((fr['funded'] == 'breach') & (fr['n_payouts'] == 0)).mean()) if len(fr) else np.nan
+        out['mean_paid_given_pass'] = float(fr['paid'].mean()) if len(fr) else np.nan
+        out['median_days_to_first_payout'] = float(fr['first_payout_day'].dropna().median()) if fr['first_payout_day'].notna().any() else np.nan
+        out['mean_payouts_given_pass'] = float(fr['n_payouts'].mean()) if len(fr) else np.nan
+        out['p_live_5_payouts'] = float((fr['funded'] == 'live').mean()) if len(fr) else np.nan
+        out['p_first_payout_unconditional'] = out['pass_rate'] * out['p_first_payout_given_pass'] if len(fr) else np.nan
+        out['expected_paid_per_eval'] = out['pass_rate'] * out['mean_paid_given_pass'] if len(fr) else np.nan
+        out['expected_net_per_eval'] = out['expected_paid_per_eval'] - rules.eval_fee if len(fr) else np.nan
+    # monthly pass rate: evals started in each calendar month (censored excluded)
+    if m:
+        mo = pd.to_datetime(res['start']).dt.to_period('M')
+        out['monthly_pass_rate'] = res.groupby(mo)['eval'].apply(lambda s: float((s == 'pass').mean())).to_dict()
+    else:
+        out['monthly_pass_rate'] = {}
     return out

@@ -52,7 +52,7 @@ def test_intraday_breach_uses_prior_eod_mll_and_min_eq_times_micros():
     assert out['outcome'] == 'fail' and out['days'] == 2 and out['balance'] == 49_500
     # one dollar of room survives
     mn2 = arr(-10, -1999)
-    assert simulate_eval(pnl, mn2, 0, 1, r)['outcome'] == 'incomplete'
+    assert simulate_eval(pnl, mn2, 0, 1, r)['outcome'] == 'censored'
     # micros multiply the excursion: 10 micros with min_eq -200/micro == -2000
     pnl10 = arr(150, 10); mn10 = arr(-1, -200)
     assert simulate_eval(pnl10, mn10, 0, 10, r)['outcome'] == 'fail'
@@ -77,7 +77,7 @@ def test_lock_at_50100_once_eod_above_52100():
     pnl = arr(2050, 100, 1000, -3000); mn = arr(0, 0, 0, -3000)
     out = simulate_eval(pnl, mn, 0, 1, r, micros_schedule=rec_schedule(store, 1))
     assert [s[2] for s in store] == [48_000, 50_050, 50_100, 50_100]
-    assert out['outcome'] == 'incomplete'  # 53,150 - 3,000 = 50,150 > 50,100: not a breach
+    assert out['outcome'] == 'censored'  # 53,150 - 3,000 = 50,150 > 50,100: not a breach
 
 
 def test_lock_boundary_exact_values():
@@ -85,7 +85,7 @@ def test_lock_boundary_exact_values():
     store = []
     pnl = arr(2050, 100, 1000, -3049); mn = arr(0, 0, 0, -3049)
     out = simulate_eval(pnl, mn, 0, 1, r, micros_schedule=rec_schedule(store, 1))
-    assert out['outcome'] == 'incomplete'  # 53,150 - 3,049 = 50,101 > 50,100
+    assert out['outcome'] == 'censored'  # 53,150 - 3,049 = 50,101 > 50,100
     pnl = arr(2050, 100, 1000, -3050); mn = arr(0, 0, 0, -3050)
     out = simulate_eval(pnl, mn, 0, 1, r)
     assert out['outcome'] == 'fail'        # 50,100 <= 50,100 touches
@@ -109,12 +109,12 @@ def test_consistency_uses_balance_minus_start_not_sum_of_winners():
     pnl = arr(2000, -300, 1600, 400); mn = arr(0, -300, 0, 0)
     out = simulate_eval(pnl, mn, 0, 1, r)
     # day 4: profit 3700, largest 2000 > 1850 -> still no pass
-    assert out['outcome'] == 'incomplete'
+    assert out['outcome'] == 'censored'
 
 
 def test_target_is_balance_ge_53000_and_min_days_two():
     r = Rules(consistency=0)
-    out = simulate_eval(arr(3000, 0), arr(0, 0), 0, 1, r)
+    out = simulate_eval(arr(3000, 5), arr(0, 0), 0, 1, r)   # day 2 must have a trade (non-zero P&L) to count
     assert out['outcome'] == 'pass' and out['days'] == 2  # first day alone is blocked by min_days
 
 
