@@ -43,5 +43,22 @@
   "note": "lucid_scan run was OOM-killed while the background grids held memory; with max_dd_intraday -5181 per micro even 1 micro breaches the $2,000 trailing limit, so no size can be recommended"
  },
  "verdict": "dead",
- "notes": "MNQ MAIN PF 1.06 (221 tr, Sharpe 0.25, worst month -4204, intraday DD -5181/micro); PRIOR PF 0.92. MES MAIN PF 1.075 carried by 2025-04-08/09 (+3793 of +885 net); PRIOR 0.95. MGC dead both periods (PF 0.84/0.63): gold overnight return CONTINUES intraday (reversal t=-2.3 on PRIOR). corr(demeaned overnight, 09:31-15:55 return) ~ -0.06 MAIN, ~0 PRIOR for equities; equity-only demeaning has no edge. 36-combo MAIN grids per contract were launched in the background (results/mr_onrev/grid_main_{MNQ,MES,MGC}.csv when finished)."
+ "notes": "MNQ MAIN PF 1.06 (221 tr, Sharpe 0.25, worst month -4204, intraday DD -5181/micro); PRIOR PF 0.92. MES MAIN PF 1.075 carried by 2025-04-08/09 (+3793 of +885 net); PRIOR 0.95. MGC dead both periods (PF 0.84/0.63): gold overnight return CONTINUES intraday (reversal t=-2.3 on PRIOR). corr(demeaned overnight, 09:31-15:55 return) ~ -0.06 MAIN, ~0 PRIOR for equities; equity-only demeaning has no edge. 36-combo MAIN grids per contract were launched in the background (results/mr_onrev/grid_main_{MNQ,MES,MGC}.csv when finished).",
+ "verify": {
+  "id": "mr_onrev",
+  "verdict": "dead",
+  "lookahead_found": false,
+  "lookahead_notes": "No look-ahead: signal uses 09:30 open and prior-session close (shift(1)) of each universe member; entry is a market order at the 09:31 bar open; ATR stop is daily_atr shift(1) with min_periods=14; no VIX/OR/ON-range; defaults equal the published rule, no date/regime constants. Re-run reproduces final.json exactly.",
+  "fixed_main_pf": 1.061,
+  "fixed_prior_pf": 0.918,
+  "plateau_frac": 1.0,
+  "history_2015_2022_pf": 0.915,
+  "history_2015_2022_ex2020_pf": 0.905,
+  "history_2020_pf": 0.96,
+  "slippage2_main_pf": 1.055,
+  "largest_day_share_main": 0.826,
+  "wf_oos_2025_pf": 1.197,
+  "thin_session_dependence": "Top-10 days = +11753 = 468% of net (+2509); net ex-top-10 = -9244; best day 2025-11-20 +2073 = 83% of net; PF ex-best-day 1.011; best month 2025-02 +2790 = 111% of net, six months each > 40% of net; 19 disaster stops -16044 vs 202 time exits +18553.",
+  "notes": "Criteria: look-ahead none (pass); WF OOS 2025 PF 1.197 (pass); plateau_frac 1.00 (pass, but all neighbours are noise-level PF 1.05-1.17 sharing the same best day); history 2015-2022 PF 0.915, ex-2020 0.905, 7 of 8 years losing, PRIOR 2023-24 PF 0.918 (FAIL, not narrow); slip-2 MAIN PF 1.055 (pass). Verdict dead."
+ }
 }

@@ -195,5 +195,49 @@
   "method": "final_select --wf_start 2022-01-01 --max_combos 16: params chosen on trailing 12 months from GRID (or_minutes/direction/stop_mode/tgt_frac) with final.json params as base, tested on the next 3 months; OOS stream 2025-01..2026-09",
   "fixed_main_pf": 1.7166337915106404,
   "fixed_prior_pf": 1.2220340539132901
+ },
+ "verify": {
+  "date": "2026-10-04",
+  "id": "orb_close30",
+  "verdict": "survivor",
+  "lookahead_found": false,
+  "lookahead_notes": "No same-bar or future information: ATR shifted one day, OR complete before candidate bars, signal on 5-min CLOSE with order at i_next (next 1-min open + 1 tick), NDX trend from the daily row strictly before the session (SMA min_periods=n), first break only, no date/regime constants. 142/142 MAIN trades re-verified against raw bars. Non-GRID values trend_fast 50 / max_range_atr 0.5 / max_stop_atr 0.6 were chosen on MAIN (snooping, not look-ahead).",
+  "fixed_main_pf": 1.7166337915106404,
+  "fixed_main_trades": 142,
+  "fixed_main_net": 6216.97,
+  "fixed_prior_pf": 1.2220340539132901,
+  "fixed_prior_trades": 117,
+  "fixed_prior_net": 1301.12,
+  "wf_oos_2025_pf": 1.4524705872175403,
+  "wf_oos_2025_trades": 140,
+  "largest_day_share_main": 0.057458267874093694,
+  "plateau_frac": 1.0,
+  "plateau_runs": {
+   "or_minutes_30": 1.243,
+   "tgt_frac_0.5": 1.723
+  },
+  "plateau_categorical": {
+   "direction_long": 1.238,
+   "direction_both": 1.064,
+   "stop_mode_mid": 1.295
+  },
+  "plateau_extended_min_pf": 1.362,
+  "plateau_extended_n_pass": "13/13",
+  "history_2015_2022_pf": 1.007203603010295,
+  "history_2015_2022_ex2020_pf": 1.074,
+  "history_2015_2022_net": 161.63,
+  "history_2015_2022_trades": 665,
+  "history_2020_pf": 0.7850313582059225,
+  "history_2020_net": -1111.79,
+  "history_2020_trades": 97,
+  "slippage2_main_pf": 1.708,
+  "slippage2_main_net": 6169.54,
+  "top10_days_share_main": 0.462,
+  "ex_top10_main_pf": 1.385,
+  "max_month_share_main": 0.174,
+  "any_month_over_40pct": false,
+  "thin_session_dependence": "Top 10 days = 46.2% of MAIN net (ex-top-10 PF 1.385); largest day 5.7%; largest month Jun-2026 17.4%; no month > 40%. Six of the ten best days are Apr-2025 shorts and Jun-2026 longs.",
+  "notes": "All five criteria pass -> survivor. Caveats: WF OOS PF 1.45 vs in-sample 1.72, last three OOS quarters PF 1.07/1.03/0.64; 2015-2022 history flat (PF 1.007, ex-2020 1.074, 2015-2017 negative, 2020 -1,112); thin portfolio leg only.",
+  "report": "results/orb_close30/verify.md"
  }
 }

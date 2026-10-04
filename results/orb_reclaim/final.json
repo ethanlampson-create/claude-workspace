@@ -176,5 +176,43 @@
   "source": "in-sample MAIN daily P&L (final_MNQ_lucid_scan.csv), reference only"
  },
  "fixed_main_pf": 1.3271837848812675,
- "fixed_prior_pf": 1.1818324139354155
+ "fixed_prior_pf": 1.1818324139354155,
+ "verify": {
+  "id": "orb_reclaim",
+  "verdict": "marginal",
+  "date": "2026-10-04",
+  "lookahead_found": false,
+  "lookahead_notes": "No look-ahead: London levels from 02:00-08:30 bars of the same session (strictly before the 09:30 window); PD levels shifted one day (unused); swing confirmed at the close of bar j with bars j-2..j and the order placed at j+1; internal fill mirror only used as a flat/not-flat flag and matches the engine 340/340 on MAIN with 0 exit mismatches. max_stop_pts=60 is an in-sample choice outside the GRID (walk-forward used cap 45).",
+  "fixed_main_pf": 1.3271837848812675,
+  "fixed_main_trades": 340,
+  "fixed_main_largest_day_share": 0.06629160752446,
+  "fixed_prior_pf": 1.1818324139354155,
+  "fixed_prior_trades": 324,
+  "fixed_prior_largest_day_share": 0.14604002701964441,
+  "wf_oos_2025_pf": 1.1699454457913196,
+  "plateau_frac": 1.0,
+  "plateau_runs": {
+   "rr_2.5": 1.264,
+   "rr_4.5": 1.351,
+   "max_stop_pts_45": 1.237,
+   "max_stop_pts_75": 1.297
+  },
+  "plateau_in_grid_only_frac": 1.0,
+  "history_2015_2022_pf": 0.951,
+  "history_2015_2022_ex2020_pf": 0.9612,
+  "history_2020_pf": 0.9011,
+  "history_2019_2022_pf": 0.9993,
+  "history_2015_2018_pf": 0.824,
+  "slippage2_main_pf": 1.3101,
+  "largest_day_share_main": 0.06629160752446,
+  "thin_session_dependence": "10 best days = 61.9% of MAIN net (ex-top10 still PF 1.13, +2,450); no month > 40% (best Feb-26 26.4%); 5 best months = 99% of net; PRIOR top-10 days 126% of net; slip2 top-10 share 64.5%.",
+  "criteria": {
+   "lookahead": true,
+   "wf_oos_2025_pf_ge_1.1": true,
+   "plateau_ge_0.5": true,
+   "history_ex2020_pf_ge_1.0": false,
+   "slip2_pf_ge_1.0": true
+  },
+  "notes": "One criterion missed narrowly: 2015-2022 ex-2020 PF 0.96 (2019-2022 break-even 0.999, failure concentrated in 2015-2018 where the fixed 60-pt cap is 2-3x larger in relative terms). Everything else passes. See verify.md."
+ }
 }

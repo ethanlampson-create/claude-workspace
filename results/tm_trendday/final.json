@@ -1,0 +1,434 @@
+{
+ "id": "tm_trendday",
+ "family": "trend_momentum",
+ "contract": "MES",
+ "params": {
+  "min_score": 2,
+  "entry_mode": "market_1030",
+  "stop_mode": "ib_mid",
+  "max_stop_atr": 0.5,
+  "trail_atr": 0.3,
+  "trail_act_atr": 0.3,
+  "tie_trail_act": true,
+  "tgt_atr": 0.0,
+  "gap_atr": 0.7,
+  "narrow_ib_atr": 0.5,
+  "max_ib_atr": 1.5,
+  "skip_after_trend_day": true,
+  "last_entry": "12:00",
+  "flat": "15:55",
+  "max_trades": 1,
+  "dls_block": {
+   "MES": 60,
+   "MNQ": 80
+  },
+  "dps_block": {
+   "MES": 120,
+   "MNQ": 160
+  },
+  "dps_mult": 1.5,
+  "direction": "both"
+ },
+ "period_main": {
+  "trades": 99,
+  "net": -46.74180699160085,
+  "days": 448,
+  "trading_days": 99,
+  "win_rate": 0.36363636363636365,
+  "avg_trade": -0.47213946456162476,
+  "avg_win": 85.13134713041184,
+  "avg_loss": -49.38841751883221,
+  "profit_factor": 0.9849775821622904,
+  "expectancy_R": -0.009559720442178453,
+  "trades_per_day": 0.22098214285714285,
+  "max_dd_closed": -690.5078786622425,
+  "max_dd_intraday": -722.4828786622436,
+  "mean_day": -0.1043343906062508,
+  "std_day": 38.316603256810666,
+  "sharpe_daily_ann": -0.043225572301200374,
+  "pct_pos_days": 0.36363636363636365,
+  "largest_day": 303.79000000000013,
+  "worst_day": -193.12999999999994,
+  "largest_day_share": null,
+  "months": 21,
+  "pct_pos_months": 0.5238095238095238,
+  "worst_month": -368.1075000000001,
+  "best_month": 323.74209430713546,
+  "monthly": {
+   "2025-01": -236.82,
+   "2025-02": -75.7,
+   "2025-03": 72.7,
+   "2025-04": -239.64,
+   "2025-05": -56.1,
+   "2025-06": 61.54,
+   "2025-07": 131.14,
+   "2025-08": -111.22,
+   "2025-09": -114.21,
+   "2025-10": 323.74,
+   "2025-11": -102.41,
+   "2025-12": 159.08,
+   "2026-01": 52.08,
+   "2026-02": -168.49,
+   "2026-03": -368.11,
+   "2026-04": 228.18,
+   "2026-05": 157.68,
+   "2026-06": 263.22,
+   "2026-07": 25.04,
+   "2026-08": -60.97,
+   "2026-09": 12.53
+  }
+ },
+ "period_prior": {
+  "trades": 90,
+  "net": 19.348929046714517,
+  "days": 516,
+  "trading_days": 90,
+  "win_rate": 0.32222222222222224,
+  "avg_trade": 0.21498810051905018,
+  "avg_win": 69.95401479471397,
+  "avg_loss": -32.939631147540815,
+  "profit_factor": 1.009629602612188,
+  "expectancy_R": 0.006526730659371716,
+  "trades_per_day": 0.1744186046511628,
+  "max_dd_closed": -552.9948063511272,
+  "max_dd_intraday": -570.3223801543871,
+  "mean_day": 0.0374979245091366,
+  "std_day": 27.471693652265614,
+  "sharpe_daily_ann": 0.021668161604022677,
+  "pct_pos_days": 0.32222222222222224,
+  "largest_day": 278.6049999999988,
+  "worst_day": -142.63249999999863,
+  "largest_day_share": 14.39898814695932,
+  "months": 24,
+  "pct_pos_months": 0.25,
+  "worst_month": -259.6299999999988,
+  "best_month": 459.977847681334,
+  "monthly": {
+   "2023-01": -69.57,
+   "2023-02": 263.59,
+   "2023-03": 0.0,
+   "2023-04": 0.0,
+   "2023-05": 0.0,
+   "2023-06": 0.0,
+   "2023-07": -22.72,
+   "2023-08": 97.48,
+   "2023-09": -23.31,
+   "2023-10": 0.0,
+   "2023-11": 41.26,
+   "2023-12": -54.65,
+   "2024-01": -44.41,
+   "2024-02": 79.07,
+   "2024-03": -49.45,
+   "2024-04": -158.83,
+   "2024-05": -151.89,
+   "2024-06": -128.54,
+   "2024-07": 459.98,
+   "2024-08": -71.14,
+   "2024-09": -259.63,
+   "2024-10": -10.43,
+   "2024-11": 278.78,
+   "2024-12": -156.23
+  }
+ },
+ "wf_2025": {
+  "trades": 186,
+  "net": 1230.0561120626735,
+  "days": 448,
+  "trading_days": 186,
+  "win_rate": 0.4946236559139785,
+  "avg_trade": 6.613204903562761,
+  "avg_win": 103.25402282366869,
+  "avg_loss": -87.97142540122172,
+  "profit_factor": 1.14874947473153,
+  "expectancy_R": 0.0751744657245365,
+  "trades_per_day": 0.41517857142857145,
+  "max_dd_closed": -861.247238885642,
+  "max_dd_intraday": -888.9572388856383,
+  "mean_day": 2.7456609644256105,
+  "std_day": 76.6727812570751,
+  "sharpe_daily_ann": 0.5684679212570706,
+  "pct_pos_days": 0.4946236559139785,
+  "largest_day": 402.7899999999965,
+  "worst_day": -407.4349999999993,
+  "largest_day_share": 0.3274566062881151,
+  "months": 21,
+  "pct_pos_months": 0.6190476190476191,
+  "worst_month": -331.18999999999306,
+  "best_month": 599.0962140823306,
+  "monthly": {
+   "2025-01": -126.9,
+   "2025-02": 2.34,
+   "2025-03": 599.1,
+   "2025-04": -66.38,
+   "2025-05": -331.19,
+   "2025-06": -140.27,
+   "2025-07": -98.05,
+   "2025-08": 322.72,
+   "2025-09": -268.19,
+   "2025-10": 281.71,
+   "2025-11": 200.37,
+   "2025-12": 505.73,
+   "2026-01": 140.87,
+   "2026-02": -322.21,
+   "2026-03": 118.55,
+   "2026-04": 23.06,
+   "2026-05": 160.73,
+   "2026-06": 323.72,
+   "2026-07": 4.14,
+   "2026-08": 51.91,
+   "2026-09": -151.69
+  },
+  "wf_all_2023_2026": {
+   "trades": 341,
+   "net": 2640.80473338878,
+   "profit_factor": 1.1982240431569406,
+   "sharpe_daily_ann": 0.6791614942209683,
+   "pct_pos_months": 0.5777777777777777,
+   "max_dd_intraday": -888.9572388856357
+  },
+  "param_path": [
+   {
+    "oos": "2023-01-01..2023-03-31",
+    "params": {
+     "min_score": 1,
+     "entry_mode": "ib_break_stop",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": 174.1,
+    "oos_trades": 10
+   },
+   {
+    "oos": "2023-04-01..2023-06-30",
+    "params": {
+     "min_score": 1,
+     "entry_mode": "ib_break_stop",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": 0.0,
+    "oos_trades": 0
+   },
+   {
+    "oos": "2023-07-01..2023-09-30",
+    "params": {
+     "min_score": 1,
+     "entry_mode": "market_1030",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": 463.2,
+    "oos_trades": 22
+   },
+   {
+    "oos": "2023-10-01..2023-12-31",
+    "params": {
+     "min_score": 1,
+     "entry_mode": "market_1030",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.25
+    },
+    "oos_net": -96.3,
+    "oos_trades": 38
+   },
+   {
+    "oos": "2024-01-01..2024-03-31",
+    "params": {
+     "min_score": 1,
+     "entry_mode": "ib_break_stop",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.25
+    },
+    "oos_net": 188.2,
+    "oos_trades": 21
+   },
+   {
+    "oos": "2024-04-01..2024-06-30",
+    "params": {
+     "min_score": 1,
+     "entry_mode": "ib_break_stop",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.25
+    },
+    "oos_net": 576.8,
+    "oos_trades": 27
+   },
+   {
+    "oos": "2024-07-01..2024-09-30",
+    "params": {
+     "min_score": 2,
+     "entry_mode": "ib_break_stop",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": -149.1,
+    "oos_trades": 22
+   },
+   {
+    "oos": "2024-10-01..2024-12-31",
+    "params": {
+     "min_score": 2,
+     "entry_mode": "market_1030",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": 253.9,
+    "oos_trades": 15
+   },
+   {
+    "oos": "2025-01-01..2025-03-31",
+    "params": {
+     "min_score": 2,
+     "entry_mode": "market_1030",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": 474.5,
+    "oos_trades": 16
+   },
+   {
+    "oos": "2025-04-01..2025-06-30",
+    "params": {
+     "min_score": 1,
+     "entry_mode": "market_1030",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": -537.8,
+    "oos_trades": 42
+   },
+   {
+    "oos": "2025-07-01..2025-09-30",
+    "params": {
+     "min_score": 1,
+     "entry_mode": "market_1030",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": -43.5,
+    "oos_trades": 39
+   },
+   {
+    "oos": "2025-10-01..2025-12-31",
+    "params": {
+     "min_score": 1,
+     "entry_mode": "market_1030",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": 987.8,
+    "oos_trades": 38
+   },
+   {
+    "oos": "2026-01-01..2026-03-31",
+    "params": {
+     "min_score": 2,
+     "entry_mode": "market_1030",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": -62.8,
+    "oos_trades": 14
+   },
+   {
+    "oos": "2026-04-01..2026-06-30",
+    "params": {
+     "min_score": 2,
+     "entry_mode": "market_1030",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": 507.5,
+    "oos_trades": 15
+   },
+   {
+    "oos": "2026-07-01..2026-09-30",
+    "params": {
+     "min_score": 2,
+     "entry_mode": "market_1030",
+     "stop_mode": "ib_opp",
+     "trail_atr": 0.4
+    },
+    "oos_net": -95.6,
+    "oos_trades": 22
+   }
+  ],
+  "setup": "final_select --wf_start 2022-01-01 --max_combos 16 (IS 12m / OOS 3m, metric sharpe_daily_ann, base = module defaults, grid = module GRID 16 combos)"
+ },
+ "lucid": {
+  "micros": 5.0,
+  "pass_rate": 0.3023255813953488,
+  "pass_within_21": 0.01627906976744186,
+  "p_first_payout_unconditional": 0.0,
+  "expected_net_per_eval": -146.0,
+  "exp_net_lb": -146.0,
+  "zero_edge_exp_net": -146.0,
+  "recommended": false,
+  "median_days_to_pass": 51.0,
+  "table": [
+   {
+    "micros": 5,
+    "pass_rate": 0.302,
+    "pass_within_21": 0.016,
+    "p_first_payout_unconditional": 0.0,
+    "expected_net_per_eval": -146.0,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -146.0,
+    "p_loss_fee": 0.698
+   },
+   {
+    "micros": 10,
+    "pass_rate": 0.301,
+    "pass_within_21": 0.118,
+    "p_first_payout_unconditional": 0.005,
+    "expected_net_per_eval": -137.8,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -146.0,
+    "p_loss_fee": 0.699
+   },
+   {
+    "micros": 15,
+    "pass_rate": 0.239,
+    "pass_within_21": 0.144,
+    "p_first_payout_unconditional": 0.005,
+    "expected_net_per_eval": -137.874,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -137.874,
+    "p_loss_fee": 0.761
+   },
+   {
+    "micros": 20,
+    "pass_rate": 0.217,
+    "pass_within_21": 0.126,
+    "p_first_payout_unconditional": 0.0,
+    "expected_net_per_eval": -146.0,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -146.0,
+    "p_loss_fee": 0.783
+   },
+   {
+    "micros": 30,
+    "pass_rate": 0.16,
+    "pass_within_21": 0.099,
+    "p_first_payout_unconditional": 0.0,
+    "expected_net_per_eval": -146.0,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -146.0,
+    "p_loss_fee": 0.84
+   },
+   {
+    "micros": 40,
+    "pass_rate": 0.076,
+    "pass_within_21": 0.047,
+    "p_first_payout_unconditional": 0.0,
+    "expected_net_per_eval": -146.0,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -146.0,
+    "p_loss_fee": 0.924
+   }
+  ],
+  "source": "lucid_wf_2025 (walk-forward OOS 2025-01..2026-09 daily stream, bootstrap lower-bound sizing)"
+ },
+ "verdict": "marginal",
+ "notes": "Composite trend-day flag at 10:30 (gap_out / narrow_ib / open_drive / nr_prior, score >= 2), market entry at 10:30 in the direction of the open, runner with 0.3-ATR trail, flat 15:55. PUBLISHED DEFAULTS (ib_mid stop) HAVE NO EDGE: MES MAIN PF 0.985 (99 tr, net -$47), PRIOR PF 1.01 (90 tr); MNQ MAIN PF 0.73 (-$1849), PRIOR 1.14. Cause: the IB-midpoint stop is 0.1-0.2 ATR from the entry and is hit on 62% of trades; only 26% of trades reach the trail activation. Flags: narrow_ib fires on 62% of days, nr_prior 31%, open_drive 21%, gap_out 5%, so score >= 2 is mostly the two weak flags; score 3+ is 15 trades/period and flips sign across instruments. GRID: the ib_opp stop is the only consistent improvement (MES MAIN PF 1.20-1.29 with market_1030, PRIOR 1.1-1.4); MNQ MAIN 1/16 combos positive; rank correlation MAIN vs PRIOR -0.39 (MES) / -0.29 (MNQ). WALK-FORWARD (2022-01 start, IS 12m / OOS 3m, 16-combo grid) OOS 2025-01..2026-09 on MES: 186 trades, net +$1230/micro, PF 1.149, Sharpe 0.57, 62% positive months, max intraday DD -$889; all OOS 2023-2026: 341 trades, PF 1.20, Sharpe 0.68. stop_mode = ib_opp was selected in all 15 windows (ib_mid never). Concentration: 2025-10..12 = +$988 of the +$1230 OOS net (80%), largest day = 33% of OOS net. LUCID on the OOS stream: 5 micros, pass_rate 0.30, pass_within_21 0.016, P(first payout) 0.00, expected net per eval -$146 = exp_net_lb = zero-edge control at every size 5..40, recommended False. Verdict marginal by the gate (wf25 PF >= 1.03, >= 40 trades) but weak: no edge in the published rule, OOS edge depends on the ib_opp stop and one quarter, Sharpe 0.57, indistinguishable from no edge at the account level. Longs-only: no help (PF 1.02 / 0.74). Not a standalone eval vehicle; at most a low-weight 10:30-to-close diversifier if a later verification confirms the ib_opp variant."
+}

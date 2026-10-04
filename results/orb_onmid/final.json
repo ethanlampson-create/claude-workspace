@@ -159,5 +159,45 @@
   "max_dd_intraday": -6026.541240021846
  },
  "verdict": "dead",
- "notes": "Rules implemented as specified (overnight/London levels, midpoint bias at the RTH open, biased-side stop entry, mid stop capped 0.4 ATR, 0.5x-range target, noon flat). MNQ and MES are dead: default PF 0.84 / 0.74 on MAIN, 0.83 / 0.79 on PRIOR; 32-cell grid: MNQ 4/32 cells positive (PF <= 1.08, 39% win, largest day 50-80% of net), MES 0/32. The directional statistic is real on our data (biased ON level breaks first 70-75% of RTH sessions, 2015-2026) but the break is shallow: after the first break the excursion reaches 0.5x range only 40-47% of the time while the midpoint is revisited 53-57% -> mid-stop vs 0.5x target is a ~1:1 payoff at ~45% win = negative after costs. MGC: every one of the 32 MAIN cells is positive (default PF 1.44, 211 trades, Sharpe 1.64, both sides profitable) but every PRIOR cell is negative (PF 0.60-0.92) and the default rule lost in 9 of 12 years 2015-2026; 2026 alone is $5.3k of the $6.1k MAIN net; the Lucid MC on MAIN still has NEGATIVE expected net per evaluation at every size (best 10 micros: pass 0.21, P(first payout) 0.03, -$44/eval) because the $150-450 loss days under the $2k EOD-trailing MLL dominate. Second pass (gap_min 0.003, outside_mode pullback, last_entry 10:00) does not rescue MNQ and does not make MGC positive on PRIOR. Gold edge = 2025-26 regime, not a robust rule."
+ "notes": "Rules implemented as specified (overnight/London levels, midpoint bias at the RTH open, biased-side stop entry, mid stop capped 0.4 ATR, 0.5x-range target, noon flat). MNQ and MES are dead: default PF 0.84 / 0.74 on MAIN, 0.83 / 0.79 on PRIOR; 32-cell grid: MNQ 4/32 cells positive (PF <= 1.08, 39% win, largest day 50-80% of net), MES 0/32. The directional statistic is real on our data (biased ON level breaks first 70-75% of RTH sessions, 2015-2026) but the break is shallow: after the first break the excursion reaches 0.5x range only 40-47% of the time while the midpoint is revisited 53-57% -> mid-stop vs 0.5x target is a ~1:1 payoff at ~45% win = negative after costs. MGC: every one of the 32 MAIN cells is positive (default PF 1.44, 211 trades, Sharpe 1.64, both sides profitable) but every PRIOR cell is negative (PF 0.60-0.92) and the default rule lost in 9 of 12 years 2015-2026; 2026 alone is $5.3k of the $6.1k MAIN net; the Lucid MC on MAIN still has NEGATIVE expected net per evaluation at every size (best 10 micros: pass 0.21, P(first payout) 0.03, -$44/eval) because the $150-450 loss days under the $2k EOD-trailing MLL dominate. Second pass (gap_min 0.003, outside_mode pullback, last_entry 10:00) does not rescue MNQ and does not make MGC positive on PRIOR. Gold edge = 2025-26 regime, not a robust rule.",
+ "verify": {
+  "id": "orb_onmid",
+  "verdict": "dead",
+  "lookahead_found": false,
+  "lookahead_notes": "No material look-ahead. ON levels (18:00->08:19) and ATR (daily RTH, shift(1)) are strictly prior to the first RTH bar; order placed at i0 as a stop at level+/-2 ticks. Technicality: the bias uses the OPEN of bar i0 (the bar the order goes live on) rather than the close of i0-1; no fill advantage (stop fills at max(open,level)+slip, outside days skipped). Scratch variant with bias from close of i0-1: MAIN PF 1.422->1.411, PRIOR identical (0.744). Strict fix: use df1.close[i0-1] of the same day_id for o0.",
+  "fixed_main_pf": 1.4218,
+  "fixed_main_trades": 210,
+  "fixed_main_net": 5958.85,
+  "largest_day_share_main": 0.0984,
+  "fixed_prior_pf": 0.7437,
+  "fixed_prior_trades": 252,
+  "fixed_prior_net": -2447.52,
+  "wf_oos_2025_pf": 1.2656,
+  "wf_oos_2025_trades": 206,
+  "plateau_frac": 1.0,
+  "plateau_runs": {
+   "tgt_frac_0.25": 1.514,
+   "tgt_frac_1.0": 1.389,
+   "exit_time_11:30": 1.435,
+   "exit_time_13:00": 1.223,
+   "last_entry_10:30": 1.396,
+   "last_entry_11:30": 1.42,
+   "supp_max_stop_atr_0.3": 1.3,
+   "supp_max_stop_atr_0.5": 1.369,
+   "supp_buffer_ticks_1": 1.403,
+   "supp_buffer_ticks_3": 1.411,
+   "supp_min_atr_0.15": 1.422,
+   "supp_min_atr_0.35": 1.412,
+   "supp_max_atr_1.0": 1.388,
+   "supp_max_atr_1.5": 1.368
+  },
+  "history_2015_2022_pf": 0.8612,
+  "history_2015_2022_ex2020_pf": 0.8003,
+  "history_2015_2022_trades": 1126,
+  "history_2020_pf": 1.2129,
+  "history_2020_trades": 128,
+  "slippage2_main_pf": 1.3919,
+  "thin_session_dependence": "Top-10 days = 68.8% of MAIN net (+4,098 of +5,959); largest day 9.8%; largest month 2026-07 = 28.9% (no month > 40%); 2026 alone = 89% of net (2025 PF 1.10); all edge in 08:20-08:59 entries (+6,580 on 114 trades; 09:xx -19, 10:xx -602).",
+  "notes": "Reproduces: MAIN PF 1.42/210 trades, robust to slip 2 (1.39) and to all 14 single-parameter neighbours (>=1.22). Fails history: 2015-2022 PF 0.86 (0.80 ex-2020), losing in 7 of 8 years, PRIOR 2023-24 PF 0.74, all 32 PRIOR grid cells negative. WF OOS 2025 PF 1.27 passes but Lucid MC on the OOS stream has exp_net_lb -146 at every size, not recommended. One criterion missed by a wide margin -> dead."
+ }
 }

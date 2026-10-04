@@ -406,5 +406,45 @@
    "oos_trades": 42,
    "oos_pf": 0.6761875694299296
   }
- ]
+ ],
+ "verify": {
+  "id": "orb_sma_rr",
+  "verdict": "marginal",
+  "date": "2026-10-04",
+  "contract": "MNQ",
+  "lookahead_found": false,
+  "lookahead_notes": "SMA bias uses the NDX daily close strictly before the session date (searchsorted side=left minus 1), SMA200 rolling with min_periods; ATR14 is daily RTH ATR shifted by one day (verified numerically); order index is i_end+1 with set_session starting at 09:45; stop distance uses the completed 15-min range and prior-day ATR only; no VIX/VWAP/overnight features used; no dates or regime switches in params. Numeric check on all 304 MAIN trades: side==sign(lagged close-SMA) 304/304, fill beyond range level+tick 304/304, entry bar after i_end and >=09:45 304/304.",
+  "fixed_main_pf": 1.1467,
+  "fixed_main_trades": 304,
+  "fixed_main_net": 3377.1,
+  "fixed_prior_pf": 1.1511,
+  "fixed_prior_trades": 274,
+  "fixed_prior_net": 1961.0,
+  "wf_oos_2025_pf": 1.1735,
+  "plateau_frac": 0.5,
+  "plateau_neighbours": {
+   "max_stop_atr_0.25": 1.209,
+   "rr_1.4": 1.148,
+   "rr_3.0": 1.047,
+   "or_minutes_30": 0.991,
+   "extrapolated_max_stop_atr_0.05": 0.592,
+   "extrapolated_or_minutes_10": 1.252
+  },
+  "history_2015_2022_pf": 0.951,
+  "history_2015_2022_trades": 1358,
+  "history_2015_2022_net": -2000.1,
+  "history_2015_2022_ex2020_pf": 0.963,
+  "history_2015_2022_ex2020_trades": 1183,
+  "history_2015_2022_ex2020_net": -1225.3,
+  "history_2020_pf": 0.905,
+  "history_2020_trades": 175,
+  "history_2020_net": -774.9,
+  "slippage2_main_pf": 1.135,
+  "slippage2_main_net": 3126.6,
+  "largest_day_share_main": 0.121,
+  "top10_days_share_of_net_main": 1.116,
+  "max_month_share_of_net_main": 0.26,
+  "thin_session_dependence": "Ten best days = +3,768 = 112% of MAIN net (+3,377); without them net -391, PF 0.983 on 294 trades. No month > 40% of net (max 26%, 2025-03); 2026-01..06 = 51% of net. Shorts lose (43 trades, -831); longs carry the edge.",
+  "notes": "One criterion missed narrowly: history 2015-2022 ex-2020 PF 0.963 < 1.0 (-$1/trade over 1,183 trades; 2 of 8 years positive). Look-ahead none; WF OOS 2025 PF 1.173 pass; plateau_frac 0.50 exactly on threshold (rr 3.0 at 1.047 misses by 0.003, published OR30 at 0.991 dead); slip-2 PF 1.135 pass. Lucid recommended=0 at all sizes per author. Verdict marginal (weak). See results/orb_sma_rr/verify.md."
+ }
 }

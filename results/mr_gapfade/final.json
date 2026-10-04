@@ -107,7 +107,7 @@
    "2024-12": -95.39
   }
  },
- "verdict": "marginal",
+ "verdict": "survivor",
  "notes": "WALK-FORWARD (2022-01 start, IS 12m / OOS 3m, 16-combo grid, base params gap_max 0.35 + entry_delay 1) OOS 2025-01..2026-09: 65 trades, net +$1367/micro, PF 1.51, Sharpe 1.07, 67% positive months, max intraday DD -$587 - the in-sample story (PF 1.56-1.61) survives out of sample in direction, on ~60% of the trades. BUT: (1) the OOS edge is concentrated - the 2026-07..09 window alone is +$888 of the +$1367 (65%); the 2023-2024 OOS windows net -$301 (full WF 2023-2026 PF 1.14, Sharpe 0.41); (2) parameter path is unstable (sides flips long/both, exit 11:00/12:00, stop_mult 0.75/1.0 across windows), i.e. the walk-forward is choosing among noise-level alternatives; (3) frequency ~3 trades/month, avg +$21/trade: far too slow for an evaluation. LUCID on the OOS stream: best size 5 micros, pass_rate 0.34 but median 85 sessions to pass, pass_within_21 = 0.00, P(first payout) = 0.00, expected net per eval -$146 = exp_net_lb = zero_edge control (-$146) at every size 5..40 -> indistinguishable from no edge at the account level, recommended = False. Fixed params (MNQ, gap_max 0.35, entry_delay 1): MAIN PF 1.61 (109 tr, Sharpe 1.58), PRIOR PF 1.17 (104 tr, Sharpe 0.48). proceed=True by the gate (wf25 PF >= 1.03 with >= 40 trades; fixed MAIN >= 1.3 and PRIOR >= 1.1 with >= 60 trades) but dead as a standalone Lucid vehicle; only usable as a small diversifying portfolio leg (flat ~85% of days, resolves by 10:00). Published defaults (gap_max 0.50, 09:35 entry) lose on MES in 2025-26 and only break even on MNQ in 2023-24; FOMC/CPI calendar not available.",
  "lucid_insample_main": {
   "micros": 10,
@@ -383,5 +383,34 @@
   "sharpe_daily_ann": 0.4795455831569321,
   "max_dd_intraday": -846.8020000000115,
   "pct_pos_months": 0.4166666666666667
+ },
+ "verify": {
+  "date": "2026-10-04",
+  "verdict": "survivor",
+  "lookahead_found": false,
+  "lookahead_notes": "No look-ahead: prior-day levels and ATR shifted one session, VIX lagged (strictly prior close, rolling range at the lagged position), SMA shifted; entry signal placed at the 09:30+delay bar using only bars 09:30..k-1; stop/target from open_0930, pd_close and lagged ATR; exit at open of first bar >= exit_time; no dates or regime switches in the module.",
+  "fixed_main_pf": 1.61,
+  "fixed_main_trades": 109,
+  "fixed_main_net": 2051.26,
+  "fixed_prior_pf": 1.165,
+  "fixed_prior_trades": 104,
+  "fixed_prior_net": 570.79,
+  "largest_day_share_main": 0.108,
+  "plateau_frac": 1.0,
+  "plateau_runs": {
+   "gap_max 0.20": 1.295,
+   "gap_max 0.50": 1.331,
+   "stop_mult 0.75": 1.508,
+   "stop_mult 1.25": 1.615
+  },
+  "history_2015_2022_pf": 1.011,
+  "history_2015_2022_pf_all": 0.995,
+  "history_2015_2022_trades": 549,
+  "history_2020_pf": 0.903,
+  "slippage2_main_pf": 1.579,
+  "slippage2_prior_pf": 1.141,
+  "wf_oos_2025_pf": 1.511,
+  "thin_session_dependence": "MAIN: 10 best days = 80% of net (+1641 of +2051, 109 trading days); ex-top-10 PF 1.12; largest month 2026-02 = 33% of net, no month > 40%. PRIOR: 10 best days = 225% of net, ex-top-10 PF 0.79, 5 months > 40%.",
+  "notes": "All five criteria pass; history passes at the floor (PF 1.011 ex-2020, 0.995 all-in, 4 of 8 years negative) so the 2021-2026 edge is regime-dependent. Portfolio-leg candidate only; not a standalone Lucid vehicle. final.json period_main (114 trades) predates the thin-session skip in backtest.run; current CLI gives 109 trades / PF 1.61 = walkforward.json fixed_main."
  }
 }
