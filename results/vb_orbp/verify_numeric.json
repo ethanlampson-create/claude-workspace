@@ -1,0 +1,82 @@
+{
+ "id": "vb_orbp",
+ "contract": "MNQ",
+ "params": {
+  "unit": "range",
+  "k": 0.25,
+  "sides": "both",
+  "bias": "none",
+  "stop_mode": "frac",
+  "stop_frac": 0.5,
+  "tgt_mode": "frac",
+  "tgt_frac": 0.5,
+  "tgt_cap_atr": 0.0,
+  "max_stop_atr": 0.6,
+  "min_stop_pts": {
+   "MES": 4.0,
+   "MNQ": 6.0,
+   "MGC": 2.0
+  },
+  "min_unit_atr": 0.05,
+  "max_unit_atr": 1.0,
+  "ws_skip": 0.0,
+  "gap_skip_atr": 0.0,
+  "entry_cutoff": {
+   "MES": "15:55",
+   "MNQ": "15:55",
+   "MGC": "13:25"
+  },
+  "cancel_on_opposite": true,
+  "buffer_ticks": 1,
+  "flat": {
+   "MES": "15:55",
+   "MNQ": "15:55",
+   "MGC": "13:25"
+  },
+  "max_trades": 1
+ },
+ "main": {
+  "trades": 419,
+  "net": 7629.366973381071,
+  "pf": 1.148411872282028,
+  "sharpe": 0.9137125039099833,
+  "pos_months": 0.5714285714285714,
+  "dd_intra": -8113.148562811825
+ },
+ "main_top10_share": 1.0031567529393945,
+ "main_largest_month_share": 0.4428347353806368,
+ "prior": {
+  "trades": 374,
+  "net": 4714.638774164631,
+  "pf": 1.1687131754318203,
+  "sharpe": 0.9301007632619954,
+  "pos_months": 0.4583333333333333,
+  "dd_intra": -3724.5726799979557
+ },
+ "hist_2015_2022": {
+  "trades": 1924,
+  "net": 4852.789603205208,
+  "pf": 1.052584224211691,
+  "sharpe": 0.28143717487003633,
+  "pos_months": 0.5520833333333334,
+  "dd_intra": -5146.039477463407
+ },
+ "y2020": {
+  "trades": 245,
+  "net": -2509.963402114672,
+  "pf": 0.8755878015931189,
+  "sharpe": -0.8508562391144916,
+  "pos_months": 0.4166666666666667,
+  "dd_intra": -5145.724700577536
+ },
+ "main_slip2": {
+  "trades": 419,
+  "net": 7354.331473381073,
+  "pf": 1.1427285113528636
+ },
+ "criteria": {
+  "hist_pf_ge_1": true,
+  "slip2_pf_ge_1": true,
+  "prior_pf_ge_1": true
+ }
+}

@@ -1,0 +1,59 @@
+{
+ "id": "cal_window",
+ "contract": "MNQ",
+ "params": {
+  "window": "totm",
+  "side": "auto",
+  "entry_time": "09:31",
+  "exit_time": "15:55",
+  "stop_atr": 0.75,
+  "target_atr": 0.0,
+  "trend_filter": false,
+  "press_conf_only": true,
+  "max_trades": 1
+ },
+ "main": {
+  "trades": 80,
+  "net": 10079.798767466775,
+  "pf": 1.9324893412055053,
+  "sharpe": 1.7966420232195555,
+  "pos_months": 0.6190476190476191,
+  "dd_intra": -2367.6864807923503
+ },
+ "main_top10_share": 0.856398247538572,
+ "main_largest_month_share": 0.23822122399408371,
+ "prior": {
+  "trades": 72,
+  "net": 1658.2926074923148,
+  "pf": 1.2081010472125406,
+  "sharpe": 0.472249773377759,
+  "pos_months": 0.4583333333333333,
+  "dd_intra": -1298.0226190701067
+ },
+ "hist_2015_2022": {
+  "trades": 367,
+  "net": 1220.3306046974126,
+  "pf": 1.047727799721075,
+  "sharpe": 0.1070355876522174,
+  "pos_months": 0.4791666666666667,
+  "dd_intra": -4611.626010432458
+ },
+ "y2020": {
+  "trades": 46,
+  "net": 2870.227402343404,
+  "pf": 1.916019127928887,
+  "sharpe": 1.817108331892043,
+  "pos_months": 0.6666666666666666,
+  "dd_intra": -984.2391061071428
+ },
+ "main_slip2": {
+  "trades": 80,
+  "net": 10006.298767466775,
+  "pf": 1.923852280062406
+ },
+ "criteria": {
+  "hist_pf_ge_1": true,
+  "slip2_pf_ge_1": true,
+  "prior_pf_ge_1": true
+ }
+}

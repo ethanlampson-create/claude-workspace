@@ -1,0 +1,61 @@
+{
+ "id": "cal_lunch",
+ "contract": "MNQ",
+ "params": {
+  "variant": "long_only",
+  "short_start": "11:00",
+  "reverse_time": "12:00",
+  "long_exit": "14:00",
+  "stop_mode": "pct",
+  "stop_pct": 0.4,
+  "stop_atr": 0.4,
+  "skip_macro": true,
+  "skip_opex": false,
+  "max_trades": 2,
+  "dls_mult": 1.0
+ },
+ "main": {
+  "trades": 364,
+  "net": 6867.54669600003,
+  "pf": 1.3148352624053363,
+  "sharpe": 1.1675593159772588,
+  "pos_months": 0.7142857142857143,
+  "dd_intra": -1516.0836960000415
+ },
+ "main_top10_share": 1.1043661347679565,
+ "main_largest_month_share": 0.4392458660320351,
+ "prior": {
+  "trades": 304,
+  "net": 649.9127040000527,
+  "pf": 1.0453262650138828,
+  "sharpe": 0.21734180132352926,
+  "pos_months": 0.5416666666666666,
+  "dd_intra": -1845.1432800000052
+ },
+ "hist_2015_2022": {
+  "trades": 1671,
+  "net": -5389.985175999916,
+  "pf": 0.8658226677025307,
+  "sharpe": -0.708745787858085,
+  "pos_months": 0.4166666666666667,
+  "dd_intra": -5510.218599999961
+ },
+ "y2020": {
+  "trades": 211,
+  "net": 1159.3982800000203,
+  "pf": 1.1739194714030725,
+  "sharpe": 0.9645045572607402,
+  "pos_months": 0.6666666666666666,
+  "dd_intra": -1057.9076799999946
+ },
+ "main_slip2": {
+  "trades": 364,
+  "net": 6544.54669600003,
+  "pf": 1.298209421370506
+ },
+ "criteria": {
+  "hist_pf_ge_1": false,
+  "slip2_pf_ge_1": true,
+  "prior_pf_ge_1": true
+ }
+}

@@ -429,6 +429,47 @@
   ],
   "source": "lucid_wf_2025 (walk-forward OOS 2025-01..2026-09 daily stream, bootstrap lower-bound sizing)"
  },
- "verdict": "marginal",
- "notes": "Composite trend-day flag at 10:30 (gap_out / narrow_ib / open_drive / nr_prior, score >= 2), market entry at 10:30 in the direction of the open, runner with 0.3-ATR trail, flat 15:55. PUBLISHED DEFAULTS (ib_mid stop) HAVE NO EDGE: MES MAIN PF 0.985 (99 tr, net -$47), PRIOR PF 1.01 (90 tr); MNQ MAIN PF 0.73 (-$1849), PRIOR 1.14. Cause: the IB-midpoint stop is 0.1-0.2 ATR from the entry and is hit on 62% of trades; only 26% of trades reach the trail activation. Flags: narrow_ib fires on 62% of days, nr_prior 31%, open_drive 21%, gap_out 5%, so score >= 2 is mostly the two weak flags; score 3+ is 15 trades/period and flips sign across instruments. GRID: the ib_opp stop is the only consistent improvement (MES MAIN PF 1.20-1.29 with market_1030, PRIOR 1.1-1.4); MNQ MAIN 1/16 combos positive; rank correlation MAIN vs PRIOR -0.39 (MES) / -0.29 (MNQ). WALK-FORWARD (2022-01 start, IS 12m / OOS 3m, 16-combo grid) OOS 2025-01..2026-09 on MES: 186 trades, net +$1230/micro, PF 1.149, Sharpe 0.57, 62% positive months, max intraday DD -$889; all OOS 2023-2026: 341 trades, PF 1.20, Sharpe 0.68. stop_mode = ib_opp was selected in all 15 windows (ib_mid never). Concentration: 2025-10..12 = +$988 of the +$1230 OOS net (80%), largest day = 33% of OOS net. LUCID on the OOS stream: 5 micros, pass_rate 0.30, pass_within_21 0.016, P(first payout) 0.00, expected net per eval -$146 = exp_net_lb = zero-edge control at every size 5..40, recommended False. Verdict marginal by the gate (wf25 PF >= 1.03, >= 40 trades) but weak: no edge in the published rule, OOS edge depends on the ib_opp stop and one quarter, Sharpe 0.57, indistinguishable from no edge at the account level. Longs-only: no help (PF 1.02 / 0.74). Not a standalone eval vehicle; at most a low-weight 10:30-to-close diversifier if a later verification confirms the ib_opp variant."
+ "verdict": "dead",
+ "notes": "Composite trend-day flag at 10:30 (gap_out / narrow_ib / open_drive / nr_prior, score >= 2), market entry at 10:30 in the direction of the open, runner with 0.3-ATR trail, flat 15:55. PUBLISHED DEFAULTS (ib_mid stop) HAVE NO EDGE: MES MAIN PF 0.985 (99 tr, net -$47), PRIOR PF 1.01 (90 tr); MNQ MAIN PF 0.73 (-$1849), PRIOR 1.14. Cause: the IB-midpoint stop is 0.1-0.2 ATR from the entry and is hit on 62% of trades; only 26% of trades reach the trail activation. Flags: narrow_ib fires on 62% of days, nr_prior 31%, open_drive 21%, gap_out 5%, so score >= 2 is mostly the two weak flags; score 3+ is 15 trades/period and flips sign across instruments. GRID: the ib_opp stop is the only consistent improvement (MES MAIN PF 1.20-1.29 with market_1030, PRIOR 1.1-1.4); MNQ MAIN 1/16 combos positive; rank correlation MAIN vs PRIOR -0.39 (MES) / -0.29 (MNQ). WALK-FORWARD (2022-01 start, IS 12m / OOS 3m, 16-combo grid) OOS 2025-01..2026-09 on MES: 186 trades, net +$1230/micro, PF 1.149, Sharpe 0.57, 62% positive months, max intraday DD -$889; all OOS 2023-2026: 341 trades, PF 1.20, Sharpe 0.68. stop_mode = ib_opp was selected in all 15 windows (ib_mid never). Concentration: 2025-10..12 = +$988 of the +$1230 OOS net (80%), largest day = 33% of OOS net. LUCID on the OOS stream: 5 micros, pass_rate 0.30, pass_within_21 0.016, P(first payout) 0.00, expected net per eval -$146 = exp_net_lb = zero-edge control at every size 5..40, recommended False. Verdict marginal by the gate (wf25 PF >= 1.03, >= 40 trades) but weak: no edge in the published rule, OOS edge depends on the ib_opp stop and one quarter, Sharpe 0.57, indistinguishable from no edge at the account level. Longs-only: no help (PF 1.02 / 0.74). Not a standalone eval vehicle; at most a low-weight 10:30-to-close diversifier if a later verification confirms the ib_opp variant.",
+ "verify": {
+  "id": "tm_trendday",
+  "verdict": "dead",
+  "lookahead_found": false,
+  "lookahead_notes": "No look-ahead. All daily features shifted (atr .shift(1), prev-day levels shift(1), H2/L2 shift(2), NR4/NR7 on shifted ranges with full min_periods); IB/OR30 windows end at the 10:29/09:59 bar; signal index = the 10:30 bar (verified: all 99 MAIN entries at 10:30 ET, tod[ib_i_end]==10:29); entry_ref = c1029, stop = ib_mid, cap relative to fill; no session high/low/close, VIX or date parameters. Minor: session_info().early_close reads the session own RTH bar count, but the 16 MAIN sessions it alone excludes are all exchange holidays/half days already removed by the engine thin-session filter (calendar knowledge, direction-neutral, not exploitable).",
+  "fixed_main_pf": 0.985,
+  "fixed_main_trades": 99,
+  "fixed_main_net": -46.74,
+  "fixed_prior_pf": 1.01,
+  "fixed_prior_trades": 90,
+  "fixed_prior_net": 19.35,
+  "wf_oos_2025_pf": 1.149,
+  "wf_oos_2025_trades": 186,
+  "plateau_frac": 0.75,
+  "plateau_runs": {
+   "min_score=1": 1.089,
+   "min_score=3": 2.473,
+   "trail_atr=0.25": 0.925,
+   "trail_atr=0.4": 1.13,
+   "stop_mode=ib_opp (categorical, not counted)": 1.284,
+   "entry_mode=ib_break_stop (categorical, not counted)": 0.933
+  },
+  "history_2015_2022_pf": 1.05,
+  "history_2015_2022_ex2020_pf": 1.099,
+  "history_2015_2022_trades": 447,
+  "history_2020_pf": 0.895,
+  "history_2020_trades": 66,
+  "slippage2_main_pf": 0.91,
+  "slippage2_main_net": -294.24,
+  "largest_day_share_main": 0.099,
+  "largest_day_share_note": "net is negative so share of net is undefined; 0.099 = largest day $303.79 / gross profit $3,064.73",
+  "thin_session_dependence": "Top-10 days = +$1,766 = 57.6% of gross profit; net ex top-10 days = -$1,813; net itself -$47 so share-of-net undefined. Best month 2025-10 +$324, worst 2026-03 -$368, 11/21 months positive; with negative net every positive month exceeds 40% of |net|.",
+  "criteria": {
+   "no_lookahead": true,
+   "wf_oos_2025_pf_ge_1.1": true,
+   "plateau_frac_ge_0.5": true,
+   "history_ex2020_pf_ge_1.0": true,
+   "slippage2_pf_ge_1.0": false
+  },
+  "notes": "Dead: slippage-2 MAIN PF 0.910 misses the bar by 9%, and the fixed rule is already below water at base costs (MAIN 0.985, PRIOR 1.010, avg trade -$0.47). Passing criteria are weak: WF OOS edge comes from stop_mode=ib_opp selected in all 15 windows (never the fixed value); plateau passes because the fixed point is the local trough; 2015-2022 edge is one year (2022 +$1,091 of +$376 total, 3/8 years positive). ib_opp variant (MAIN PF 1.284, slip2 1.218) would need its own verification. See verify.md."
+ }
 }

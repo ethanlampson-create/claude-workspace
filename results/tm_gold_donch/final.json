@@ -572,6 +572,52 @@
   "recommended": 0.0,
   "selection": "exp_net_lb"
  },
- "verdict": "marginal",
- "notes": "Gold intraday Donchian (15-min bars over the full 18:00->17:00 session, long-only 20-bar breakout close, 10-bar channel exit, stop = nearer of 2xATR20(15-min) / 0.5xATR14d, SMA-200 daily gate, entries 02:00-13:00 ET, flat 16:30, max 2 trades, dls $80), MGC. FIXED PARAMS: MAIN 327 trades, net -1,046, PF 0.96, Sharpe -0.20, maxDD -6,309; PRIOR 377 trades, net -452, PF 0.96; 2021-2023 sideways gold 295 trades PF 0.70 (spec regime check PF>=1.1 FAILED). MNQ/MES RTH sanity runs PF 0.95-0.98 on MAIN. Extra runs: tsmom12 PF 0.93, rr2 target PF 0.92, direction both PF 0.97. WALK-FORWARD (2022-01 start, IS 12m / OOS 3m, 16-combo grid): OOS 2025-01..2026-09 171 trades, net +2,043, PF 1.15, Sharpe 0.53, 9/21 positive months, maxDD -2,825, largest day 36% of net; Q2+Q3 2025 earn +3,958, the other five quarters -1,915; full OOS 2023-2026 604 trades PF 0.98. Selector moved to 60-min / 55-in / sma200 from Q2-2025 (slowest cells = hold the bull-market breakout to 16:30). Q3-2026 one trade: gold below its SMA-200 (bias_ok 11% of sessions) so the gate shut the system off. LUCID on the OOS stream: 5 micros, pass 0.28 (zero-edge 0.22), pass_within_21 0.20, P(first payout) 0.18, exp net +370 but exp_net_lb -146 (fee floor), P(exp net>0) 0.44 -> not recommended. GRID MGC: PRIOR 0/16 profitable (PF 0.66-0.98); MAIN 12/16 with the slow cells best (60-min/55/sma200 PF 1.40, 101 trades) and the published 15-min 20/10 cells worst; period rank correlation -0.83, no cell PF>1 in both periods. DIAGNOSTICS MAIN: 149 stops -20,926 vs 67 forced flats at 16:30 +18,709 (96% win) and 108 channel exits +817 - the whole P&L is the trend-into-the-close days; entry blocks 02-05 London +168 (140 tr), 05-08 pre-pit -3,103 (65), 08-13 pit +1,889 (122); 2025 +3,357 (236 tr) vs 2026 -4,403 (91 tr), 7 consecutive losing months Dec-25..Jun-26; median stop $98 (2025) -> $208 (2026), worst day -844. Costless control buy 02:00 / sell 16:30 on bias-ok sessions beats the strategy in every period (MAIN +3,059, PRIOR +1,295, 2021-23 -3,920). Verdict: marginal by the lab rule (wf25 PF 1.15 >= 1.03, 171 trades >= 40) but dead in substance: a pure 2025 gold-bull-run artefact with no PRIOR, 2021-23 or Lucid support; do not allocate."
+ "verdict": "dead",
+ "notes": "Gold intraday Donchian (15-min bars over the full 18:00->17:00 session, long-only 20-bar breakout close, 10-bar channel exit, stop = nearer of 2xATR20(15-min) / 0.5xATR14d, SMA-200 daily gate, entries 02:00-13:00 ET, flat 16:30, max 2 trades, dls $80), MGC. FIXED PARAMS: MAIN 327 trades, net -1,046, PF 0.96, Sharpe -0.20, maxDD -6,309; PRIOR 377 trades, net -452, PF 0.96; 2021-2023 sideways gold 295 trades PF 0.70 (spec regime check PF>=1.1 FAILED). MNQ/MES RTH sanity runs PF 0.95-0.98 on MAIN. Extra runs: tsmom12 PF 0.93, rr2 target PF 0.92, direction both PF 0.97. WALK-FORWARD (2022-01 start, IS 12m / OOS 3m, 16-combo grid): OOS 2025-01..2026-09 171 trades, net +2,043, PF 1.15, Sharpe 0.53, 9/21 positive months, maxDD -2,825, largest day 36% of net; Q2+Q3 2025 earn +3,958, the other five quarters -1,915; full OOS 2023-2026 604 trades PF 0.98. Selector moved to 60-min / 55-in / sma200 from Q2-2025 (slowest cells = hold the bull-market breakout to 16:30). Q3-2026 one trade: gold below its SMA-200 (bias_ok 11% of sessions) so the gate shut the system off. LUCID on the OOS stream: 5 micros, pass 0.28 (zero-edge 0.22), pass_within_21 0.20, P(first payout) 0.18, exp net +370 but exp_net_lb -146 (fee floor), P(exp net>0) 0.44 -> not recommended. GRID MGC: PRIOR 0/16 profitable (PF 0.66-0.98); MAIN 12/16 with the slow cells best (60-min/55/sma200 PF 1.40, 101 trades) and the published 15-min 20/10 cells worst; period rank correlation -0.83, no cell PF>1 in both periods. DIAGNOSTICS MAIN: 149 stops -20,926 vs 67 forced flats at 16:30 +18,709 (96% win) and 108 channel exits +817 - the whole P&L is the trend-into-the-close days; entry blocks 02-05 London +168 (140 tr), 05-08 pre-pit -3,103 (65), 08-13 pit +1,889 (122); 2025 +3,357 (236 tr) vs 2026 -4,403 (91 tr), 7 consecutive losing months Dec-25..Jun-26; median stop $98 (2025) -> $208 (2026), worst day -844. Costless control buy 02:00 / sell 16:30 on bias-ok sessions beats the strategy in every period (MAIN +3,059, PRIOR +1,295, 2021-23 -3,920). Verdict: marginal by the lab rule (wf25 PF 1.15 >= 1.03, 171 trades >= 40) but dead in substance: a pure 2025 gold-bull-run artefact with no PRIOR, 2021-23 or Lucid support; do not allocate.",
+ "verify": {
+  "id": "tm_gold_donch",
+  "verdict": "dead",
+  "date": "2026-10-04",
+  "lookahead_found": false,
+  "lookahead_notes": "Line-by-line review: channel windows end at k-1 (shift(1) then rolling, min_periods=full); decision uses close[k] of a closed N-bar; order at i_next[k] = market at the open of the next 1-min bar; ATR20 on closed bars; daily prev_close/SMA200/ATR14 built on 420d of earlier history and shifted one session, reindexed by day_id; no session-own high/low/close, no hard-coded dates or regime switches. Module state mirror can only over-emit entries that the engine ignores. Harness-level note: run.prepare skips thin sessions by the session own RTH bar count (holiday knowledge), applies to all strategies.",
+  "fixed_main_pf": 0.9602616209959008,
+  "fixed_main_trades": 327,
+  "fixed_main_net": -1046.36,
+  "fixed_prior_pf": 0.9630508715620715,
+  "fixed_prior_trades": 377,
+  "fixed_prior_net": -452.07,
+  "wf_oos_2025_pf": 1.1454776972084602,
+  "wf_oos_2025_trades": 171,
+  "plateau_frac": 0.5,
+  "plateau_runs": {
+   "n_entry_10": 1.098,
+   "n_entry_55": 1.055,
+   "n_exit_5": 0.922,
+   "n_exit_20": 1.016,
+   "bar_5": 0.861,
+   "bar_60": 1.119
+  },
+  "plateau_note": "GRID has two cells per numeric parameter with the fixed value at the lower cell; down-neighbours (10/5/5) are off-grid nearest round values. GRID-only neighbours 2/3. Centre PF 0.96.",
+  "history_2015_2022_pf": 0.9365547602480014,
+  "history_2015_2022_ex2020_pf": 0.872,
+  "history_2015_2022_trades": 1155,
+  "history_2015_2022_net": -1693.08,
+  "history_2020_pf": 1.0798431053295316,
+  "history_2020_trades": 260,
+  "history_2020_net": 662.99,
+  "slippage2_main_pf": 0.9391643003488422,
+  "slippage2_main_trades": 326,
+  "slippage2_main_net": -1623.31,
+  "largest_day_share_main": 0.0372,
+  "largest_day_share_main_note": "net < 0 so share of net undefined; 940 / gross wins 25,284 = 3.7%; 90% of |net|",
+  "thin_session_dependence": "Net -1,046 so shares of net undefined. Top-10 days +7,228 = 28.6% of gross wins; net ex top-10 = -8,274. Best month 2025-05 +2,062 (2x |net|); Apr-Oct 2025 +5,272 vs 7 straight losing months Dec-25..Jun-26 -5,365. 67 forced flats at 16:30 carry all the gross (+18,709) vs 149 stops -20,926.",
+  "criteria": {
+   "lookahead": true,
+   "wf_oos_2025_pf_ge_1_1": true,
+   "plateau_ge_0_5": true,
+   "history_ex2020_pf_ge_1": false,
+   "slip2_pf_ge_1": false
+  },
+  "notes": "Two criteria fail (history ex-2020 0.87 by a wide margin; slip-2 0.94). Fixed rule loses on MAIN, PRIOR, 2015-2022 and 2021-2023; WF 2025 PF 1.145 is two gold-bull quarters. Verdict dead; do not allocate."
+ }
 }

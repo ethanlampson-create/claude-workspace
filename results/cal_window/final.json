@@ -242,5 +242,46 @@
     "p_loss_fee": 0.993
    }
   ]
+ },
+ "verify": {
+  "id": "cal_window",
+  "verdict": "marginal",
+  "lookahead_found": false,
+  "lookahead_notes": "No market look-ahead: 09:31 market entry decided from calendar flags + daily_atr shifted one day; SMA/prev_close shifted; open_0930/ref computed but unused; exits by exit_at/force_flat at bar opens; no i_next/resample/opening_range/vwap. The early_close (12:55) exit uses the session's own last RTH bar but every such session 2011-2026 is thin and blocked by run.prepare (dead path). Data-edge mis-flag: totm T-1 = last calendar session of the month IN THE LOADED DATA, so 2026-09-24 (data end) is traded as T-1 (+$528, 5.2% of MAIN net; MAIN PF ex that trade 1.88). Fix: in _cal_flags.flags only mark lst[-1] as T-1 when a later calendar session exists in the data or it is the exchange-calendar last business day of its month.",
+  "fixed_main_pf": 1.9324893412055053,
+  "fixed_main_trades": 80,
+  "fixed_main_net": 10079.8,
+  "fixed_prior_pf": 1.2081010472125406,
+  "fixed_prior_trades": 72,
+  "fixed_prior_net": 1658.29,
+  "wf_oos_2025_pf": 1.4929196339090431,
+  "plateau_frac": 1.0,
+  "plateau_runs": {
+   "stop_atr=0.5": 1.794,
+   "stop_atr=1.0": 1.875,
+   "exit_time=12:00 (supplementary)": 1.834
+  },
+  "history_2015_2022_pf": 1.048,
+  "history_2015_2022_ex2020_pf": 0.926,
+  "history_2015_2022_trades": 367,
+  "history_2015_2022_net": 1220.33,
+  "history_2020_pf": 1.916,
+  "history_2020_trades": 46,
+  "history_2020_net": 2870.23,
+  "slippage2_main_pf": 1.924,
+  "largest_day_share_main": 0.11138595381722764,
+  "top10_days_share_main": 0.856,
+  "max_month_share_main": 0.238,
+  "thin_session_dependence": "Top 10 days = 85.6% of MAIN net (+8,632 of +10,080; largest day 11.1%); no month > 40% (max 2026-03 at 23.8%); 55 Mon-Wed trades carry +12,234 vs Thu/Fri -2,156; 65% win rate on a symmetric payoff.",
+  "criteria": {
+   "no_lookahead": true,
+   "wf_oos_2025_pf_ge_1.1": true,
+   "plateau_frac_ge_0.5": true,
+   "history_2015_2022_ex2020_pf_ge_1.0": false,
+   "slip2_main_pf_ge_1.0": true
+  },
+  "notes": "Marginal by the letter: one criterion missed (2015-2022 ex-2020 PF 0.926, 321 trades, -$1,649, t ~ -0.4 vs zero) narrowly in PF terms. Adversarial reading says dead: 6 of 8 history years negative, 2011-2024 TOTM-minus-control ~0 bp, Lucid MC on the WF stream not recommended at any size (lower bound = zero-edge control). Do not allocate.",
+  "verified_on": "2026-10-04",
+  "report": "results/cal_window/verify.md"
  }
 }

@@ -1,0 +1,63 @@
+{
+ "id": "tm_gold_donch",
+ "contract": "MGC",
+ "params": {
+  "bar": 15,
+  "n_entry": 20,
+  "n_exit": 10,
+  "bias": "sma200",
+  "direction": "long_only",
+  "stop_atr_bars": 2.0,
+  "max_stop_atr": 0.5,
+  "tgt": "none",
+  "entry_start": "02:00",
+  "last_entry": "13:00",
+  "flat": "16:30",
+  "max_trades": 2,
+  "dls_block": 80
+ },
+ "main": {
+  "trades": 327,
+  "net": -1046.3600000003125,
+  "pf": 0.9602616209959008,
+  "sharpe": -0.19790981675176356,
+  "pos_months": 0.3333333333333333,
+  "dd_intra": -6308.900000000469
+ },
+ "main_top10_share": null,
+ "main_largest_month_share": null,
+ "prior": {
+  "trades": 377,
+  "net": -452.06999999904014,
+  "pf": 0.9630508715620715,
+  "sharpe": -0.18209884430972628,
+  "pos_months": 0.375,
+  "dd_intra": -1484.3299999997128
+ },
+ "hist_2015_2022": {
+  "trades": 1155,
+  "net": -1693.0799999973874,
+  "pf": 0.9365547602480014,
+  "sharpe": -0.2582869256937104,
+  "pos_months": 0.3229166666666667,
+  "dd_intra": -3050.9699999993463
+ },
+ "y2020": {
+  "trades": 260,
+  "net": 662.9900000005857,
+  "pf": 1.0798431053295316,
+  "sharpe": 0.4123322083384072,
+  "pos_months": 0.5833333333333334,
+  "dd_intra": -1283.2799999997956
+ },
+ "main_slip2": {
+  "trades": 326,
+  "net": -1623.3099999985989,
+  "pf": 0.9391643003488422
+ },
+ "criteria": {
+  "hist_pf_ge_1": false,
+  "slip2_pf_ge_1": false,
+  "prior_pf_ge_1": false
+ }
+}

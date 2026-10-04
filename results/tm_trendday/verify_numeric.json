@@ -1,0 +1,75 @@
+{
+ "id": "tm_trendday",
+ "contract": "MES",
+ "params": {
+  "min_score": 2,
+  "entry_mode": "market_1030",
+  "stop_mode": "ib_mid",
+  "max_stop_atr": 0.5,
+  "trail_atr": 0.3,
+  "trail_act_atr": 0.3,
+  "tie_trail_act": true,
+  "tgt_atr": 0.0,
+  "gap_atr": 0.7,
+  "narrow_ib_atr": 0.5,
+  "max_ib_atr": 1.5,
+  "skip_after_trend_day": true,
+  "last_entry": "12:00",
+  "flat": "15:55",
+  "max_trades": 1,
+  "dls_block": {
+   "MES": 60,
+   "MNQ": 80
+  },
+  "dps_block": {
+   "MES": 120,
+   "MNQ": 160
+  },
+  "dps_mult": 1.5,
+  "direction": "both"
+ },
+ "main": {
+  "trades": 99,
+  "net": -46.74180699160085,
+  "pf": 0.9849775821622904,
+  "sharpe": -0.043225572301200374,
+  "pos_months": 0.5238095238095238,
+  "dd_intra": -722.4828786622436
+ },
+ "main_top10_share": null,
+ "main_largest_month_share": null,
+ "prior": {
+  "trades": 90,
+  "net": 19.348929046714517,
+  "pf": 1.009629602612188,
+  "sharpe": 0.021668161604022677,
+  "pos_months": 0.25,
+  "dd_intra": -570.3223801543871
+ },
+ "hist_2015_2022": {
+  "trades": 447,
+  "net": 376.0424863249661,
+  "pf": 1.0503510073243203,
+  "sharpe": 0.1084697603247028,
+  "pos_months": 0.3854166666666667,
+  "dd_intra": -1133.9110691570204
+ },
+ "y2020": {
+  "trades": 66,
+  "net": -192.57225738739282,
+  "pf": 0.8948296729750465,
+  "sharpe": -0.3129535747091544,
+  "pos_months": 0.4166666666666667,
+  "dd_intra": -638.7537369301755
+ },
+ "main_slip2": {
+  "trades": 99,
+  "net": -294.2418069916009,
+  "pf": 0.9099894524401811
+ },
+ "criteria": {
+  "hist_pf_ge_1": true,
+  "slip2_pf_ge_1": false,
+  "prior_pf_ge_1": true
+ }
+}

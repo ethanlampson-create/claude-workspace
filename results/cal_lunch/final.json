@@ -116,7 +116,7 @@
    "2024-12": 180.58
   }
  },
- "verdict": "marginal",
+ "verdict": "dead",
  "notes": "Quantpedia lunch effect, long-only 12:00-14:00 leg (market at the 12:00 open, 0.4% stop, clock exit at the 14:00 open, macro/FOMC days skipped). MNQ fixed defaults: MAIN 364 trades / +6,868 / PF 1.315 / Sharpe 1.17 but 2025-04-09 alone is +3,089 (45% of net; ex that day PF 1.17), PRIOR 304 / +650 / PF 1.045, 2015-2024 1,972 / -4,891 / PF 0.91. MES (the paper's instrument) is negative in every period and every grid cell (MAIN PF 0.96, PRIOR 0.93, 2015-24 0.83). Reversal variant (short 11-12 then long) PF 0.74-0.98 everywhere: the 11:00-12:00 hour is positive on our data. Raw profile: 12:00-14:00 mean 0.0 bp/day on SPX 2010-2024 (-0.2 NDX), sign follows the year's drift; opex midday -4 to -5 bp (t -1.8) is the one consistent slot; mean gross per trade 2015-2024 is +0.7 (MES) / -0.2 (MNQ) vs 3.80 / 2.30 costs. Grid: MNQ 3/16 cells PF>1 on both periods (all long_only/14:00), MES 0/16; all short_then_long cells negative. Walk-forward OOS 2025-01..2026-09 (MNQ): 401 trades, net +4,379, PF 1.185, Sharpe 0.76, 14/21 positive months, maxDD -2,230; 2025-04 is +2,586 (59% of OOS net) and 2025-04-09 alone +3,089 (ex that day net +1,290 / daily PF 1.055; ex April PF 1.08); 2025 PF 1.35 vs 2026 PF 0.997 (net -38), the 2023-24 OOS folds are 7/8 negative (net -1339), whole OOS 2023-26 PF 1.07. Lucid on the OOS stream: 5 micros pass 0.178 / pass-within-21 0.156, P(first payout) 0.008, expected net -118, lower bound -146 = zero-edge control -> not recommended at any size. Verdict marginal by the mechanical rule (WF PF >= 1.03 on >= 40 trades) only; honest reading: a 2025-26 MNQ tape effect concentrated in April 2025, no edge net of costs over 2015-2024, dead on MES. Reusable output: lunch profile by year / macro / opex (lunch_profile_summary.csv).",
  "wf_2025": {
   "trades": 401,
@@ -360,5 +360,50 @@
   },
   "SPX_opex_2010_2024_pm": -4.4,
   "NDX_opex_2010_2024_pm": -4.8
+ },
+ "verify": {
+  "id": "cal_lunch",
+  "verdict": "dead",
+  "lookahead_found": false,
+  "lookahead_notes": "Entry at the 12:00 bar open (+tick) decided on bars <= 11:59; stop = 0.4% x close of bar i-1 (same session enforced); ATR14d shifted one day; macro flag from the 08:30-08:31 range vs the median of the PRIOR 60 sessions (known 08:32); FOMC from the published calendar; exit at the 14:00 open + force_flat. Fill audit on all 364 MAIN trades: entries at open+tick, stops at level-slip (1 gap-through, 0 better than level), exits at the 14:00 open, 0 macro/FOMC days traded. Only forward-looking element: day_ok requires a 14:00 bar to exist in the session (not knowable at 12:00); it excluded exactly one non-thin MAIN session (2026-03-12, 14:00-14:59 feed gap, position -$85 at 13:59): immaterial, not favourable. Harness artefact (opposite of look-ahead): the 45-day warm-up leaves the 08:30 macro median unarmed until 2025-01-28, so four Jan-2025 macro mornings (01-08, 01-10 NFP, 01-14 PPI, 01-15 CPI) were traded against the rule, +$915 = 13% of MAIN net.",
+  "fixed_main_pf": 1.3148352624053363,
+  "fixed_main_trades": 364,
+  "fixed_main_net": 6867.55,
+  "largest_day_share_main": 0.4498,
+  "fixed_prior_pf": 1.0453262650138828,
+  "fixed_prior_trades": 304,
+  "fixed_prior_net": 649.91,
+  "wf_oos_2025_pf": 1.185120855079781,
+  "plateau_frac": 1.0,
+  "plateau_runs": {
+   "stop_pct_0.3": 1.312,
+   "stop_pct_0.5": 1.239
+  },
+  "plateau_extended_frac": 0.8,
+  "plateau_extended_runs": {
+   "long_exit_13:30": 1.252,
+   "skip_macro_false": 1.17,
+   "variant_short_then_long": 0.978
+  },
+  "history_2015_2022_pf": 0.8658,
+  "history_2015_2022_trades": 1671,
+  "history_2015_2022_net": -5390.0,
+  "history_2015_2022_ex2020_pf": 0.804,
+  "history_2020_pf": 1.1739,
+  "history_2020_trades": 211,
+  "history_2020_net": 1159.4,
+  "slippage2_main_pf": 1.2982,
+  "slippage2_main_net": 6544.55,
+  "thin_session_dependence": "Top-10 days = 110.4% of MAIN net (ex-top-10: 354 trades, net -$717, PF 0.967); 2025-04-09 alone = 45.0% (ex that day PF 1.173); 2025-04 = 43.9% of net (> 40%, one month over the line); WF OOS largest_day_share 0.705, 2026 OOS PF 0.997.",
+  "criteria": {
+   "lookahead": "pass",
+   "wf_oos_2025_pf_ge_1.1": "pass (1.185)",
+   "plateau_ge_0.5": "pass (1.0)",
+   "history_ex2020_pf_ge_1.0": "FAIL (0.804; 0.866 incl. 2020; 6/8 years negative)",
+   "slip2_pf_ge_1.0": "pass (1.298)"
+  },
+  "notes": "Dead: the only failed criterion (2015-2022 history PF 0.80 ex-2020) is a wide miss, and the passing MAIN/OOS numbers rest on one afternoon (2025-04-09) plus $915 of January-2025 macro-day trades the rule would not have taken. Lucid lower bound = zero-edge control.",
+  "report": "results/cal_lunch/verify.md",
+  "date": "2026-10-04"
  }
 }
