@@ -1,0 +1,364 @@
+{
+ "id": "cal_lunch",
+ "family": "calendar_seasonal_structural",
+ "contract": "MNQ",
+ "params": {
+  "variant": "long_only",
+  "short_start": "11:00",
+  "reverse_time": "12:00",
+  "long_exit": "14:00",
+  "stop_mode": "pct",
+  "stop_pct": 0.4,
+  "stop_atr": 0.4,
+  "skip_macro": true,
+  "skip_opex": false,
+  "max_trades": 2,
+  "dls_mult": 1.0
+ },
+ "period_main": {
+  "trades": 364,
+  "net": 6867.54669600003,
+  "days": 448,
+  "trading_days": 364,
+  "win_rate": 0.521978021978022,
+  "avg_trade": 18.866886527472612,
+  "avg_win": 150.95100000000025,
+  "avg_loss": -125.36289255172414,
+  "profit_factor": 1.3148352624053363,
+  "expectancy_R": 0.15049817488606704,
+  "trades_per_day": 0.8125,
+  "max_dd_closed": -1496.1736960000408,
+  "max_dd_intraday": -1516.0836960000415,
+  "mean_day": 15.329345303571491,
+  "std_day": 208.42265508749225,
+  "sharpe_daily_ann": 1.1675593159772588,
+  "pct_pos_days": 0.521978021978022,
+  "largest_day": 3089.058,
+  "worst_day": -284.38200000000217,
+  "largest_day_share": 0.44980516867824255,
+  "months": 21,
+  "pct_pos_months": 0.7142857142857143,
+  "worst_month": -673.4326240000127,
+  "best_month": 3016.5414959999744,
+  "monthly": {
+   "2025-01": 602.45,
+   "2025-02": 24.58,
+   "2025-03": 174.92,
+   "2025-04": 3016.54,
+   "2025-05": 372.1,
+   "2025-06": -575.59,
+   "2025-07": 85.4,
+   "2025-08": -37.89,
+   "2025-09": 91.66,
+   "2025-10": -332.32,
+   "2025-11": 847.61,
+   "2025-12": 608.3,
+   "2026-01": 21.36,
+   "2026-02": -673.43,
+   "2026-03": -63.95,
+   "2026-04": 568.45,
+   "2026-05": 1023.46,
+   "2026-06": 645.24,
+   "2026-07": 85.58,
+   "2026-08": -224.35,
+   "2026-09": 607.43
+  }
+ },
+ "period_prior": {
+  "trades": 304,
+  "net": 649.9127040000527,
+  "days": 516,
+  "trading_days": 304,
+  "win_rate": 0.5131578947368421,
+  "avg_trade": 2.1378707368422787,
+  "avg_win": 96.07985897435941,
+  "avg_loss": -96.88206281081087,
+  "profit_factor": 1.0453262650138828,
+  "expectancy_R": 0.022066734283074308,
+  "trades_per_day": 0.5891472868217055,
+  "max_dd_closed": -1717.1752800000045,
+  "max_dd_intraday": -1845.1432800000052,
+  "mean_day": 1.2595207441861487,
+  "std_day": 91.99459947282928,
+  "sharpe_daily_ann": 0.21734180132352926,
+  "pct_pos_days": 0.5131578947368421,
+  "largest_day": 436.85400000000226,
+  "worst_day": -172.05065599999654,
+  "largest_day_share": 0.6721733508381563,
+  "months": 24,
+  "pct_pos_months": 0.5416666666666666,
+  "worst_month": -651.5943439999874,
+  "best_month": 776.2707520000025,
+  "monthly": {
+   "2023-01": 776.27,
+   "2023-02": 133.23,
+   "2023-03": 0.0,
+   "2023-04": 87.22,
+   "2023-05": 0.0,
+   "2023-06": 0.0,
+   "2023-07": -13.36,
+   "2023-08": 264.44,
+   "2023-09": 121.54,
+   "2023-10": -339.16,
+   "2023-11": 254.98,
+   "2023-12": 11.54,
+   "2024-01": -341.58,
+   "2024-02": 53.32,
+   "2024-03": 326.34,
+   "2024-04": -85.71,
+   "2024-05": -251.77,
+   "2024-06": 87.63,
+   "2024-07": -131.84,
+   "2024-08": -651.59,
+   "2024-09": 526.6,
+   "2024-10": -631.54,
+   "2024-11": 272.75,
+   "2024-12": 180.58
+  }
+ },
+ "verdict": "marginal",
+ "notes": "Quantpedia lunch effect, long-only 12:00-14:00 leg (market at the 12:00 open, 0.4% stop, clock exit at the 14:00 open, macro/FOMC days skipped). MNQ fixed defaults: MAIN 364 trades / +6,868 / PF 1.315 / Sharpe 1.17 but 2025-04-09 alone is +3,089 (45% of net; ex that day PF 1.17), PRIOR 304 / +650 / PF 1.045, 2015-2024 1,972 / -4,891 / PF 0.91. MES (the paper's instrument) is negative in every period and every grid cell (MAIN PF 0.96, PRIOR 0.93, 2015-24 0.83). Reversal variant (short 11-12 then long) PF 0.74-0.98 everywhere: the 11:00-12:00 hour is positive on our data. Raw profile: 12:00-14:00 mean 0.0 bp/day on SPX 2010-2024 (-0.2 NDX), sign follows the year's drift; opex midday -4 to -5 bp (t -1.8) is the one consistent slot; mean gross per trade 2015-2024 is +0.7 (MES) / -0.2 (MNQ) vs 3.80 / 2.30 costs. Grid: MNQ 3/16 cells PF>1 on both periods (all long_only/14:00), MES 0/16; all short_then_long cells negative. Walk-forward OOS 2025-01..2026-09 (MNQ): 401 trades, net +4,379, PF 1.185, Sharpe 0.76, 14/21 positive months, maxDD -2,230; 2025-04 is +2,586 (59% of OOS net) and 2025-04-09 alone +3,089 (ex that day net +1,290 / daily PF 1.055; ex April PF 1.08); 2025 PF 1.35 vs 2026 PF 0.997 (net -38), the 2023-24 OOS folds are 7/8 negative (net -1339), whole OOS 2023-26 PF 1.07. Lucid on the OOS stream: 5 micros pass 0.178 / pass-within-21 0.156, P(first payout) 0.008, expected net -118, lower bound -146 = zero-edge control -> not recommended at any size. Verdict marginal by the mechanical rule (WF PF >= 1.03 on >= 40 trades) only; honest reading: a 2025-26 MNQ tape effect concentrated in April 2025, no edge net of costs over 2015-2024, dead on MES. Reusable output: lunch profile by year / macro / opex (lunch_profile_summary.csv).",
+ "wf_2025": {
+  "trades": 401,
+  "net": 4379.154756000064,
+  "days": 448,
+  "trading_days": 401,
+  "win_rate": 0.48129675810473815,
+  "avg_trade": 10.920585426434073,
+  "avg_win": 145.2580725388605,
+  "avg_loss": -113.72910213461539,
+  "profit_factor": 1.185120855079781,
+  "expectancy_R": 0.09602278767230508,
+  "trades_per_day": 0.8950892857142857,
+  "max_dd_closed": -2168.5666120000424,
+  "max_dd_intraday": -2230.2506120000407,
+  "mean_day": 9.77489900892871,
+  "std_day": 205.28945569269723,
+  "sharpe_daily_ann": 0.7558679070329989,
+  "pct_pos_days": 0.48129675810473815,
+  "largest_day": 3089.058,
+  "worst_day": -185.11928999999947,
+  "largest_day_share": 0.7054005103993078,
+  "months": 21,
+  "pct_pos_months": 0.6666666666666666,
+  "worst_month": -985.5351960000016,
+  "best_month": 2586.1886139999942,
+  "monthly": {
+   "2025-01": 591.02,
+   "2025-02": -238.99,
+   "2025-03": -42.62,
+   "2025-04": 2586.19,
+   "2025-05": 392.13,
+   "2025-06": -949.12,
+   "2025-07": 17.78,
+   "2025-08": 55.14,
+   "2025-09": 331.07,
+   "2025-10": 100.85,
+   "2025-11": 1097.13,
+   "2025-12": 476.96,
+   "2026-01": -378.7,
+   "2026-02": -985.54,
+   "2026-03": 167.46,
+   "2026-04": -20.69,
+   "2026-05": 297.55,
+   "2026-06": 763.64,
+   "2026-07": 126.91,
+   "2026-08": -444.1,
+   "2026-09": 435.07
+  },
+  "method": "final_select --wf_start 2022-01-01 --max_combos 16: params chosen on trailing 12 months from GRID (variant/stop_pct/long_exit/skip_macro) with final.json params as base, selection by IS Sharpe (min 30 IS trades), tested on the next 3 months; OOS stream 2025-01..2026-09",
+  "fixed_main_pf": 1.3148352624053363,
+  "fixed_prior_pf": 1.0453262650138828,
+  "wf_all": {
+   "trades": 767,
+   "net": 3039.709298000114,
+   "profit_factor": 1.0723322492108818,
+   "max_dd_intraday": -2878.062805999959,
+   "sharpe_daily_ann": 0.315703771961357,
+   "pct_pos_months": 0.5333333333333333
+  },
+  "oos_2023_24": {
+   "net": -1339,
+   "trades": 366,
+   "negative_folds": 7,
+   "folds": 8
+  },
+  "ex_2025_04_09": {
+   "net": 1290,
+   "pf_daily": 1.055
+  },
+  "ex_april_2025": {
+   "net": 1793,
+   "pf_daily": 1.082
+  },
+  "by_year": {
+   "2025": {
+    "net": 4418,
+    "pf_daily": 1.351
+   },
+   "2026": {
+    "net": -38,
+    "pf_daily": 0.997
+   }
+  }
+ },
+ "lucid": {
+  "n_starts": 446.0,
+  "n_censored": 9.0,
+  "pass_rate": 0.17848970251716248,
+  "fail_rate": 0.8146453089244852,
+  "incomplete_rate": 0.006864988558352402,
+  "median_days_to_pass": 11.0,
+  "p90_days_to_pass": 22.299999999999997,
+  "n_funded_resolved": 69.0,
+  "p_first_payout_given_pass": 0.043478260869565216,
+  "p_breach_before_payout": 0.9565217391304348,
+  "mean_paid_given_pass": 156.52173913043478,
+  "median_days_to_first_payout": 13.0,
+  "mean_payouts_given_pass": 0.08695652173913043,
+  "p_live_5_payouts": 0.0,
+  "p_first_payout_unconditional": 0.007760421848572282,
+  "expected_paid_per_eval": 27.937518654860213,
+  "expected_net_per_eval": -118.06248134513979,
+  "pass_within_21": 0.15560640732265446,
+  "pass_within_42": 0.17848970251716248,
+  "pass_within_63": 0.17848970251716248,
+  "p_loss_fee": 0.8215102974828375,
+  "n_full_horizon": 329.0,
+  "pass_rate_full_horizon": 0.14285714285714285,
+  "n_effective": 39.72727272727273,
+  "micros": 5.0,
+  "exp_net_lb": -146.0,
+  "exp_net_p50": -108.5,
+  "pass_rate_lb": 0.08216382443388313,
+  "p_exp_net_positive": 0.24,
+  "zero_edge_exp_net": -146.0,
+  "zero_edge_pass_rate": 0.09027777777777778,
+  "recommended": 0.0,
+  "selection": "exp_net_lb",
+  "source": "lucid_wf_2025 (walk-forward OOS 2025-01..2026-09 daily stream, bootstrap lower-bound sizing)",
+  "table": [
+   {
+    "micros": 5,
+    "pass_rate": 0.178,
+    "pass_within_21": 0.156,
+    "p_first_payout_unconditional": 0.008,
+    "expected_net_per_eval": -118.062,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -146.0,
+    "p_loss_fee": 0.822
+   },
+   {
+    "micros": 10,
+    "pass_rate": 0.151,
+    "pass_within_21": 0.151,
+    "p_first_payout_unconditional": 0.002,
+    "expected_net_per_eval": -137.91,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -141.937,
+    "p_loss_fee": 0.849
+   },
+   {
+    "micros": 15,
+    "pass_rate": 0.121,
+    "pass_within_21": 0.121,
+    "p_first_payout_unconditional": 0.002,
+    "expected_net_per_eval": -137.91,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -137.892,
+    "p_loss_fee": 0.879
+   },
+   {
+    "micros": 20,
+    "pass_rate": 0.101,
+    "pass_within_21": 0.101,
+    "p_first_payout_unconditional": 0.002,
+    "expected_net_per_eval": -137.91,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -137.91,
+    "p_loss_fee": 0.899
+   },
+   {
+    "micros": 30,
+    "pass_rate": 0.085,
+    "pass_within_21": 0.085,
+    "p_first_payout_unconditional": 0.002,
+    "expected_net_per_eval": -141.955,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -146.0,
+    "p_loss_fee": 0.915
+   },
+   {
+    "micros": 40,
+    "pass_rate": 0.067,
+    "pass_within_21": 0.067,
+    "p_first_payout_unconditional": 0.0,
+    "expected_net_per_eval": -146.0,
+    "exp_net_lb": -146.0,
+    "zero_edge_exp_net": -146.0,
+    "p_loss_fee": 0.933
+   }
+  ]
+ },
+ "sub_periods": {
+  "MNQ_2015_2024": {
+   "trades": 1972,
+   "net": -4891,
+   "pf": 0.91
+  },
+  "MES_main": {
+   "trades": 358,
+   "net": -518,
+   "pf": 0.96
+  },
+  "MES_prior": {
+   "trades": 302,
+   "net": -562,
+   "pf": 0.927
+  },
+  "MES_2015_2024": {
+   "trades": 1912,
+   "net": -5974,
+   "pf": 0.832
+  },
+  "MNQ_short_then_long_main": {
+   "trades": 605,
+   "net": -840,
+   "pf": 0.978
+  },
+  "MNQ_short_then_long_2015_2024": {
+   "trades": 3706,
+   "net": -15079,
+   "pf": 0.841
+  },
+  "MNQ_atr_stop_main": {
+   "trades": 364,
+   "net": 4523,
+   "pf": 1.181
+  }
+ },
+ "lunch_profile_bp": {
+  "SPX_2010_2024": {
+   "am_11_12": 1.2,
+   "pm_12_14": 0.0,
+   "n": 3276
+  },
+  "NDX_2010_2024": {
+   "am_11_12": 1.5,
+   "pm_12_14": -0.2,
+   "n": 3402
+  },
+  "SPX_2025_2026": {
+   "am_11_12": -0.7,
+   "pm_12_14": 2.4,
+   "n": 429
+  },
+  "NDX_2025_2026": {
+   "am_11_12": 0.4,
+   "pm_12_14": 3.3,
+   "n": 430
+  },
+  "SPX_opex_2010_2024_pm": -4.4,
+  "NDX_opex_2010_2024_pm": -4.8
+ }
+}
