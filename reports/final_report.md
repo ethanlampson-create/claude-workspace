@@ -150,79 +150,79 @@ Daily P&L correlation (walk-forward OOS 2025):
 
 ## Configuration A: Aggressive (fast pass, first payout)
 
-Weights per leg (micros): {'orb_close30': 10, 'mr_gapfade': 5, 'orb_dbl': 15, 'vb_orbp': 5, 'orb_sma_rr': 0, 'orb_reclaim': 0}
+Weights per leg (micros): {'orb_close30': 5, 'mr_gapfade': 5, 'orb_dbl': 5, 'vb_orbp': 0, 'orb_sma_rr': 0, 'orb_reclaim': 0}
 
 | Item | Value |
 |---|---|
-| Evaluation size | 35 micros total (unit [2, 1, 3, 1, 0, 0] x 5) |
-| Funded size | 14 micros, cut to 7 when room to the MLL < $900, scaling cap respected |
+| Evaluation size | 15 micros total (unit [1, 1, 1, 0, 0, 0] x 5) |
+| Funded size | 15 micros, cut to 3 when room to the MLL < $900, scaling cap respected |
 | Attempts modelled | 1 |
-| P(pass) per attempt | 34% |
-| P(pass within 21 sessions) | 34% |
-| P(pass within 42 sessions) | 34% |
-| Median sessions to pass | 6.0 |
-| P(lose the fee) per attempt | 66% |
-| P(funded) within attempts | 34% (bootstrap 5-95%: 22% - 41%) |
-| Median sessions to funded | 6.0 |
-| P(first payout | funded) | 55% |
-| P(first payout) overall | 18% (bootstrap: 5% - 25%) |
-| Median sessions funded -> first payout | 23.0 |
-| Mean paid | funded (90% split) | $3,765 |
+| P(pass) per attempt | 60% |
+| P(pass within 21 sessions) | 32% |
+| P(pass within 42 sessions) | 56% |
+| Median sessions to pass | 20.0 |
+| P(lose the fee) per attempt | 40% |
+| P(funded) within attempts | 60% (bootstrap 5-95%: 34% - 67%) |
+| Median sessions to funded | 20.0 |
+| P(first payout | funded) | 60% |
+| P(first payout) overall | 36% (bootstrap: 5% - 43%) |
+| Median sessions funded -> first payout | 26.0 |
+| Mean paid | funded (90% split) | $3,400 |
 | Mean fees per campaign | $146 |
-| Expected net per campaign | $1,120 (bootstrap 5/50/95%: $23 / $494 / $1,339; P(net>0) 96%) |
-| Zero-edge control (same stream demeaned) | expected net $-86, pass rate 12% |
+| Expected net per campaign | $1,903 (bootstrap 5/50/95%: $-22 / $860 / $2,530; P(net>0) 94%) |
+| Zero-edge control (same stream demeaned) | expected net $-146, pass rate 17% |
 | Minimum monthly P(funded) | 0% |
 
 Monthly view (start month of the evaluation):
 
 | Start month | starts | P(pass within 21 sessions) | P(funded within attempts) |
 |---|---|---|---|
-| 2025-01 | 22 | 77% | 77% |
-| 2025-02 | 20 | 35% | 35% |
-| 2025-03 | 21 | 29% | 29% |
-| 2025-04 | 21 | 5% | 5% |
-| 2025-05 | 22 | 59% | 59% |
+| 2025-01 | 22 | 32% | 100% |
+| 2025-02 | 20 | 0% | 100% |
+| 2025-03 | 21 | 62% | 100% |
+| 2025-04 | 21 | 52% | 52% |
+| 2025-05 | 22 | 77% | 77% |
 | 2025-06 | 21 | 0% | 0% |
-| 2025-07 | 23 | 17% | 17% |
-| 2025-08 | 21 | 71% | 71% |
-| 2025-09 | 22 | 36% | 36% |
-| 2025-10 | 23 | 13% | 13% |
+| 2025-07 | 23 | 9% | 35% |
+| 2025-08 | 21 | 29% | 100% |
+| 2025-09 | 22 | 36% | 100% |
+| 2025-10 | 23 | 48% | 48% |
 | 2025-11 | 20 | 0% | 0% |
-| 2025-12 | 22 | 64% | 64% |
-| 2026-01 | 21 | 67% | 67% |
-| 2026-02 | 20 | 60% | 60% |
-| 2026-03 | 22 | 27% | 27% |
-| 2026-04 | 21 | 29% | 29% |
+| 2025-12 | 22 | 59% | 91% |
+| 2026-01 | 21 | 10% | 100% |
+| 2026-02 | 20 | 5% | 100% |
+| 2026-03 | 22 | 95% | 95% |
+| 2026-04 | 21 | 62% | 62% |
 | 2026-05 | 21 | 10% | 10% |
-| 2026-06 | 22 | 18% | 18% |
-| 2026-07 | 23 | 26% | 26% |
-| 2026-08 | 21 | 19% | 19% |
-| 2026-09 | 17 | 47% | 47% |
+| 2026-06 | 22 | 36% | 36% |
+| 2026-07 | 23 | 0% | 0% |
+| 2026-08 | 21 | 14% | 14% |
+| 2026-09 | 4 | 0% | 0% |
 
 ## Configuration B: Safe (one evaluation reaches funded)
 
-Weights per leg (micros): {'orb_close30': 15, 'mr_gapfade': 10, 'orb_dbl': 10, 'vb_orbp': 0, 'orb_sma_rr': 0, 'orb_reclaim': 0}
+Weights per leg (micros): {'orb_close30': 10, 'mr_gapfade': 10, 'orb_dbl': 10, 'vb_orbp': 0, 'orb_sma_rr': 0, 'orb_reclaim': 0}
 
 | Item | Value |
 |---|---|
-| Evaluation size | 14 micros total (unit [3, 2, 2, 0, 0, 0] x 2) |
-| Funded size | 14 micros, cut to 7 when room to the MLL < $900, scaling cap respected |
+| Evaluation size | 9 micros total (unit [1, 1, 1, 0, 0, 0] x 3) |
+| Funded size | 9 micros, cut to 3 when room to the MLL < $900, scaling cap respected |
 | Attempts modelled | 3 |
-| P(pass) per attempt | 59% |
-| P(pass within 21 sessions) | 33% |
-| P(pass within 42 sessions) | 56% |
-| Median sessions to pass | 19.0 |
-| P(lose the fee) per attempt | 41% |
-| P(funded) within attempts | 86% (bootstrap 5-95%: 55% - 95%) |
-| Median sessions to funded | 25.0 |
-| P(first payout | funded) | 59% |
-| P(first payout) overall | 51% (bootstrap: 10% - 56%) |
-| Median sessions funded -> first payout | 27.5 |
-| Mean paid | funded (90% split) | $2,695 |
-| Mean fees per campaign | $201 |
-| Expected net per campaign | $2,124 (bootstrap 5/50/95%: $8 / $1,318 / $3,549; P(net>0) 95%) |
-| Zero-edge control (same stream demeaned) | expected net $-113, pass rate 22% |
-| Minimum monthly P(funded) | 19% |
+| P(pass) per attempt | 76% |
+| P(pass within 21 sessions) | 14% |
+| P(pass within 42 sessions) | 37% |
+| Median sessions to pass | 43.0 |
+| P(lose the fee) per attempt | 24% |
+| P(funded) within attempts | 93% (bootstrap 5-95%: 68% - 100%) |
+| Median sessions to funded | 46.0 |
+| P(first payout | funded) | 69% |
+| P(first payout) overall | 64% (bootstrap: 6% - 87%) |
+| Median sessions funded -> first payout | 61.0 |
+| Mean paid | funded (90% split) | $2,779 |
+| Mean fees per campaign | $176 |
+| Expected net per campaign | $2,413 (bootstrap 5/50/95%: $-59 / $1,778 / $5,907; P(net>0) 92%) |
+| Zero-edge control (same stream demeaned) | expected net $-146, pass rate 30% |
+| Minimum monthly P(funded) | 29% |
 
 Monthly view (start month of the evaluation):
 
@@ -230,25 +230,23 @@ Monthly view (start month of the evaluation):
 |---|---|---|---|
 | 2025-01 | 22 | 0% | 100% |
 | 2025-02 | 20 | 0% | 100% |
-| 2025-03 | 21 | 76% | 100% |
-| 2025-04 | 21 | 48% | 100% |
-| 2025-05 | 22 | 77% | 77% |
-| 2025-06 | 21 | 0% | 81% |
-| 2025-07 | 23 | 4% | 100% |
-| 2025-08 | 21 | 19% | 100% |
-| 2025-09 | 22 | 32% | 100% |
-| 2025-10 | 23 | 48% | 48% |
-| 2025-11 | 20 | 0% | 70% |
-| 2025-12 | 22 | 73% | 100% |
-| 2026-01 | 21 | 14% | 100% |
-| 2026-02 | 20 | 5% | 100% |
-| 2026-03 | 22 | 100% | 100% |
-| 2026-04 | 21 | 86% | 100% |
-| 2026-05 | 21 | 19% | 19% |
-| 2026-06 | 22 | 18% | 45% |
-| 2026-07 | 23 | 0% | 91% |
-| 2026-08 | 21 | 14% | 100% |
-| 2026-09 | 10 | 60% | 100% |
+| 2025-03 | 21 | 38% | 100% |
+| 2025-04 | 21 | 29% | 100% |
+| 2025-05 | 22 | 64% | 100% |
+| 2025-06 | 21 | 0% | 100% |
+| 2025-07 | 23 | 0% | 100% |
+| 2025-08 | 21 | 0% | 100% |
+| 2025-09 | 22 | 0% | 100% |
+| 2025-10 | 23 | 0% | 100% |
+| 2025-11 | 20 | 0% | 100% |
+| 2025-12 | 22 | 0% | 100% |
+| 2026-01 | 21 | 0% | 100% |
+| 2026-02 | 20 | 0% | 100% |
+| 2026-03 | 22 | 64% | 100% |
+| 2026-04 | 21 | 19% | 48% |
+| 2026-05 | 21 | 0% | 29% |
+| 2026-06 | 22 | 41% | 100% |
+| 2026-07 | 1 | 0% | n/a |
 
 ## Strategy rules
 

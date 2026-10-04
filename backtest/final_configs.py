@@ -111,11 +111,13 @@ if __name__ == '__main__':
         if not pool:
             pool = [c for c in cands if c['cfg']['objective'] == objective]
         return max(pool, key=lambda c: score(c['cfg']))
-    # Aggressive: maximise P(first payout) per single attempt, among configs whose expected-net lower bound is positive
-    agg_best = pick('aggressive', lambda s: (s.get('p_first_payout_overall') or 0), lambda s: (s.get('bs_expected_net_p05') or -1) > 0)
-    # Safe: maximise P(funded within 3 attempts) with its bootstrap lower bound and the worst month, among configs with a
-    # positive expected-net lower bound (fallback: all safe configs)
-    safe_best = pick('safe', lambda s: (s.get('bs_p_funded_p05') or 0) + (s.get('p_funded') or 0) + (s.get('min_monthly_p_funded') or 0), lambda s: (s.get('bs_expected_net_p05') or -1) > 0)
+    # Eligibility for both objectives: bootstrap P(expected net > 0) >= 0.9 (a positive 5th percentile is too noisy a
+    # gate: it flipped picks on a $45 difference between otherwise very different books).
+    ok = lambda s: (s.get('bs_p_expected_net_positive') or 0) >= 0.9
+    # Aggressive: maximise P(first payout) per single attempt
+    agg_best = pick('aggressive', lambda s: (s.get('p_first_payout_overall') or 0), ok)
+    # Safe: maximise P(funded within 3 attempts) with its bootstrap lower bound and the worst month
+    safe_best = pick('safe', lambda s: (s.get('bs_p_funded_p05') or 0) + (s.get('p_funded') or 0) + (s.get('min_monthly_p_funded') or 0), ok)
     compact = [{'w': c['w'], 'objective': c['cfg']['objective'], 'size_mult': c['cfg']['size_mult'], 'eval_micros': c['cfg']['eval_micros'], 'attempts': c['cfg']['attempts'],
                 'p_pass': c['cfg'].get('eval_pass_rate'), 'p_pass_21': c['cfg'].get('eval_pass_within_21'), 'p_funded': c['cfg'].get('p_funded'), 'p_funded_lb': c['cfg'].get('bs_p_funded_p05'),
                 'p_first_payout': c['cfg'].get('p_first_payout_overall'), 'expected_net': c['cfg'].get('expected_net'), 'net_lb': c['cfg'].get('bs_expected_net_p05'),
