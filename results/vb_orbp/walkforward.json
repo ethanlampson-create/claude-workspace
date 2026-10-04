@@ -1,0 +1,910 @@
+{
+ "id": "vb_orbp",
+ "contract": "MNQ",
+ "params": {
+  "unit": "range",
+  "k": 0.25,
+  "sides": "both",
+  "bias": "none",
+  "stop_mode": "frac",
+  "stop_frac": 0.5,
+  "tgt_mode": "frac",
+  "tgt_frac": 0.5,
+  "tgt_cap_atr": 0.0,
+  "max_stop_atr": 0.6,
+  "min_stop_pts": {
+   "MES": 4.0,
+   "MNQ": 6.0,
+   "MGC": 2.0
+  },
+  "min_unit_atr": 0.05,
+  "max_unit_atr": 1.0,
+  "ws_skip": 0.0,
+  "gap_skip_atr": 0.0,
+  "entry_cutoff": {
+   "MES": "15:55",
+   "MNQ": "15:55",
+   "MGC": "13:25"
+  },
+  "cancel_on_opposite": true,
+  "buffer_ticks": 1,
+  "flat": {
+   "MES": "15:55",
+   "MNQ": "15:55",
+   "MGC": "13:25"
+  },
+  "max_trades": 1
+ },
+ "wf_path": [
+  {
+   "is": "2022-01-01..2022-12-31",
+   "oos": "2023-01-01..2023-03-31",
+   "params": {
+    "unit": "range",
+    "k": 0.3,
+    "sides": "both",
+    "bias": "pd_mid",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 1.6618878926878795,
+   "is_net": 3492.479445228553,
+   "oos_net": 526.0743999999961,
+   "oos_trades": 12,
+   "oos_pf": 2.070216625152462
+  },
+  {
+   "is": "2022-04-01..2023-03-31",
+   "oos": "2023-04-01..2023-06-30",
+   "params": {
+    "unit": "range",
+    "k": 0.3,
+    "sides": "both",
+    "bias": "pd_mid",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 2.218936686725233,
+   "is_net": 3938.9117204176437,
+   "oos_net": -66.49438200945677,
+   "oos_trades": 16,
+   "oos_pf": 0.9390554025800505
+  },
+  {
+   "is": "2022-07-01..2023-06-30",
+   "oos": "2023-07-01..2023-09-30",
+   "params": {
+    "unit": "range",
+    "k": 0.3,
+    "sides": "both",
+    "bias": "pd_mid",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 1.9693194359473185,
+   "is_net": 2828.843812996736,
+   "oos_net": 342.52084730993727,
+   "oos_trades": 20,
+   "oos_pf": 1.3068950153510925
+  },
+  {
+   "is": "2022-10-01..2023-09-30",
+   "oos": "2023-10-01..2023-12-31",
+   "params": {
+    "unit": "range",
+    "k": 0.3,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "eod",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 1.731741750468171,
+   "is_net": 3734.5380019302397,
+   "oos_net": 612.6906530947966,
+   "oos_trades": 54,
+   "oos_pf": 1.1638631071048837
+  },
+  {
+   "is": "2023-01-01..2023-12-31",
+   "oos": "2024-01-01..2024-03-31",
+   "params": {
+    "unit": "range",
+    "k": 0.3,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 1.3560932993957355,
+   "is_net": 2188.05834146932,
+   "oos_net": -646.8607683042374,
+   "oos_trades": 47,
+   "oos_pf": 0.797752014515638
+  },
+  {
+   "is": "2023-04-01..2024-03-31",
+   "oos": "2024-04-01..2024-06-30",
+   "params": {
+    "unit": "range",
+    "k": 0.5,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "eod",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 0.9393222609252959,
+   "is_net": 1546.8398178051477,
+   "oos_net": 2184.945132792751,
+   "oos_trades": 32,
+   "oos_pf": 2.446855166098586
+  },
+  {
+   "is": "2023-07-01..2024-06-30",
+   "oos": "2024-07-01..2024-09-30",
+   "params": {
+    "unit": "range",
+    "k": 0.5,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "eod",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 1.9204418820087226,
+   "is_net": 3733.3867708761263,
+   "oos_net": 1042.6338440978125,
+   "oos_trades": 32,
+   "oos_pf": 1.3110667990089178
+  },
+  {
+   "is": "2023-10-01..2024-09-30",
+   "oos": "2024-10-01..2024-12-31",
+   "params": {
+    "unit": "range",
+    "k": 0.5,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 1.692505344821428,
+   "is_net": 2868.3094021563857,
+   "oos_net": 2898.2006405759166,
+   "oos_trades": 35,
+   "oos_pf": 3.3108022077067782
+  },
+  {
+   "is": "2024-01-01..2024-12-31",
+   "oos": "2025-01-01..2025-03-31",
+   "params": {
+    "unit": "range",
+    "k": 0.5,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 3.0400139688616155,
+   "is_net": 5364.090398115674,
+   "oos_net": 782.3115188425693,
+   "oos_trades": 34,
+   "oos_pf": 1.2657145794145659
+  },
+  {
+   "is": "2024-04-01..2025-03-31",
+   "oos": "2025-04-01..2025-06-30",
+   "params": {
+    "unit": "range",
+    "k": 0.3,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "eod",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 2.901190605091466,
+   "is_net": 10189.64477645903,
+   "oos_net": -3688.083995911016,
+   "oos_trades": 50,
+   "oos_pf": 0.5181182567762845
+  },
+  {
+   "is": "2024-07-01..2025-06-30",
+   "oos": "2025-07-01..2025-09-30",
+   "params": {
+    "unit": "range",
+    "k": 0.5,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 2.426298850703652,
+   "is_net": 5609.324849373808,
+   "oos_net": 1956.1189992731408,
+   "oos_trades": 36,
+   "oos_pf": 2.523001449384163
+  },
+  {
+   "is": "2024-10-01..2025-09-30",
+   "oos": "2025-10-01..2025-12-31",
+   "params": {
+    "unit": "range",
+    "k": 0.5,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 3.2581165374229073,
+   "is_net": 7099.270358571357,
+   "oos_net": -288.43574352764415,
+   "oos_trades": 41,
+   "oos_pf": 0.9328661669216801
+  },
+  {
+   "is": "2025-01-01..2025-12-31",
+   "oos": "2026-01-01..2026-03-31",
+   "params": {
+    "unit": "range",
+    "k": 0.5,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 1.591078582332077,
+   "is_net": 3918.340073280619,
+   "oos_net": 2152.707243540931,
+   "oos_trades": 41,
+   "oos_pf": 1.7450159772732734
+  },
+  {
+   "is": "2025-04-01..2026-03-31",
+   "oos": "2026-04-01..2026-06-30",
+   "params": {
+    "unit": "range",
+    "k": 0.5,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 2.1286491523852686,
+   "is_net": 5298.790663912667,
+   "oos_net": 2568.4034184980537,
+   "oos_trades": 32,
+   "oos_pf": 2.1008496979832203
+  },
+  {
+   "is": "2025-07-01..2026-06-30",
+   "oos": "2026-07-01..2026-09-30",
+   "params": {
+    "unit": "range",
+    "k": 0.5,
+    "sides": "both",
+    "bias": "none",
+    "stop_mode": "frac",
+    "stop_frac": 0.5,
+    "tgt_mode": "frac",
+    "tgt_frac": 0.4,
+    "tgt_cap_atr": 0.6,
+    "max_stop_atr": 0.4,
+    "min_stop_pts": {
+     "MES": 4.0,
+     "MNQ": 6.0,
+     "MGC": 2.0
+    },
+    "min_unit_atr": 0.05,
+    "max_unit_atr": 1.0,
+    "ws_skip": 1.5,
+    "gap_skip_atr": 0.0,
+    "entry_cutoff": {
+     "MES": "11:30",
+     "MNQ": "11:30",
+     "MGC": "10:30"
+    },
+    "cancel_on_opposite": true,
+    "buffer_ticks": 1,
+    "flat": {
+     "MES": "15:55",
+     "MNQ": "15:55",
+     "MGC": "13:25"
+    },
+    "max_trades": 1
+   },
+   "is_metric": 2.5586632012222386,
+   "is_net": 6627.528824466862,
+   "oos_net": 617.4042000000068,
+   "oos_trades": 36,
+   "oos_pf": 1.1572678976986175
+  }
+ ],
+ "wf_all": {
+  "trades": 518,
+  "net": 10994.136008273561,
+  "days": 964,
+  "trading_days": 518,
+  "win_rate": 0.5579150579150579,
+  "avg_trade": 21.224200788172897,
+  "avg_win": 180.18430802719874,
+  "avg_loss": -179.3848428453575,
+  "profit_factor": 1.267633133243223,
+  "expectancy_R": 0.11831657820984168,
+  "trades_per_day": 0.5373443983402489,
+  "max_dd_closed": -4456.115529687533,
+  "max_dd_intraday": -4475.847529687534,
+  "mean_day": 11.404705402773404,
+  "std_day": 150.899823631118,
+  "sharpe_daily_ann": 1.199763401133788,
+  "pct_pos_days": 0.5579150579150579,
+  "largest_day": 649.2870000000069,
+  "worst_day": -513.6075967623372,
+  "largest_day_share": 0.05905757392044181,
+  "months": 45,
+  "pct_pos_months": 0.5777777777777777,
+  "worst_month": -2472.485264259669,
+  "best_month": 1586.8275911312157
+ },
+ "wf_2025": {
+  "trades": 270,
+  "net": 4100.425640716042,
+  "days": 448,
+  "trading_days": 270,
+  "win_rate": 0.5555555555555556,
+  "avg_trade": 15.186761632281637,
+  "avg_win": 196.18215272238183,
+  "avg_loss": -211.05747723034358,
+  "profit_factor": 1.1619000384210083,
+  "expectancy_R": 0.07195557263155919,
+  "trades_per_day": 0.6026785714285714,
+  "max_dd_closed": -4456.115529687523,
+  "max_dd_intraday": -4475.847529687524,
+  "mean_day": 9.152735805169739,
+  "std_day": 179.8485392977566,
+  "sharpe_daily_ann": 0.8078752104713166,
+  "pct_pos_days": 0.5555555555555556,
+  "largest_day": 649.2870000000069,
+  "worst_day": -513.6075967623372,
+  "largest_day_share": 0.15834624424176222,
+  "months": 21,
+  "pct_pos_months": 0.5714285714285714,
+  "worst_month": -2472.485264259669,
+  "best_month": 1261.776639387857
+ },
+ "wf_2025_monthly": {
+  "2025-01": 385.17,
+  "2025-02": 1038.34,
+  "2025-03": -641.19,
+  "2025-04": -621.3,
+  "2025-05": -594.3,
+  "2025-06": -2472.49,
+  "2025-07": 835.18,
+  "2025-08": 1193.53,
+  "2025-09": -72.59,
+  "2025-10": 138.14,
+  "2025-11": -200.34,
+  "2025-12": -226.24,
+  "2026-01": 1148.79,
+  "2026-02": 1261.78,
+  "2026-03": -257.86,
+  "2026-04": 1119.32,
+  "2026-05": 406.49,
+  "2026-06": 1042.59,
+  "2026-07": 178.16,
+  "2026-08": 676.4,
+  "2026-09": -237.16
+ },
+ "lucid_wf_2025": {
+  "n_starts": 446.0,
+  "n_censored": 5.0,
+  "pass_rate": 0.3333333333333333,
+  "fail_rate": 0.6666666666666666,
+  "incomplete_rate": 0.0,
+  "median_days_to_pass": 10.0,
+  "p90_days_to_pass": 17.0,
+  "n_funded_resolved": 147.0,
+  "p_first_payout_given_pass": 0.3129251700680272,
+  "p_breach_before_payout": 0.6870748299319728,
+  "mean_paid_given_pass": 1016.3265306122449,
+  "median_days_to_first_payout": 18.0,
+  "mean_payouts_given_pass": 0.564625850340136,
+  "p_live_5_payouts": 0.0,
+  "p_first_payout_unconditional": 0.10430839002267574,
+  "expected_paid_per_eval": 338.7755102040816,
+  "expected_net_per_eval": 192.77551020408163,
+  "pass_within_21": 0.3197278911564626,
+  "pass_within_42": 0.3333333333333333,
+  "pass_within_63": 0.3333333333333333,
+  "p_loss_fee": 0.6666666666666666,
+  "n_full_horizon": 329.0,
+  "pass_rate_full_horizon": 0.364741641337386,
+  "n_effective": 63.0,
+  "micros": 5.0,
+  "exp_net_lb": -80.88899613899613,
+  "exp_net_p50": 171.44506757377954,
+  "pass_rate_lb": 0.19554462180301108,
+  "p_exp_net_positive": 0.81,
+  "zero_edge_exp_net": -15.387755102040813,
+  "zero_edge_pass_rate": 0.29024943310657597,
+  "recommended": 0.0,
+  "selection": "exp_net_lb"
+ },
+ "lucid_wf_2025_table": [
+  {
+   "micros": 5,
+   "pass_rate": 0.333,
+   "pass_within_21": 0.32,
+   "p_first_payout_unconditional": 0.104,
+   "expected_net_per_eval": 192.776,
+   "exp_net_lb": -80.889,
+   "zero_edge_exp_net": -15.388,
+   "p_loss_fee": 0.667
+  },
+  {
+   "micros": 10,
+   "pass_rate": 0.19,
+   "pass_within_21": 0.19,
+   "p_first_payout_unconditional": 0.023,
+   "expected_net_per_eval": -28.167,
+   "exp_net_lb": -146.0,
+   "zero_edge_exp_net": -113.494,
+   "p_loss_fee": 0.81
+  },
+  {
+   "micros": 15,
+   "pass_rate": 0.126,
+   "pass_within_21": 0.126,
+   "p_first_payout_unconditional": 0.009,
+   "expected_net_per_eval": -105.368,
+   "exp_net_lb": -146.0,
+   "zero_edge_exp_net": -137.874,
+   "p_loss_fee": 0.874
+  },
+  {
+   "micros": 20,
+   "pass_rate": 0.086,
+   "pass_within_21": 0.086,
+   "p_first_payout_unconditional": 0.009,
+   "expected_net_per_eval": -105.368,
+   "exp_net_lb": -146.0,
+   "zero_edge_exp_net": -137.874,
+   "p_loss_fee": 0.914
+  },
+  {
+   "micros": 30,
+   "pass_rate": 0.07,
+   "pass_within_21": 0.07,
+   "p_first_payout_unconditional": 0.009,
+   "expected_net_per_eval": -105.368,
+   "exp_net_lb": -146.0,
+   "zero_edge_exp_net": -133.865,
+   "p_loss_fee": 0.93
+  },
+  {
+   "micros": 40,
+   "pass_rate": 0.056,
+   "pass_within_21": 0.056,
+   "p_first_payout_unconditional": 0.009,
+   "expected_net_per_eval": -105.551,
+   "exp_net_lb": -146.0,
+   "zero_edge_exp_net": -133.865,
+   "p_loss_fee": 0.944
+  }
+ ],
+ "fixed_main": {
+  "trades": 419,
+  "net": 7629.366973381071,
+  "days": 448,
+  "trading_days": 419,
+  "win_rate": 0.5417661097852029,
+  "avg_trade": 18.208513062961984,
+  "avg_win": 260.07085022026433,
+  "avg_loss": -267.74331263864036,
+  "profit_factor": 1.148411872282028,
+  "expectancy_R": 0.06800734958985548,
+  "trades_per_day": 0.9352678571428571,
+  "max_dd_closed": -7816.1760628118245,
+  "max_dd_intraday": -8113.148562811825,
+  "mean_day": 17.029836994154184,
+  "std_day": 295.8701781688997,
+  "sharpe_daily_ann": 0.9137125039099833,
+  "pct_pos_days": 0.5417661097852029,
+  "largest_day": 1378.1210000000021,
+  "worst_day": -740.522760342971,
+  "largest_day_share": 0.18063372817276688,
+  "months": 21,
+  "pct_pos_months": 0.5714285714285714,
+  "worst_month": -2849.6940148378953,
+  "best_month": 3378.548704778975
+ },
+ "fixed_prior": {
+  "trades": 374,
+  "net": 4714.638774164631,
+  "days": 516,
+  "trading_days": 374,
+  "win_rate": 0.5588235294117647,
+  "avg_trade": 12.605986027178158,
+  "avg_win": 156.26477033492853,
+  "avg_loss": -169.36180742930557,
+  "profit_factor": 1.1687131754318203,
+  "expectancy_R": 0.07443228327874397,
+  "trades_per_day": 0.7248062015503876,
+  "max_dd_closed": -3642.338679997959,
+  "max_dd_intraday": -3724.5726799979557,
+  "mean_day": 9.136896849156264,
+  "std_day": 155.94411555755926,
+  "sharpe_daily_ann": 0.9301007632619954,
+  "pct_pos_days": 0.5588235294117647,
+  "largest_day": 515.7450000000056,
+  "worst_day": -556.8983516447668,
+  "largest_day_share": 0.10939226199601863,
+  "months": 24,
+  "pct_pos_months": 0.4583333333333333,
+  "worst_month": -1278.4732334355172,
+  "best_month": 2530.2380000000003
+ },
+ "seconds": 38.16992783546448
+}
