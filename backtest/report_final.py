@@ -78,6 +78,22 @@ def main():
         L.append('Legs: ' + ', '.join(cfg['legs']) + '\n')
         corr = pd.DataFrame(cfg['correlation'])
         L.append('Daily P&L correlation (walk-forward OOS 2025):\n\n' + corr.round(2).to_markdown() + '\n')
+        if cfg.get('candidates'):
+            L.append('### Sizing candidates examined\n')
+            ct = pd.DataFrame(cfg['candidates'])
+            for c in ct.columns:
+                if ct[c].dtype.kind == 'f':
+                    ct[c] = ct[c].round(2)
+            L.append(ct.to_markdown(index=False) + '\n')
+        # per-leg OOS monthly P&L
+        rows = {}
+        for id_ in cfg['legs']:
+            p = os.path.join(ROOT, 'results', id_, 'wf_oos_2025_daily.csv')
+            if os.path.exists(p):
+                d = pd.read_csv(p); d['m'] = pd.to_datetime(d['session']).dt.to_period('M').astype(str)
+                rows[id_] = d.groupby('m')['pnl'].sum().round(0)
+        if rows:
+            L.append('### Per-leg walk-forward OOS monthly P&L (per micro, $)\n\n' + pd.DataFrame(rows).fillna(0).astype(int).to_markdown() + '\n')
         for name, key in (('Configuration A: Aggressive (fast pass, first payout)', 'aggressive'), ('Configuration B: Safe (one evaluation reaches funded)', 'safe')):
             c = cfg[key]
             L.append(f'## {name}\n')

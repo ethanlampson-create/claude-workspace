@@ -95,20 +95,32 @@ if __name__ == '__main__':
     cands = []
     for w in tab.head(a.top)['w']:
         d, u, mpu = unit_table(legs, w); g = int(np.sum(w) // np.sum(u))
-        # aggressive: full size eval, funded 20 micros cap-aware, 1 attempt
-        agg = evaluate_config(legs, w, g, min(g, max(1, 20 // mpu)), max(1, g // 3), 1, reps=a.reps)
-        # safe: half-size eval (>= 1 unit), 3 attempts
-        safe = evaluate_config(legs, w, max(1, g // 2), max(1, min(g // 2, 20 // mpu)), max(1, g // 6), 3, reps=a.reps)
-        cands.append({'w': [int(x) for x in w], 'aggressive': agg, 'safe': safe})
-        print('w', w, 'AGG p_pay', round(agg.get('p_first_payout_overall', 0) or 0, 3), 'net_lb', round(agg.get('bs_expected_net_p05', 0) or 0), 'SAFE p_funded', round(safe.get('p_funded', 0) or 0, 3), 'minmo', safe.get('min_monthly_p_funded'), 'net_lb', round(safe.get('bs_expected_net_p05', 0) or 0))
-    def pick(key, cond):
-        pool = [c for c in cands if cond(c[key])]
+        max_units = max(1, 40 // mpu)
+        for mult in (1.0, 1.5, 2.0):          # AGGRESSIVE: one attempt, larger book, funded book capped at 20 micros
+            eu = int(min(max_units, max(1, round(g * mult))))
+            agg = evaluate_config(legs, w, eu, max(1, min(eu, 20 // mpu)), max(1, eu // 3), 1, reps=a.reps)
+            agg['objective'] = 'aggressive'; agg['size_mult'] = mult; cands.append({'w': [int(x) for x in w], 'cfg': agg})
+            print('AGG', w, 'x', mult, 'eval', agg['eval_micros'], 'p_pass', round(agg.get('eval_pass_rate', 0) or 0, 3), 'p_pay', round(agg.get('p_first_payout_overall', 0) or 0, 3), 'net', round(agg.get('expected_net', 0) or 0), 'net_lb', round(agg.get('bs_expected_net_p05', 0) or 0), 'minmo', agg.get('min_monthly_p_funded'))
+        for mult in (1.0, 0.5, 0.34):         # SAFE: up to three attempts, smaller book
+            eu = int(max(1, round(g * mult)))
+            safe = evaluate_config(legs, w, eu, max(1, min(eu, 20 // mpu)), max(1, eu // 3), 3, reps=a.reps)
+            safe['objective'] = 'safe'; safe['size_mult'] = mult; cands.append({'w': [int(x) for x in w], 'cfg': safe})
+            print('SAFE', w, 'x', mult, 'eval', safe['eval_micros'], 'p_funded', round(safe.get('p_funded', 0) or 0, 3), 'lb', round(safe.get('bs_p_funded_p05', 0) or 0, 3), 'minmo', safe.get('min_monthly_p_funded'), 'net', round(safe.get('expected_net', 0) or 0), 'net_lb', round(safe.get('bs_expected_net_p05', 0) or 0))
+    def pick(objective, score, cond):
+        pool = [c for c in cands if c['cfg']['objective'] == objective and cond(c['cfg'])]
         if not pool:
-            pool = cands
-        return max(pool, key=lambda c: (c[key].get('p_first_payout_overall', 0) or 0) if key == 'aggressive' else ((c[key].get('p_funded', 0) or 0) + (c[key].get('min_monthly_p_funded', 0) or 0)))
-    agg_best = pick('aggressive', lambda s: (s.get('bs_expected_net_p05') or -1) > 0)
-    safe_best = pick('safe', lambda s: (s.get('bs_expected_net_p05') or -1) > 0)
-    final = {'legs': ids, 'correlation': legs.daily_corr.round(3).to_dict(), 'aggressive': agg_best['aggressive'], 'safe': safe_best['safe'], 'all_candidates': cands}
+            pool = [c for c in cands if c['cfg']['objective'] == objective]
+        return max(pool, key=lambda c: score(c['cfg']))
+    # Aggressive: maximise P(first payout) per single attempt, among configs whose expected-net lower bound is positive
+    agg_best = pick('aggressive', lambda s: (s.get('p_first_payout_overall') or 0), lambda s: (s.get('bs_expected_net_p05') or -1) > 0)
+    # Safe: maximise P(funded within 3 attempts) with its bootstrap lower bound and the worst month, among configs with a
+    # positive expected-net lower bound (fallback: all safe configs)
+    safe_best = pick('safe', lambda s: (s.get('bs_p_funded_p05') or 0) + (s.get('p_funded') or 0) + (s.get('min_monthly_p_funded') or 0), lambda s: (s.get('bs_expected_net_p05') or -1) > 0)
+    compact = [{'w': c['w'], 'objective': c['cfg']['objective'], 'size_mult': c['cfg']['size_mult'], 'eval_micros': c['cfg']['eval_micros'], 'attempts': c['cfg']['attempts'],
+                'p_pass': c['cfg'].get('eval_pass_rate'), 'p_pass_21': c['cfg'].get('eval_pass_within_21'), 'p_funded': c['cfg'].get('p_funded'), 'p_funded_lb': c['cfg'].get('bs_p_funded_p05'),
+                'p_first_payout': c['cfg'].get('p_first_payout_overall'), 'expected_net': c['cfg'].get('expected_net'), 'net_lb': c['cfg'].get('bs_expected_net_p05'),
+                'p_net_pos': c['cfg'].get('bs_p_expected_net_positive'), 'min_monthly': c['cfg'].get('min_monthly_p_funded'), 'median_days_funded': c['cfg'].get('median_days_to_funded')} for c in cands]
+    final = {'legs': ids, 'correlation': legs.daily_corr.round(3).to_dict(), 'aggressive': agg_best['cfg'], 'safe': safe_best['cfg'], 'aggressive_weights': agg_best['w'], 'safe_weights': safe_best['w'], 'candidates': compact}
     json.dump(final, open(os.path.join(ROOT, 'results', 'final_configs.json'), 'w'), indent=1, default=float)
-    print('\nAGGRESSIVE:', json.dumps({k: v for k, v in agg_best['aggressive'].items() if not isinstance(v, dict)}, indent=1, default=float))
-    print('\nSAFE:', json.dumps({k: v for k, v in safe_best['safe'].items() if not isinstance(v, dict)}, indent=1, default=float))
+    print('\nAGGRESSIVE:', agg_best['w'], json.dumps({k: v for k, v in agg_best['cfg'].items() if not isinstance(v, dict)}, indent=1, default=float))
+    print('\nSAFE:', safe_best['w'], json.dumps({k: v for k, v in safe_best['cfg'].items() if not isinstance(v, dict)}, indent=1, default=float))
