@@ -1,0 +1,838 @@
+{
+ "aggressive": {
+  "weights": {
+   "orb_close30": 5,
+   "mr_gapfade": 5,
+   "orb_dbl": 5,
+   "vb_orbp": 0,
+   "orb_sma_rr": 0,
+   "orb_reclaim": 0
+  },
+  "eval_micros": 15,
+  "funded_micros": 15,
+  "career_from_2025_01": {
+   "through_2025": {
+    "evals_bought": 5,
+    "evals_failed": 3,
+    "evals_passed": 1,
+    "funded_blown": 0,
+    "went_live": 1,
+    "payouts": 5,
+    "gross_payouts": 10000.0,
+    "received_90pct": 9000.0,
+    "fees": 562.0,
+    "net": 8438.0,
+    "first_payout_date": "2025-04-23 00:00:00"
+   },
+   "through_data_end": {
+    "evals_bought": 14,
+    "evals_failed": 9,
+    "evals_passed": 4,
+    "funded_blown": 3,
+    "went_live": 1,
+    "payouts": 8,
+    "gross_payouts": 16000.0,
+    "received_90pct": 14400.0,
+    "fees": 1540.0,
+    "net": 12860.0,
+    "first_payout_date": "2025-04-23 00:00:00"
+   },
+   "events": [
+    {
+     "type": "fee",
+     "k": 0,
+     "amt": 146.0,
+     "date": "2025-01-02"
+    },
+    {
+     "type": "pass",
+     "k": 28,
+     "amt": 0.0,
+     "date": "2025-02-11"
+    },
+    {
+     "type": "payout",
+     "k": 78,
+     "amt": 2000.0,
+     "date": "2025-04-23"
+    },
+    {
+     "type": "payout",
+     "k": 105,
+     "amt": 2000.0,
+     "date": "2025-05-30"
+    },
+    {
+     "type": "payout",
+     "k": 159,
+     "amt": 2000.0,
+     "date": "2025-08-14"
+    },
+    {
+     "type": "payout",
+     "k": 201,
+     "amt": 2000.0,
+     "date": "2025-10-13"
+    },
+    {
+     "type": "payout",
+     "k": 209,
+     "amt": 2000.0,
+     "date": "2025-10-23"
+    },
+    {
+     "type": "went_live",
+     "k": 209,
+     "amt": 0.0,
+     "date": "2025-10-23"
+    },
+    {
+     "type": "fee",
+     "k": 210,
+     "amt": 146.0,
+     "date": "2025-10-24"
+    },
+    {
+     "type": "eval_fail",
+     "k": 221,
+     "amt": 0.0,
+     "date": "2025-11-10"
+    },
+    {
+     "type": "fee",
+     "k": 222,
+     "amt": 90.0,
+     "date": "2025-11-11"
+    },
+    {
+     "type": "eval_fail",
+     "k": 228,
+     "amt": 0.0,
+     "date": "2025-11-19"
+    },
+    {
+     "type": "fee",
+     "k": 229,
+     "amt": 90.0,
+     "date": "2025-11-20"
+    },
+    {
+     "type": "eval_fail",
+     "k": 238,
+     "amt": 0.0,
+     "date": "2025-12-03"
+    },
+    {
+     "type": "fee",
+     "k": 239,
+     "amt": 90.0,
+     "date": "2025-12-04"
+    },
+    {
+     "type": "pass",
+     "k": 264,
+     "amt": 0.0,
+     "date": "2026-01-12"
+    },
+    {
+     "type": "payout",
+     "k": 324,
+     "amt": 2000.0,
+     "date": "2026-04-07"
+    },
+    {
+     "type": "payout",
+     "k": 331,
+     "amt": 2000.0,
+     "date": "2026-04-16"
+    },
+    {
+     "type": "payout",
+     "k": 344,
+     "amt": 2000.0,
+     "date": "2026-05-05"
+    },
+    {
+     "type": "funded_blown",
+     "k": 357,
+     "amt": 0.0,
+     "date": "2026-05-22"
+    },
+    {
+     "type": "fee",
+     "k": 358,
+     "amt": 146.0,
+     "date": "2026-05-25"
+    },
+    {
+     "type": "eval_fail",
+     "k": 369,
+     "amt": 0.0,
+     "date": "2026-06-09"
+    },
+    {
+     "type": "fee",
+     "k": 370,
+     "amt": 90.0,
+     "date": "2026-06-10"
+    },
+    {
+     "type": "eval_fail",
+     "k": 371,
+     "amt": 0.0,
+     "date": "2026-06-11"
+    },
+    {
+     "type": "fee",
+     "k": 372,
+     "amt": 90.0,
+     "date": "2026-06-12"
+    },
+    {
+     "type": "eval_fail",
+     "k": 372,
+     "amt": 0.0,
+     "date": "2026-06-12"
+    },
+    {
+     "type": "fee",
+     "k": 373,
+     "amt": 90.0,
+     "date": "2026-06-15"
+    },
+    {
+     "type": "eval_fail",
+     "k": 376,
+     "amt": 0.0,
+     "date": "2026-06-18"
+    },
+    {
+     "type": "fee",
+     "k": 377,
+     "amt": 90.0,
+     "date": "2026-06-19"
+    },
+    {
+     "type": "pass",
+     "k": 382,
+     "amt": 0.0,
+     "date": "2026-06-26"
+    },
+    {
+     "type": "funded_blown",
+     "k": 386,
+     "amt": 0.0,
+     "date": "2026-07-02"
+    },
+    {
+     "type": "fee",
+     "k": 387,
+     "amt": 146.0,
+     "date": "2026-07-03"
+    },
+    {
+     "type": "eval_fail",
+     "k": 399,
+     "amt": 0.0,
+     "date": "2026-07-21"
+    },
+    {
+     "type": "fee",
+     "k": 400,
+     "amt": 90.0,
+     "date": "2026-07-22"
+    },
+    {
+     "type": "eval_fail",
+     "k": 413,
+     "amt": 0.0,
+     "date": "2026-08-10"
+    },
+    {
+     "type": "fee",
+     "k": 414,
+     "amt": 90.0,
+     "date": "2026-08-11"
+    },
+    {
+     "type": "pass",
+     "k": 430,
+     "amt": 0.0,
+     "date": "2026-09-02"
+    },
+    {
+     "type": "funded_blown",
+     "k": 432,
+     "amt": 0.0,
+     "date": "2026-09-04"
+    },
+    {
+     "type": "fee",
+     "k": 433,
+     "amt": 146.0,
+     "date": "2026-09-07"
+    },
+    {
+     "type": "eval_open",
+     "k": 447,
+     "amt": 0.0,
+     "date": "2026-09-25"
+    }
+   ],
+   "by_start_month": [
+    {
+     "start_month": "2025-01",
+     "evals_bought": 14,
+     "evals_failed": 9,
+     "evals_passed": 4,
+     "funded_blown": 3,
+     "went_live": 1,
+     "payouts": 8,
+     "gross_payouts": 16000.0,
+     "received_90pct": 14400.0,
+     "fees": 1540.0,
+     "net": 12860.0,
+     "first_payout_date": "2025-04-23 00:00:00"
+    },
+    {
+     "start_month": "2025-02",
+     "evals_bought": 14,
+     "evals_failed": 8,
+     "evals_passed": 5,
+     "funded_blown": 5,
+     "went_live": 0,
+     "payouts": 6,
+     "gross_payouts": 12000.0,
+     "received_90pct": 10800.0,
+     "fees": 1596.0,
+     "net": 9204.0,
+     "first_payout_date": "2025-04-11 00:00:00"
+    },
+    {
+     "start_month": "2025-03",
+     "evals_bought": 14,
+     "evals_failed": 9,
+     "evals_passed": 4,
+     "funded_blown": 3,
+     "went_live": 1,
+     "payouts": 8,
+     "gross_payouts": 16000.0,
+     "received_90pct": 14400.0,
+     "fees": 1540.0,
+     "net": 12860.0,
+     "first_payout_date": "2025-04-29 00:00:00"
+    },
+    {
+     "start_month": "2025-04",
+     "evals_bought": 14,
+     "evals_failed": 9,
+     "evals_passed": 4,
+     "funded_blown": 3,
+     "went_live": 1,
+     "payouts": 8,
+     "gross_payouts": 16000.0,
+     "received_90pct": 14400.0,
+     "fees": 1540.0,
+     "net": 12860.0,
+     "first_payout_date": "2025-04-29 00:00:00"
+    },
+    {
+     "start_month": "2025-05",
+     "evals_bought": 14,
+     "evals_failed": 9,
+     "evals_passed": 4,
+     "funded_blown": 4,
+     "went_live": 0,
+     "payouts": 3,
+     "gross_payouts": 6000.0,
+     "received_90pct": 5400.0,
+     "fees": 1540.0,
+     "net": 3860.0,
+     "first_payout_date": "2026-04-07 00:00:00"
+    },
+    {
+     "start_month": "2025-06",
+     "evals_bought": 17,
+     "evals_failed": 12,
+     "evals_passed": 4,
+     "funded_blown": 4,
+     "went_live": 0,
+     "payouts": 4,
+     "gross_payouts": 8000.0,
+     "received_90pct": 7200.0,
+     "fees": 1810.0,
+     "net": 5390.0,
+     "first_payout_date": "2025-10-20 00:00:00"
+    },
+    {
+     "start_month": "2025-07",
+     "evals_bought": 16,
+     "evals_failed": 11,
+     "evals_passed": 4,
+     "funded_blown": 4,
+     "went_live": 0,
+     "payouts": 4,
+     "gross_payouts": 8000.0,
+     "received_90pct": 7200.0,
+     "fees": 1720.0,
+     "net": 5480.0,
+     "first_payout_date": "2025-10-20 00:00:00"
+    },
+    {
+     "start_month": "2025-08",
+     "evals_bought": 14,
+     "evals_failed": 9,
+     "evals_passed": 4,
+     "funded_blown": 4,
+     "went_live": 0,
+     "payouts": 4,
+     "gross_payouts": 8000.0,
+     "received_90pct": 7200.0,
+     "fees": 1540.0,
+     "net": 5660.0,
+     "first_payout_date": "2025-10-20 00:00:00"
+    },
+    {
+     "start_month": "2025-09",
+     "evals_bought": 13,
+     "evals_failed": 8,
+     "evals_passed": 4,
+     "funded_blown": 4,
+     "went_live": 0,
+     "payouts": 3,
+     "gross_payouts": 6000.0,
+     "received_90pct": 5400.0,
+     "fees": 1450.0,
+     "net": 3950.0,
+     "first_payout_date": "2026-04-07 00:00:00"
+    },
+    {
+     "start_month": "2025-10",
+     "evals_bought": 13,
+     "evals_failed": 8,
+     "evals_passed": 4,
+     "funded_blown": 4,
+     "went_live": 0,
+     "payouts": 3,
+     "gross_payouts": 6000.0,
+     "received_90pct": 5400.0,
+     "fees": 1450.0,
+     "net": 3950.0,
+     "first_payout_date": "2026-04-07 00:00:00"
+    },
+    {
+     "start_month": "2025-11",
+     "evals_bought": 13,
+     "evals_failed": 9,
+     "evals_passed": 3,
+     "funded_blown": 3,
+     "went_live": 0,
+     "payouts": 3,
+     "gross_payouts": 6000.0,
+     "received_90pct": 5400.0,
+     "fees": 1394.0,
+     "net": 4006.0,
+     "first_payout_date": "2026-04-07 00:00:00"
+    },
+    {
+     "start_month": "2025-12",
+     "evals_bought": 11,
+     "evals_failed": 7,
+     "evals_passed": 3,
+     "funded_blown": 3,
+     "went_live": 0,
+     "payouts": 4,
+     "gross_payouts": 8000.0,
+     "received_90pct": 7200.0,
+     "fees": 1214.0,
+     "net": 5986.0,
+     "first_payout_date": "2026-03-30 00:00:00"
+    }
+   ]
+  },
+  "per_start": {
+   "n_starts": 446,
+   "eval_pass_rate": 0.6027713625866051,
+   "avg_days_to_pass": 22.402298850574713,
+   "median_days_to_pass": 20.0,
+   "avg_days_failed_eval_lasted": 8.965116279069768,
+   "p_first_payout_from_one_eval": 0.3625866050808314,
+   "p_first_payout_given_funded": 0.6015325670498084,
+   "avg_payouts_per_funded_account": 1.8888888888888888,
+   "avg_gross_paid_per_funded_account": 3777.777777777778,
+   "funded_outcomes": {
+    "breach": 214,
+    "live": 47
+   },
+   "avg_days_pass_to_first_payout": 34.611464968152866,
+   "share_of_starts_reaching_a_payout_before_data_end": 0.7062780269058296,
+   "avg_days_start_to_first_payout": 88.56507936507937,
+   "median_days_start_to_first_payout": 81.0,
+   "avg_evals_failed_before_first_payout": 0.8857142857142857,
+   "avg_funded_blown_before_first_payout": 0.24444444444444444,
+   "avg_fees_until_first_payout": 261.4031746031746,
+   "max_accounts_blown_before_first_payout": 4
+  }
+ },
+ "safe": {
+  "weights": {
+   "orb_close30": 10,
+   "mr_gapfade": 10,
+   "orb_dbl": 10,
+   "vb_orbp": 0,
+   "orb_sma_rr": 0,
+   "orb_reclaim": 0
+  },
+  "eval_micros": 9,
+  "funded_micros": 9,
+  "career_from_2025_01": {
+   "through_2025": {
+    "evals_bought": 2,
+    "evals_failed": 0,
+    "evals_passed": 1,
+    "funded_blown": 1,
+    "went_live": 0,
+    "payouts": 4,
+    "gross_payouts": 8000.0,
+    "received_90pct": 7200.0,
+    "fees": 292.0,
+    "net": 6908.0,
+    "first_payout_date": "2025-05-21 00:00:00"
+   },
+   "through_data_end": {
+    "evals_bought": 6,
+    "evals_failed": 2,
+    "evals_passed": 3,
+    "funded_blown": 3,
+    "went_live": 0,
+    "payouts": 6,
+    "gross_payouts": 12000.0,
+    "received_90pct": 10800.0,
+    "fees": 764.0,
+    "net": 10036.0,
+    "first_payout_date": "2025-05-21 00:00:00"
+   },
+   "events": [
+    {
+     "type": "fee",
+     "k": 0,
+     "amt": 146.0,
+     "date": "2025-01-02"
+    },
+    {
+     "type": "pass",
+     "k": 63,
+     "amt": 0.0,
+     "date": "2025-04-01"
+    },
+    {
+     "type": "payout",
+     "k": 98,
+     "amt": 2000.0,
+     "date": "2025-05-21"
+    },
+    {
+     "type": "payout",
+     "k": 106,
+     "amt": 2000.0,
+     "date": "2025-06-02"
+    },
+    {
+     "type": "payout",
+     "k": 201,
+     "amt": 2000.0,
+     "date": "2025-10-13"
+    },
+    {
+     "type": "payout",
+     "k": 212,
+     "amt": 2000.0,
+     "date": "2025-10-28"
+    },
+    {
+     "type": "funded_blown",
+     "k": 230,
+     "amt": 0.0,
+     "date": "2025-11-21"
+    },
+    {
+     "type": "fee",
+     "k": 231,
+     "amt": 146.0,
+     "date": "2025-11-24"
+    },
+    {
+     "type": "pass",
+     "k": 305,
+     "amt": 0.0,
+     "date": "2026-03-10"
+    },
+    {
+     "type": "payout",
+     "k": 336,
+     "amt": 2000.0,
+     "date": "2026-04-23"
+    },
+    {
+     "type": "payout",
+     "k": 351,
+     "amt": 2000.0,
+     "date": "2026-05-14"
+    },
+    {
+     "type": "funded_blown",
+     "k": 356,
+     "amt": 0.0,
+     "date": "2026-05-21"
+    },
+    {
+     "type": "fee",
+     "k": 357,
+     "amt": 146.0,
+     "date": "2026-05-22"
+    },
+    {
+     "type": "eval_fail",
+     "k": 370,
+     "amt": 0.0,
+     "date": "2026-06-10"
+    },
+    {
+     "type": "fee",
+     "k": 371,
+     "amt": 90.0,
+     "date": "2026-06-11"
+    },
+    {
+     "type": "eval_fail",
+     "k": 372,
+     "amt": 0.0,
+     "date": "2026-06-12"
+    },
+    {
+     "type": "fee",
+     "k": 373,
+     "amt": 90.0,
+     "date": "2026-06-15"
+    },
+    {
+     "type": "pass",
+     "k": 383,
+     "amt": 0.0,
+     "date": "2026-06-29"
+    },
+    {
+     "type": "funded_blown",
+     "k": 386,
+     "amt": 0.0,
+     "date": "2026-07-02"
+    },
+    {
+     "type": "fee",
+     "k": 387,
+     "amt": 146.0,
+     "date": "2026-07-03"
+    },
+    {
+     "type": "eval_open",
+     "k": 447,
+     "amt": 0.0,
+     "date": "2026-09-25"
+    }
+   ],
+   "by_start_month": [
+    {
+     "start_month": "2025-01",
+     "evals_bought": 6,
+     "evals_failed": 2,
+     "evals_passed": 3,
+     "funded_blown": 3,
+     "went_live": 0,
+     "payouts": 6,
+     "gross_payouts": 12000.0,
+     "received_90pct": 10800.0,
+     "fees": 764.0,
+     "net": 10036.0,
+     "first_payout_date": "2025-05-21 00:00:00"
+    },
+    {
+     "start_month": "2025-02",
+     "evals_bought": 4,
+     "evals_failed": 0,
+     "evals_passed": 3,
+     "funded_blown": 3,
+     "went_live": 0,
+     "payouts": 5,
+     "gross_payouts": 10000.0,
+     "received_90pct": 9000.0,
+     "fees": 584.0,
+     "net": 8416.0,
+     "first_payout_date": "2025-05-27 00:00:00"
+    },
+    {
+     "start_month": "2025-03",
+     "evals_bought": 6,
+     "evals_failed": 3,
+     "evals_passed": 2,
+     "funded_blown": 1,
+     "went_live": 1,
+     "payouts": 5,
+     "gross_payouts": 10000.0,
+     "received_90pct": 9000.0,
+     "fees": 708.0,
+     "net": 8292.0,
+     "first_payout_date": "2025-10-13 00:00:00"
+    },
+    {
+     "start_month": "2025-04",
+     "evals_bought": 6,
+     "evals_failed": 3,
+     "evals_passed": 2,
+     "funded_blown": 1,
+     "went_live": 1,
+     "payouts": 5,
+     "gross_payouts": 10000.0,
+     "received_90pct": 9000.0,
+     "fees": 708.0,
+     "net": 8292.0,
+     "first_payout_date": "2025-10-13 00:00:00"
+    },
+    {
+     "start_month": "2025-05",
+     "evals_bought": 5,
+     "evals_failed": 1,
+     "evals_passed": 3,
+     "funded_blown": 3,
+     "went_live": 0,
+     "payouts": 2,
+     "gross_payouts": 4000.0,
+     "received_90pct": 3600.0,
+     "fees": 674.0,
+     "net": 2926.0,
+     "first_payout_date": "2026-04-09 00:00:00"
+    },
+    {
+     "start_month": "2025-06",
+     "evals_bought": 4,
+     "evals_failed": 1,
+     "evals_passed": 2,
+     "funded_blown": 2,
+     "went_live": 0,
+     "payouts": 2,
+     "gross_payouts": 4000.0,
+     "received_90pct": 3600.0,
+     "fees": 528.0,
+     "net": 3072.0,
+     "first_payout_date": "2026-04-07 00:00:00"
+    },
+    {
+     "start_month": "2025-07",
+     "evals_bought": 5,
+     "evals_failed": 2,
+     "evals_passed": 2,
+     "funded_blown": 2,
+     "went_live": 0,
+     "payouts": 2,
+     "gross_payouts": 4000.0,
+     "received_90pct": 3600.0,
+     "fees": 618.0,
+     "net": 2982.0,
+     "first_payout_date": "2026-04-08 00:00:00"
+    },
+    {
+     "start_month": "2025-08",
+     "evals_bought": 5,
+     "evals_failed": 2,
+     "evals_passed": 2,
+     "funded_blown": 2,
+     "went_live": 0,
+     "payouts": 3,
+     "gross_payouts": 6000.0,
+     "received_90pct": 5400.0,
+     "fees": 618.0,
+     "net": 4782.0,
+     "first_payout_date": "2026-03-30 00:00:00"
+    },
+    {
+     "start_month": "2025-09",
+     "evals_bought": 3,
+     "evals_failed": 0,
+     "evals_passed": 2,
+     "funded_blown": 2,
+     "went_live": 0,
+     "payouts": 2,
+     "gross_payouts": 4000.0,
+     "received_90pct": 3600.0,
+     "fees": 438.0,
+     "net": 3162.0,
+     "first_payout_date": "2026-04-08 00:00:00"
+    },
+    {
+     "start_month": "2025-10",
+     "evals_bought": 4,
+     "evals_failed": 1,
+     "evals_passed": 2,
+     "funded_blown": 2,
+     "went_live": 0,
+     "payouts": 2,
+     "gross_payouts": 4000.0,
+     "received_90pct": 3600.0,
+     "fees": 528.0,
+     "net": 3072.0,
+     "first_payout_date": "2026-04-08 00:00:00"
+    },
+    {
+     "start_month": "2025-11",
+     "evals_bought": 6,
+     "evals_failed": 3,
+     "evals_passed": 2,
+     "funded_blown": 2,
+     "went_live": 0,
+     "payouts": 2,
+     "gross_payouts": 4000.0,
+     "received_90pct": 3600.0,
+     "fees": 708.0,
+     "net": 2892.0,
+     "first_payout_date": "2026-04-17 00:00:00"
+    },
+    {
+     "start_month": "2025-12",
+     "evals_bought": 5,
+     "evals_failed": 2,
+     "evals_passed": 2,
+     "funded_blown": 2,
+     "went_live": 0,
+     "payouts": 2,
+     "gross_payouts": 4000.0,
+     "received_90pct": 3600.0,
+     "fees": 618.0,
+     "net": 2982.0,
+     "first_payout_date": "2026-04-23 00:00:00"
+    }
+   ]
+  },
+  "per_start": {
+   "n_starts": 446,
+   "eval_pass_rate": 0.7616580310880829,
+   "avg_days_to_pass": 44.945578231292515,
+   "median_days_to_pass": 43.0,
+   "avg_days_failed_eval_lasted": 19.402173913043477,
+   "p_first_payout_from_one_eval": 0.5155440414507773,
+   "p_first_payout_given_funded": 0.6768707482993197,
+   "avg_payouts_per_funded_account": 1.8571428571428572,
+   "avg_gross_paid_per_funded_account": 3714.285714285714,
+   "funded_outcomes": {
+    "breach": 257,
+    "live": 37
+   },
+   "avg_days_pass_to_first_payout": 86.321608040201,
+   "share_of_starts_reaching_a_payout_before_data_end": 0.6143497757847534,
+   "avg_days_start_to_first_payout": 150.79562043795622,
+   "median_days_start_to_first_payout": 148.0,
+   "avg_evals_failed_before_first_payout": 0.1678832116788321,
+   "avg_funded_blown_before_first_payout": 0.10583941605839416,
+   "avg_fees_until_first_payout": 176.56204379562044,
+   "max_accounts_blown_before_first_payout": 1
+  }
+ }
+}
