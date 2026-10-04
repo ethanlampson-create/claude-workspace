@@ -1,0 +1,80 @@
+{
+ "orb_close30": {
+  "id": "orb_close30",
+  "contract": "MNQ",
+  "trades": 140,
+  "net_per_micro": 3870.44,
+  "win_rate": 0.714,
+  "mean_R": 0.123,
+  "median_R": 0.453,
+  "avg_win_R": 0.544,
+  "avg_loss_R": -0.928,
+  "avg_risk_usd_per_micro": 235.94,
+  "largest_trade_usd": 349.24,
+  "largest_trade_share_of_net": 0.09,
+  "largest_trade_date": "2026-06-30",
+  "largest_trade_share_of_gross_profit": 0.028,
+  "wf25_net_reported": 3870.44,
+  "exits": {
+   "target": 96,
+   "stop": 34,
+   "flat": 10
+  },
+  "sides": {
+   "1": 122,
+   "-1": 18
+  }
+ },
+ "mr_gapfade": {
+  "id": "mr_gapfade",
+  "contract": "MNQ",
+  "trades": 65,
+  "net_per_micro": 1367.3,
+  "win_rate": 0.538,
+  "mean_R": 0.217,
+  "median_R": 0.233,
+  "avg_win_R": 1.294,
+  "avg_loss_R": -1.04,
+  "avg_risk_usd_per_micro": 118.39,
+  "largest_trade_usd": 264.98,
+  "largest_trade_share_of_net": 0.194,
+  "largest_trade_date": "2025-11-17",
+  "largest_trade_share_of_gross_profit": 0.066,
+  "wf25_net_reported": 1367.3,
+  "exits": {
+   "target": 32,
+   "stop": 30,
+   "exit_signal": 3
+  },
+  "sides": {
+   "1": 50,
+   "-1": 15
+  }
+ },
+ "orb_dbl": {
+  "id": "orb_dbl",
+  "contract": "MNQ",
+  "trades": 75,
+  "net_per_micro": 2282.45,
+  "win_rate": 0.667,
+  "mean_R": 0.173,
+  "median_R": 0.559,
+  "avg_win_R": 0.707,
+  "avg_loss_R": -0.894,
+  "avg_risk_usd_per_micro": 233.75,
+  "largest_trade_usd": 382.96,
+  "largest_trade_share_of_net": 0.168,
+  "largest_trade_date": "2026-06-10",
+  "largest_trade_share_of_gross_profit": 0.053,
+  "wf25_net_reported": 2282.45,
+  "exits": {
+   "target": 44,
+   "stop": 19,
+   "flat": 12
+  },
+  "sides": {
+   "1": 40,
+   "-1": 35
+  }
+ }
+}
