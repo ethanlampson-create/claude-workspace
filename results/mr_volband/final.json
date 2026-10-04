@@ -72,14 +72,17 @@
   "best_month": 181.02000000002317
  },
  "lucid": {
-  "micros": 15,
-  "pass_rate": 0.17954545454545454,
-  "p_first_payout_unconditional": 0.018899521531100475,
-  "expected_net_per_eval": 24.09569377990428,
-  "median_days_to_pass": 70.0
+  "micros": 5.0,
+  "pass_rate": 0.07390300230946882,
+  "pass_within_21": 0.057736720554272515,
+  "p_first_payout_unconditional": 0.010948592934736122,
+  "expected_net_per_eval": -126.29253271747498,
+  "exp_net_lb": -146.0,
+  "zero_edge_exp_net": -141.07313317936874,
+  "recommended": 0.0
  },
  "verdict": "marginal",
- "notes": "Paper rule (Seeck 2026) implemented faithfully with VIX (x1.25 for MNQ) or 20d realised vol (MGC) bands. MAIN positive on all instruments (MNQ PF 1.13/88 trades, MES 1.09/61, MGC 1.43/104) but PRIOR 2023-24 negative on all three and on 70/72 grid points (PF 0.59-0.98). MAIN edge concentrated in a few high-vol sessions (2025-04-07 on MNQ, 2026 gold rally on MGC). Band-target variant halves DD / doubles PF on MAIN only; MNQ band+long-only is the sole two-period-positive variant and is too small (~26 trades/yr, $5/trade). Lucid: MGC defaults best, +$24/eval at 15 micros, pass 18%, P(first payout) 1.9%; MNQ -146/eval. Not a standalone leg; possible low-DD long-only filler.",
+ "notes": "Walk-forward OOS 2025-01..2026-09 (params re-chosen each quarter on trailing 12m, MGC rv20 bands): 106 trades, net +162, PF 1.03, Sharpe 0.09, 38% positive months, largest_day_share 2.98 (one session +483 is 3x the net), max intraday DD -1526; whole-path WF 2023-2026: PF 0.92, net -718. lucid_wf_2025: best 5 micros, pass 7.4%, pass_within_21 5.8%, P(first payout) 1.1%, expected net -126/eval, exp_net_lb -146 (= fee), zero-edge control -141, recommended=0. Fixed params: MAIN PF 1.43/104 trades, PRIOR PF 0.78/133 trades (walk-forward run). Passes the proceed screen only on the knife edge (WF PF 1.0323 >= 1.03 with >= 40 trades); fails the fixed-param branch (PRIOR 0.78 < 1.1) and every Lucid criterion. The MAIN in-sample PF 1.43 is a gold-bull/regime fit (every 2025-26 dip-buy worked; 2023-24 all 24 grid combos lose); the WF selector flips between divisor 14/20, hold 30/60 and gate on/off each quarter, i.e. no stable parameter plateau. Earlier notes: band-target variant halves DD on MAIN only; MNQ band+long-only is the sole two-period-positive variant and too small. Not a standalone leg; at best a low-DD filler, and only if a later pass finds an OOS edge that beats the zero-edge control.",
  "alt": {
   "MGC:{}": {
    "main_pf": 1.4309878663284175,
@@ -123,5 +126,59 @@
     "median_days_to_pass": 23.0
    }
   }
+ },
+ "wf_2025": {
+  "trades": 106,
+  "net": 162.2091971223764,
+  "days": 448,
+  "trading_days": 106,
+  "win_rate": 0.49056603773584906,
+  "avg_trade": 1.5302754445507207,
+  "avg_win": 99.67961538461373,
+  "avg_loss": -92.98390375699145,
+  "profit_factor": 1.0323053119885695,
+  "expectancy_R": 0.016457423088516644,
+  "trades_per_day": 0.23660714285714285,
+  "max_dd_closed": -1375.5223488898896,
+  "max_dd_intraday": -1525.9223488898892,
+  "mean_day": 0.3620741007195894,
+  "std_day": 67.37109870334022,
+  "sharpe_daily_ann": 0.08531474579920051,
+  "pct_pos_days": 0.49056603773584906,
+  "largest_day": 482.8999999999916,
+  "worst_day": -422.47012234386494,
+  "largest_day_share": 2.977019851936482,
+  "months": 21,
+  "pct_pos_months": 0.38095238095238093,
+  "worst_month": -777.8001223439167,
+  "best_month": 646.2599999999766
+ },
+ "wf_2025_monthly": {
+  "2025-01": 10.38,
+  "2025-02": -51.85,
+  "2025-03": 58.4,
+  "2025-04": -80.81,
+  "2025-05": 0.0,
+  "2025-06": 0.0,
+  "2025-07": -366.13,
+  "2025-08": -227.57,
+  "2025-09": -237.77,
+  "2025-10": 646.26,
+  "2025-11": 496.5,
+  "2025-12": -149.5,
+  "2026-01": 503.67,
+  "2026-02": 0.0,
+  "2026-03": -388.94,
+  "2026-04": 337.57,
+  "2026-05": -777.8,
+  "2026-06": -187.92,
+  "2026-07": -71.8,
+  "2026-08": 58.0,
+  "2026-09": 591.52
+ },
+ "fixed_prior_wf": {
+  "trades": 133,
+  "net": -669.2222504350414,
+  "profit_factor": 0.7848355240617098
  }
 }

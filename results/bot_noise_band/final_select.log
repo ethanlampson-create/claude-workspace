@@ -1,0 +1,4 @@
+1 candidates: ['bot_noise_band']
+{'id': 'bot_noise_band', 'contract': 'MNQ', 'wf25_trades': 578, 'wf25_net': -1396.550827737721, 'wf25_pf': 0.9183789612677572, 'wf25_sharpe': -0.2980402081437913, 'wf25_pos_months': 0.3333333333333333, 'wfall_net': 969.3863949900932, 'wfall_pf': 1.0382187455719274, 'wfall_sharpe': 0.11976094243510686, 'lb_micros': 5.0, 'lb_exp_net': -146.0, 'exp_net': nan, 'pass_21': 0.0, 'zero_edge': nan, 'recommended': 0.0, 'fixed_main_pf': 0.9592676921242238, 'fixed_prior_pf': 1.0811106082312243, 'secs': 195}
+            id contract  wf25_trades  wf25_net  wf25_pf  wf25_sharpe  wf25_pos_months  wfall_net  wfall_pf  wfall_sharpe  lb_micros  lb_exp_net  exp_net  pass_21  zero_edge  recommended  fixed_main_pf  fixed_prior_pf  secs
+bot_noise_band      MNQ          578 -1396.551    0.918       -0.298            0.333    969.386     1.038          0.12        5.0      -146.0      NaN      0.0        NaN          0.0          0.959           1.081   195

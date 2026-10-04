@@ -1,7 +1,7 @@
 # mr_pdrange - outside-open re-entry to the prior-day high/low (edgeful outside days / Williams "Oops")
 
 Family: intraday_mean_reversion (research: `research/families/intraday_mean_reversion.md`, items 9 and 10).
-Module: `strategies/mr_pdrange.py`. Verdict: **marginal** (MNQ, stop-entry variant only; thin and infrequent; holds on PRIOR).
+Module: `strategies/mr_pdrange.py`. Verdict: **dead** after walk-forward (2026-10-03): the OOS 2025-26 stream has 12 trades; the stop-entry edge is too rare to be selected or sized. In-sample it was marginal (MNQ, stop-entry only; holds on PRIOR).
 
 ## Rules as implemented
 - Definitions (all known at the 09:30 open): PDH/PDL = prior-session RTH 09:30-16:00 high/low and `prior_close` = last
@@ -107,3 +107,30 @@ re-cross on MNQ, both sides, 0.5% cap, is a real but thin and rare edge: PF 1.29
 trades PRIOR, ~$15/trade/micro, ~2 trades a month. Far below the guide's "good" bar (PF >= 1.5 with >= 60 trades) and
 useless as a standalone Lucid evaluation vehicle (median 79 days to pass). Possible portfolio leg next to mr_gapfade
 (different days: gapfade requires the open inside the prior range, this requires it outside).
+
+## Walk-forward assessment (2026-10-03; `python3 -m backtest.final_select --ids mr_pdrange --jobs 2 --wf_start 2022-01-01 --max_combos 16`)
+Honest yardstick: IS 12 months -> OOS 3 months, parameters chosen on trailing data only, base = final.json params (stop, 0.5, 1.0, both,
+tgt_atr 0.5), grid coarsened to 16 = entry {market, stop} x max_dist {0.2, 0.5} x stop_mult {1.0, 1.5} x sides {both, long}
+(`subgrid` drops max_dist 0.30). Output: `walkforward.json`, `wf_oos_2025_daily.csv`, `wf_oos_2025_bars.parquet`.
+
+| stream | trades | net $/micro | PF | Sharpe | pos months | maxDD intra |
+|---|---|---|---|---|---|---|
+| WF OOS 2025-01..2026-09 (`wf_2025`) | 12 | +141 | 1.31 | 0.58 | 0.14 (3/21) | -273 |
+| WF OOS 2023-01..2026-09 (`wf_all`) | 34 | +320 | 1.24 | 0.49 | 0.20 | -517 |
+| fixed final params, MAIN (`fixed_main`) | 47 | +774 | 1.39 | 0.71 | 0.57 | -551 |
+| fixed final params, PRIOR (`fixed_prior`) | 53 | +793 | 1.56 | 0.98 | 0.54 | -299 |
+
+- The selector requires >= 30 in-sample trades per 12-month window. The stop-entry cells trade ~25-27 times a year, so they
+  rarely qualify; only 5 of 15 windows selected any cell at all and only 2 of the 7 OOS quarters in 2025-26 traded
+  (2025Q1: stop/0.5/1.5 -> -$136 on 7 trades; 2026Q3: market/0.5/1.5 -> +$277 on 5 trades, PF 32, chosen with an IS Sharpe
+  of -1.37, i.e. the least-bad of a negative set). 15 consecutive months of zero. The +$141 OOS net is one five-trade run.
+- lucid_wf_2025 (bootstrap lower-bound sizing on the OOS stream): pass rate 0 at 5-10 micros, 0.16 at 15-20 micros,
+  pass_within_21 = 0 at every size, p_first_payout / expected_net undefined (no evaluation ever reaches a funded resolution),
+  exp_net_lb = -146 = zero_edge_exp_net (the fee) at every size, recommended = False.
+- Proceed gates: wf_2025 PF 1.31 >= 1.03 but 12 trades < 40 (fail); fixed MAIN PF 1.39 >= 1.3 and PRIOR 1.56 >= 1.1 but
+  47 MAIN trades < 60 (fail). No parameter change was attempted: the failure is trade frequency, which no cell in the grid
+  fixes without moving into the market-mode cells that were -$640..-$840 on MAIN in the in-sample grid.
+- Diagnosis: the in-sample story (stop re-cross PF 1.39/1.56) is neither refuted nor confirmed OOS; it is simply too rare
+  (~2 trades/month, $12-16/trade/micro) to be selected by a trailing-12-month optimiser or to carry a Lucid evaluation.
+  The P&L is a few 1:1 bracket trades per quarter with ~50% hit rate and a modest payoff asymmetry (avg win $98 / loss $75);
+  one day equals 136% of the OOS net. Verdict: **dead** as a standalone candidate (documented, not pursued further).

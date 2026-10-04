@@ -1,0 +1,48 @@
+== MGC {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25} 2025-01-01
+trades=35 | net=882.169 | win_rate=0.514 | avg_trade=25.205 | profit_factor=1.398 | sharpe_daily_ann=0.647 | pct_pos_months=0.571 
+== MGC {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25} 2023-01-01
+trades=47 | net=-545.334 | win_rate=0.447 | avg_trade=-11.603 | profit_factor=0.721 | sharpe_daily_ann=-0.724 | pct_pos_months=0.458 
+== MGC {"setup":"any","stop_mode":"frac","tgt_ext":0.25} 2025-01-01
+trades=164 | net=2393.731 | win_rate=0.500 | avg_trade=14.596 | profit_factor=1.160 | sharpe_daily_ann=0.557 | pct_pos_months=0.667 
+== MGC {"setup":"any","stop_mode":"frac","tgt_ext":0.25} 2023-01-01
+trades=190 | net=-434.069 | win_rate=0.474 | avg_trade=-2.285 | profit_factor=0.942 | sharpe_daily_ann=-0.252 | pct_pos_months=0.417 
+== MGC {"setup":"id_nr4","stop_mode":"frac","tgt_ext":0.25} 2025-01-01
+trades=10 | net=-85.373 | win_rate=0.400 | avg_trade=-8.537 | profit_factor=0.882 | sharpe_daily_ann=-0.130 | pct_pos_months=0.190 
+== MGC {"setup":"id_nr4","stop_mode":"frac","tgt_ext":0.25} 2023-01-01
+trades=9 | net=-206.970 | win_rate=0.444 | avg_trade=-22.997 | profit_factor=0.465 | sharpe_daily_ann=-0.671 | pct_pos_months=0.167 
+== MGC {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25,"entry":"close_above_open"} 2025-01-01
+trades=30 | net=398.642 | win_rate=0.500 | avg_trade=13.288 | profit_factor=1.200 | sharpe_daily_ann=0.337 | pct_pos_months=0.429 
+== MGC {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25,"entry":"close_above_open"} 2023-01-01
+trades=42 | net=-729.794 | win_rate=0.429 | avg_trade=-17.376 | profit_factor=0.605 | sharpe_daily_ann=-1.034 | pct_pos_months=0.375 
+== MGC {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25,"require_inside_open":false} 2025-01-01
+trades=84 | net=-7211.086 | win_rate=0.226 | avg_trade=-85.846 | profit_factor=0.302 | sharpe_daily_ann=-3.148 | pct_pos_months=0.143 
+== MGC {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25,"require_inside_open":false} 2023-01-01
+trades=85 | net=-2218.052 | win_rate=0.306 | avg_trade=-26.095 | profit_factor=0.397 | sharpe_daily_ann=-2.448 | pct_pos_months=0.167 
+== MGC {"setup":"any","stop_mode":"mid","tgt_ext":0.0} 2025-01-01
+trades=164 | net=-254.953 | win_rate=0.390 | avg_trade=-1.555 | profit_factor=0.967 | sharpe_daily_ann=-0.124 | pct_pos_months=0.571 
+== MGC {"setup":"any","stop_mode":"mid","tgt_ext":0.0} 2023-01-01
+trades=190 | net=-1157.651 | win_rate=0.374 | avg_trade=-6.093 | profit_factor=0.739 | sharpe_daily_ann=-1.254 | pct_pos_months=0.417 
+== MNQ {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25} 2025-01-01
+trades=45 | net=605.848 | win_rate=0.489 | avg_trade=13.463 | profit_factor=1.122 | sharpe_daily_ann=0.242 | pct_pos_months=0.476 
+== MNQ {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25} 2023-01-01
+trades=53 | net=-973.593 | win_rate=0.434 | avg_trade=-18.370 | profit_factor=0.781 | sharpe_daily_ann=-0.567 | pct_pos_months=0.417 
+== MNQ {"setup":"any","stop_mode":"frac","tgt_ext":0.25} 2025-01-01
+trades=176 | net=2971.682 | win_rate=0.489 | avg_trade=16.885 | profit_factor=1.128 | sharpe_daily_ann=0.518 | pct_pos_months=0.524 
+== MNQ {"setup":"any","stop_mode":"frac","tgt_ext":0.25} 2023-01-01
+trades=187 | net=-1484.662 | win_rate=0.465 | avg_trade=-7.939 | profit_factor=0.912 | sharpe_daily_ann=-0.395 | pct_pos_months=0.417 
+== MNQ {"setup":"id_nr4","stop_mode":"frac","tgt_ext":0.25} 2025-01-01
+trades=5 | net=325.836 | win_rate=0.400 | avg_trade=65.167 | profit_factor=1.727 | sharpe_daily_ann=0.310 | pct_pos_months=0.095 
+== MNQ {"setup":"id_nr4","stop_mode":"frac","tgt_ext":0.25} 2023-01-01
+trades=6 | net=577.553 | win_rate=0.667 | avg_trade=96.259 | profit_factor=3.909 | sharpe_daily_ann=0.818 | pct_pos_months=0.167 
+== MNQ {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25,"entry":"close_above_open"} 2025-01-01
+trades=38 | net=774.396 | win_rate=0.474 | avg_trade=20.379 | profit_factor=1.183 | sharpe_daily_ann=0.320 | pct_pos_months=0.476 
+== MNQ {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25,"entry":"close_above_open"} 2023-01-01
+trades=43 | net=-775.631 | win_rate=0.442 | avg_trade=-18.038 | profit_factor=0.784 | sharpe_daily_ann=-0.506 | pct_pos_months=0.375 
+== MNQ {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25,"require_inside_open":false} 2025-01-01
+trades=84 | net=-5675.942 | win_rate=0.298 | avg_trade=-67.571 | profit_factor=0.505 | sharpe_daily_ann=-1.878 | pct_pos_months=0.286 
+== MNQ {"setup":"nr4_or_id","stop_mode":"frac","tgt_ext":0.25,"require_inside_open":false} 2023-01-01
+trades=85 | net=-3183.698 | win_rate=0.329 | avg_trade=-37.455 | profit_factor=0.529 | sharpe_daily_ann=-1.656 | pct_pos_months=0.250 
+== MNQ {"setup":"any","stop_mode":"mid","tgt_ext":0.0} 2025-01-01
+trades=176 | net=-69.521 | win_rate=0.426 | avg_trade=-0.395 | profit_factor=0.994 | sharpe_daily_ann=-0.025 | pct_pos_months=0.524 
+== MNQ {"setup":"any","stop_mode":"mid","tgt_ext":0.0} 2023-01-01
+trades=187 | net=797.646 | win_rate=0.444 | avg_trade=4.265 | profit_factor=1.104 | sharpe_daily_ann=0.376 | pct_pos_months=0.500 

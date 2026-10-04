@@ -147,3 +147,31 @@ target: best 40 micros, pass 8%, P(first payout) 3%, expected net -91.
   in a portfolio, but with 25-50 trades a year and ~$5-10 a trade it cannot carry an evaluation by itself.
 - Recommendation: do not promote as a standalone leg. Keep the module; revisit only as a small long-only band-target
   filler if a portfolio needs uncorrelated, low-drawdown trades.
+
+## Walk-forward assessment (2026-10-03, `backtest.final_select --wf_start 2022-01-01 --max_combos 16`, MGC, 24-combo GRID)
+
+Params re-chosen every quarter on the trailing 12 months, tested on the next 3 months (`walkforward.json`).
+
+| stream | trades | net $ | PF | Sharpe | pos months | max DD intraday | largest day share |
+|---|---|---|---|---|---|---|---|
+| WF OOS 2025-01..2026-09 (`wf_2025`) | 106 | +162 | 1.03 | 0.09 | 38% | -1526 | 2.98 |
+| WF OOS whole path 2023-01..2026-09 (`wf_all`) | 266 | -718 | 0.92 | -0.23 | 38% | -2547 | - |
+| fixed params MAIN 2025-01..2026-09 | 104 | +1923 | 1.43 | 0.86 | 48% | -1792 | 0.48 |
+| fixed params PRIOR 2023-01..2024-12 | 133 | -669 | 0.78 | -0.73 | 38% | -1053 | - |
+
+Selected params per quarter flip between divisor 14/20, hold 30/60, stop 0.5/1.0 and gate on/off (7 distinct
+combinations in 15 windows); 7 of 15 OOS quarters are negative, and the three worst (2024-Q4 -640, 2025-Q3 -831,
+2026-Q2 -628) are each larger than the entire 2025-26 OOS net. The 2025-26 OOS net is +162 on 106 trades
+(avg +$1.5/trade, i.e. below one round-trip of costs), and depends on 2025-Q4 (+993) and 2026-Q3 (+578).
+
+Lucid 50K Flex on the OOS 2025 stream (`lucid_wf_2025`, sized by bootstrap lower bound): best 5 micros, pass rate
+7.4%, pass-within-21 5.8%, P(first payout) 1.1%, expected net -126 per evaluation, lower bound -146 (= the fee),
+zero-edge control -141, recommended = no. At 10 micros the point estimate is -12 but the lower bound is still -146
+and the control is -38, so the strategy does not beat noise at any size.
+
+Diagnosis: the in-sample story (MGC PF 1.43 on MAIN) does not survive honest parameter selection. The MAIN edge is
+a gold-bull regime fit (long dip-buys in a strong 2025-26 uptrend); 2023-24 loses for every grid combination, and
+the walk-forward selector cannot find a stable plateau, so the OOS stream is a coin flip with a few large sessions.
+No parameter changes were made in this pass (nothing in the GRID shows a two-period edge to pursue). Screen result:
+WF PF 1.0323 >= 1.03 with 106 trades satisfies the mechanical proceed threshold on the knife edge, but Sharpe 0.09,
+exp_net_lb -146 and recommended = 0 say the strategy has no demonstrable edge; verdict stays `marginal`, not a leg.

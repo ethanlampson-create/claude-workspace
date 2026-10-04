@@ -1,0 +1,20 @@
+{
+ "id": "bot_noise_band",
+ "family": "bot_popular_indicators",
+ "contract": "MNQ",
+ "params": {
+  "lookback": 14,
+  "vm": 1.0,
+  "entry_start": "09:35",
+  "last_entry": "15:00",
+  "flat": "15:55",
+  "hard_stop_atr": 0.5,
+  "trail": "none",
+  "max_trades": 4,
+  "long_only": false,
+  "dls_mult": 1.0,
+  "dps_mult": 1.5
+ },
+ "verdict": "dead",
+ "notes": "placeholder before final_select"
+}

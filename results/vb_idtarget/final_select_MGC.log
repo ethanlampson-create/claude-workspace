@@ -1,0 +1,4 @@
+1 candidates: ['vb_idtarget']
+{'id': 'vb_idtarget', 'contract': 'MGC', 'wf25_trades': 5, 'wf25_net': 511.53999999999627, 'wf25_pf': 8.966671857965784, 'wf25_sharpe': 3.4536039532694525, 'wf25_pos_months': 1.0, 'wfall_net': 511.53999999999627, 'wfall_pf': 8.966671857965784, 'wfall_sharpe': 3.4536039532694525, 'lb_micros': 5.0, 'lb_exp_net': -146.0, 'exp_net': nan, 'pass_21': nan, 'zero_edge': nan, 'recommended': 0.0, 'fixed_main_pf': 0.4492812336643747, 'fixed_prior_pf': 0.4819934521644667, 'secs': 60}
+         id contract  wf25_trades  wf25_net  wf25_pf  wf25_sharpe  wf25_pos_months  wfall_net  wfall_pf  wfall_sharpe  lb_micros  lb_exp_net  exp_net  pass_21  zero_edge  recommended  fixed_main_pf  fixed_prior_pf  secs
+vb_idtarget      MGC            5    511.54    8.967        3.454              1.0     511.54     8.967         3.454        5.0      -146.0      NaN      NaN        NaN          0.0          0.449           0.482    60

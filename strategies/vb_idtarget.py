@@ -87,6 +87,9 @@ def day_table(df1: pd.DataFrame, contract, p: dict) -> pd.DataFrame:
     ok &= (t['dist'] >= float(p['min_dist_atr']) * t['atr']) & (t['dist'] <= float(p['max_dist_atr']) * t['atr'])
     if p['require_inside_open']:
         ok &= (t['O'] > t['pdl']) & (t['O'] < t['pdh'])
+    # sanity: the level must lie AHEAD of the open in the trade direction (an open outside the prior range puts the
+    # target behind the fill); with require_inside_open=False this is what keeps the trade "toward the prior extreme"
+    ok &= (t['level'] - t['O']) * t['side'] > 0
     t['tradeable'] = ok.fillna(False).astype(bool)
     return t
 

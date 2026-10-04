@@ -25,6 +25,8 @@ Rules as implemented (all times ET):
 - EXIT: Chandelier ratchet on confirmed N-bars only, evaluated after min_hold bars so an entry below the line does not exit on
   the next bar: for the first k' > k with k' - k >= min_hold and (long) close[k'] < ls[k'] / (short) close[k'] > ss[k']:
   it.exit_at(B.i_next[k'], which=+1 / -1). Plus the hard stop and the forced flat at `flat`.
+- Optional (diagnostic, default off): exit_arm=True arms the chandelier exit only after a confirmed close above ls (long) /
+  below ss (short) since the entry, so the exit is a cross of the line rather than a level test.
 - POSITION STATE (module side, so one trade at a time and new entries only when flat): flat again when (a) the chandelier exit
   is emitted (flat from k'+1), (b) any N-bar k'' in (k, k'] has low[k''] <= stop_px (long) / high[k''] >= stop_px (short),
   i.e. the engine's stop was hit, or (c) the session ends. Per-day entries capped at max_trades (and engine max_trades_day).
@@ -48,7 +50,10 @@ DESCRIPTION = __doc__
 CONTRACTS = ['MES', 'MNQ']
 PARAMS = {'bar': 5, 'rsi_len': 5, 'variant': 'B', 'regime': 'sma50_200', 'direction': 'long_only', 'ce_len': 22, 'ce_mult': 1.0,
           'stop_atr': 1.5, 'min_hold': 1, 'entry_start': '09:45', 'last_entry': '15:00', 'flat': '15:55', 'max_trades': 3,
-          'dls_mult': 1.0, 'dps_mult': 1.0}
+          'dls_mult': 1.0, 'dps_mult': 1.0,
+          # improvement-round / diagnostic switch (default off = the spec): True = the chandelier exit is only armed once a
+          # confirmed close has been ABOVE ls (long) / BELOW ss (short) since the entry, i.e. exit on a cross, not on a level
+          'exit_arm': False}
 GOLD_DEFAULTS = {'entry_start': '08:35', 'last_entry': '12:30', 'flat': '13:25'}
 GRID = {'rsi_len': [2, 5], 'ce_mult': [1.0, 2.0], 'direction': ['long_only', 'both'], 'stop_atr': [1.5, 2.5]}   # 16 combos
 THRESH = {2: 10, 5: 30, 14: 30}
@@ -112,7 +117,7 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
     bar = int(p['bar']); rsi_len = int(p['rsi_len']); ce_len = int(p['ce_len']); ce_mult = float(p['ce_mult'])
     stop_atr = float(p['stop_atr']); min_hold = int(p['min_hold']); max_trades = int(p['max_trades'])
     thresh = float(THRESH.get(rsi_len, 30)); thresh_s = 100.0 - thresh
-    variant = str(p['variant']).upper()
+    variant = str(p['variant']).upper(); exit_arm = bool(p['exit_arm'])
     direction = str(p['direction']); regime = str(p['regime'])
     entry_start = hm(p['entry_start']); last_entry = hm(p['last_entry'])
     tick = float(contract.tick)
@@ -139,7 +144,7 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
     # module-side position state machine over the confirmed N-bars
     idx, side, stop_px = [], [], []
     ex_idx, ex_which = [], []
-    pos = 0; k_entry = -1; sp = np.nan; cur_day = -1; n_day = 0
+    pos = 0; k_entry = -1; sp = np.nan; cur_day = -1; n_day = 0; armed = True
     m = len(B)
     for k in range(m):
         d = day[k]
@@ -148,14 +153,17 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
         if pos != 0:
             # (b) stop mirror: the engine's protective stop was hit inside this N-bar
             if (pos > 0 and low[k] <= sp) or (pos < 0 and high[k] >= sp):
-                pos = 0
-            elif k - k_entry >= min_hold and ((pos > 0 and ls[k] == ls[k] and close[k] < ls[k]) or
-                                              (pos < 0 and ss[k] == ss[k] and close[k] > ss[k])):
+                pos = 0                        # flat on this bar; a new cross on the same bar may re-enter
+            elif exit_arm and not armed and ((pos > 0 and ls[k] == ls[k] and close[k] > ls[k]) or
+                                           (pos < 0 and ss[k] == ss[k] and close[k] < ss[k])):
+                armed = True
+            elif armed and k - k_entry >= min_hold and ((pos > 0 and ls[k] == ls[k] and close[k] < ls[k]) or
+                                                      (pos < 0 and ss[k] == ss[k] and close[k] > ss[k])):
                 if i_next[k] != -1:
                     ex_idx.append(int(i_next[k])); ex_which.append(pos)
                 pos = 0
                 continue                       # (a) flat from k'+1: no entry on the exit bar itself
-            else:
+            if pos != 0:
                 continue
         # flat: look for the deciding cross on bar k
         if k == 0 or not (entry_start <= tod[k] < last_entry) or i_next[k] == -1 or n_day >= max_trades:
@@ -185,6 +193,7 @@ def generate(df1: pd.DataFrame, contract, params: dict) -> Intents:
             continue
         idx.append(int(i_next[k])); side.append(s); stop_px.append(float(spx))
         pos = s; k_entry = k; sp = spx; n_day += 1
+        armed = not exit_arm
     if idx:
         it.place(np.array(idx, dtype=int), np.array(side, dtype=np.int8), stop_px=np.array(stop_px))
     if ex_idx:

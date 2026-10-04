@@ -1,0 +1,248 @@
+{
+ "id": "vb_idtarget",
+ "family": "volatility_breakout",
+ "contract": "MGC",
+ "params": {},
+ "params_note": "PARAMS = the published rule: setup id, entry market_0931, stop_mode mid, tgt_ext 0.0, require_inside_open True, min_dist_atr 0.08, max_dist_atr 0.6, max_stop_atr 0.4, min_stop_pts MES 4 / MNQ 6 / MGC 2, last_entry 10:30 (MGC 09:30), time_stop none, flat 15:55 (MGC 13:25), max_trades 1",
+ "period_main": {
+  "trades": 16,
+  "net": -421.41000000002884,
+  "days": 448,
+  "trading_days": 16,
+  "win_rate": 0.3125,
+  "avg_trade": -26.338125000001803,
+  "avg_win": 68.75799999999727,
+  "avg_loss": -69.56363636363773,
+  "profit_factor": 0.4492812336643747,
+  "expectancy_R": -0.37861915185574246,
+  "trades_per_day": 0.03571428571428571,
+  "max_dd_closed": -473.46000000002914,
+  "max_dd_intraday": -473.46000000002914,
+  "mean_day": -0.9406473214286357,
+  "std_day": 16.442418270914608,
+  "sharpe_daily_ann": -0.9081579763683169,
+  "pct_pos_days": 0.3125,
+  "largest_day": 138.26999999999424,
+  "worst_day": -193.65000000000583,
+  "largest_day_share": null,
+  "months": 21,
+  "pct_pos_months": 0.09523809523809523,
+  "worst_month": -155.95000000000948,
+  "best_month": 83.19999999999818
+ },
+ "period_prior": {
+  "trades": 23,
+  "net": -284.79999999996375,
+  "days": 516,
+  "trading_days": 23,
+  "win_rate": 0.30434782608695654,
+  "avg_trade": -12.382608695650598,
+  "avg_win": 37.857142857144595,
+  "avg_loss": -34.36249999999849,
+  "profit_factor": 0.4819934521644667,
+  "expectancy_R": -0.36035238110297974,
+  "trades_per_day": 0.044573643410852716,
+  "max_dd_closed": -328.51499999999,
+  "max_dd_intraday": -334.0149999999862,
+  "mean_day": -0.5519379844960536,
+  "std_day": 8.413523690886977,
+  "sharpe_daily_ann": -1.0413881506188523,
+  "pct_pos_days": 0.30434782608695654,
+  "largest_day": 67.90000000000073,
+  "worst_day": -81.3799999999981,
+  "largest_day_share": null,
+  "months": 24,
+  "pct_pos_months": 0.20833333333333334,
+  "worst_month": -191.08499999999276,
+  "best_month": 76.17000000000408
+ },
+ "wf_2025": {
+  "trades": 5,
+  "net": 511.53999999999627,
+  "days": 64,
+  "trading_days": 5,
+  "win_rate": 0.8,
+  "avg_trade": 102.30799999999925,
+  "avg_win": 143.9374999999995,
+  "avg_loss": -64.21000000000167,
+  "profit_factor": 8.966671857965784,
+  "expectancy_R": 1.5933343715931567,
+  "trades_per_day": 0.078125,
+  "max_dd_closed": -64.21000000000168,
+  "max_dd_intraday": -83.29999999999818,
+  "mean_day": 7.992812499999942,
+  "std_day": 36.739002683180665,
+  "sharpe_daily_ann": 3.4536039532694525,
+  "pct_pos_days": 0.8,
+  "largest_day": 174.07499999999908,
+  "worst_day": -64.21000000000167,
+  "largest_day_share": 0.3402959690346803,
+  "months": 3,
+  "pct_pos_months": 1.0,
+  "worst_month": 75.56499999999905,
+  "best_month": 325.82499999999743
+ },
+ "wf_all": {
+  "trades": 5,
+  "net": 511.53999999999627,
+  "days": 64,
+  "trading_days": 5,
+  "win_rate": 0.8,
+  "avg_trade": 102.30799999999925,
+  "avg_win": 143.9374999999995,
+  "avg_loss": -64.21000000000167,
+  "profit_factor": 8.966671857965784,
+  "expectancy_R": 1.5933343715931567,
+  "trades_per_day": 0.078125,
+  "max_dd_closed": -64.21000000000168,
+  "max_dd_intraday": -83.29999999999818,
+  "mean_day": 7.992812499999942,
+  "std_day": 36.739002683180665,
+  "sharpe_daily_ann": 3.4536039532694525,
+  "pct_pos_days": 0.8,
+  "largest_day": 174.07499999999908,
+  "worst_day": -64.21000000000167,
+  "largest_day_share": 0.3402959690346803,
+  "months": 3,
+  "pct_pos_months": 1.0,
+  "worst_month": 75.56499999999905,
+  "best_month": 325.82499999999743
+ },
+ "wf_path": [
+  {
+   "is": "2024-04-01..2025-03-31",
+   "oos": "2025-04-01..2025-06-30",
+   "params": {
+    "setup": "nr4_or_id",
+    "stop_mode": "mid",
+    "tgt_ext": 0.25,
+    "time_stop": "none"
+   },
+   "is_metric": -0.5772339680248261,
+   "is_net": -177.92999999995368,
+   "oos_net": 511.53999999999627,
+   "oos_trades": 5,
+   "oos_pf": 8.966671857965784
+  }
+ ],
+ "lucid": {
+  "n_starts": 62.0,
+  "n_censored": 62.0,
+  "pass_rate": null,
+  "fail_rate": null,
+  "incomplete_rate": null,
+  "median_days_to_pass": null,
+  "p90_days_to_pass": null,
+  "pass_within_21": null,
+  "pass_within_42": null,
+  "pass_within_63": null,
+  "p_loss_fee": null,
+  "micros": 5.0,
+  "exp_net_lb": -146.0,
+  "exp_net_p50": -146.0,
+  "pass_rate_lb": 1.0,
+  "p_exp_net_positive": 0.0,
+  "zero_edge_exp_net": null,
+  "zero_edge_pass_rate": null,
+  "n_funded_resolved": null,
+  "p_first_payout_given_pass": null,
+  "p_breach_before_payout": null,
+  "mean_paid_given_pass": null,
+  "median_days_to_first_payout": null,
+  "mean_payouts_given_pass": null,
+  "p_live_5_payouts": null,
+  "p_first_payout_unconditional": null,
+  "expected_paid_per_eval": null,
+  "expected_net_per_eval": null,
+  "n_full_horizon": null,
+  "pass_rate_full_horizon": null,
+  "n_effective": null,
+  "recommended": 0.0,
+  "selection": "exp_net_lb"
+ },
+ "best_cell_main": {
+  "contract": "MGC",
+  "params": {
+   "setup": "nr4_or_id",
+   "stop_mode": "frac",
+   "tgt_ext": 0.25
+  },
+  "main": {
+   "trades": 35,
+   "net": 882.17,
+   "profit_factor": 1.398,
+   "sharpe_daily_ann": 0.647,
+   "max_dd_intraday": -755.0
+  },
+  "prior": {
+   "trades": 47,
+   "net": -545.33,
+   "profit_factor": 0.721,
+   "sharpe_daily_ann": -0.724
+  }
+ },
+ "secondary_wf": {
+  "MNQ_grid_oos_2025": {
+   "trades": 36,
+   "net": 483,
+   "day_pf": 1.178,
+   "sharpe": 0.32,
+   "quarters_pos": "2/5"
+  },
+  "MNQ_grid_oos_all": {
+   "trades": 53,
+   "net": -49,
+   "day_pf": 0.987
+  },
+  "MGC_anygrid_oos_2025": {
+   "trades": 163,
+   "net": 1267,
+   "day_pf": 1.114,
+   "sharpe": 0.38
+  },
+  "MGC_anygrid_oos_all": {
+   "trades": 353,
+   "net": -622,
+   "day_pf": 0.965
+  },
+  "MNQ_anygrid_oos_2025": {
+   "trades": 114,
+   "net": -2295,
+   "day_pf": 0.805
+  },
+  "MNQ_anygrid_oos_all": {
+   "trades": 301,
+   "net": -2840,
+   "day_pf": 0.871
+  }
+ },
+ "hit_rate_diag": {
+  "MNQ_2025_any": {
+   "long": [
+    105,
+    0.648
+   ],
+   "short": [
+    71,
+    0.648
+   ]
+  },
+  "MNQ_2025_id": {
+   "long": [
+    6,
+    1.0
+   ],
+   "short": [
+    4,
+    0.75
+   ]
+  },
+  "mid_touch_MNQ_2025_any": {
+   "long": 0.705,
+   "short": 0.718
+  },
+  "replicates": true
+ },
+ "verdict": "dead",
+ "notes": "Published rule (inside day, open vs prior midpoint, target prior extreme, stop at midpoint) loses on MNQ/MES/MGC in both MAIN and PRIOR (PF 0.45-0.95, 10-23 trades). The level hit rate replicates (~65% MNQ 2025) but the midpoint stop is touched 70-100% of the time, so the stop sits inside the noise band. Inside-day setup trades 2.3% of days (not 12%): the next open gaps outside the compressed range ~65% of the time. Grid: 0/16 MNQ, 1/16 MES, 0/16 MGC profitable on PRIOR; MAIN-positive cells are the frac-stop / tgt_ext 0.25 corner, a 1:1 coin flip paid by gold shorts and Nasdaq longs in 2025-26 only. setup='any' control performs the same as the ID/NR4 setups, so the compression filter adds nothing. Walk-forward (final_select, MGC): only one IS window ever had a selectable cell (chosen with negative IS Sharpe); OOS 2025 = 5 trades, Lucid unresolvable, exp_net_lb -146, not recommended. Secondary WF on MNQ: 36 OOS trades 2025+, net +483 but PF 0.99 over the whole OOS span; the any-control WF is PF 0.81 on MNQ. Below the marginal bar (>= 40 OOS trades, PF >= 1.03) and not a portfolio-leg candidate."
+}

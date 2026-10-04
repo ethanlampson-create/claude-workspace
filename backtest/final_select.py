@@ -50,10 +50,40 @@ def evaluate(id_, contract, params, jobs=4, wf_start='2021-01-01', is_months=12,
     return out
 
 
+def row_from_wf(r):
+    w25 = r.get('wf_2025', {}) or {}; wa = r.get('wf_all', {}) or {}; lu = r.get('lucid_wf_2025', {}) or {}; fm = r.get('fixed_main', {}) or {}; fp = r.get('fixed_prior', {}) or {}
+    return {'id': r.get('id'), 'contract': r.get('contract'), 'wf25_trades': w25.get('trades'), 'wf25_net': w25.get('net'), 'wf25_pf': w25.get('profit_factor'),
+            'wf25_sharpe': w25.get('sharpe_daily_ann'), 'wf25_pos_months': w25.get('pct_pos_months'), 'wf25_dd_intra': w25.get('max_dd_intraday'),
+            'wfall_net': wa.get('net'), 'wfall_pf': wa.get('profit_factor'), 'wfall_sharpe': wa.get('sharpe_daily_ann'),
+            'lb_micros': lu.get('micros'), 'lb_exp_net': lu.get('exp_net_lb'), 'exp_net': lu.get('expected_net_per_eval'), 'pass_21': lu.get('pass_within_21'),
+            'zero_edge': lu.get('zero_edge_exp_net'), 'recommended': lu.get('recommended'), 'fixed_main_pf': fm.get('profit_factor'), 'fixed_prior_pf': fp.get('profit_factor'),
+            'has_bars': os.path.exists(os.path.join(ROOT, 'results', r.get('id', ''), 'wf_oos_2025_bars.parquet'))}
+
+
+def aggregate():
+    """Rebuild results/final_selection.csv from every results/<id>/walkforward.json."""
+    rows = []
+    for p in glob.glob(os.path.join(ROOT, 'results', '*', 'walkforward.json')):
+        try:
+            rows.append(row_from_wf(json.load(open(p))))
+        except Exception as ex:
+            print(p, 'unreadable', repr(ex))
+    df = pd.DataFrame(rows)
+    if len(df):
+        df = df.sort_values(['wf25_sharpe'], ascending=False, na_position='last')
+        df.to_csv(os.path.join(ROOT, 'results', 'final_selection.csv'), index=False)
+    return df
+
+
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(); ap.add_argument('--ids', nargs='*', default=None); ap.add_argument('--jobs', type=int, default=4)
-    ap.add_argument('--min_main_pf', type=float, default=1.1); ap.add_argument('--max_combos', type=int, default=24); ap.add_argument('--wf_start', default='2021-01-01')
+    ap.add_argument('--min_main_pf', type=float, default=1.1); ap.add_argument('--max_combos', type=int, default=24); ap.add_argument('--wf_start', default='2021-01-01'); ap.add_argument('--aggregate', action='store_true')
     a = ap.parse_args()
+    if a.aggregate:
+        df = aggregate()
+        with pd.option_context('display.width', 250, 'display.max_rows', 200):
+            print(df.round(3).to_string(index=False))
+        sys.exit(0)
     files = glob.glob(os.path.join(ROOT, 'results', '*', 'final.json'))
     cands = []
     for p in files:
@@ -81,9 +111,7 @@ if __name__ == '__main__':
                'lb_micros': lu.get('micros'), 'lb_exp_net': lu.get('exp_net_lb'), 'exp_net': lu.get('expected_net_per_eval'), 'pass_21': lu.get('pass_within_21'),
                'zero_edge': lu.get('zero_edge_exp_net'), 'recommended': lu.get('recommended'), 'fixed_main_pf': fm.get('profit_factor'), 'fixed_prior_pf': fp.get('profit_factor'), 'secs': round(r['seconds'])}
         rows.append(row); print(row)
-    df = pd.DataFrame(rows)
+    df = aggregate()   # merge with every results/<id>/walkforward.json so per-id runs never overwrite the table
     if len(df):
-        df = df.sort_values(['lb_exp_net', 'wf25_sharpe'], ascending=False, na_position='last')
-        df.to_csv(os.path.join(ROOT, 'results', 'final_selection.csv'), index=False)
         with pd.option_context('display.width', 250, 'display.max_rows', 200):
             print(df.round(3).to_string(index=False))

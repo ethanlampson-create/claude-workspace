@@ -1,0 +1,8 @@
+2025-01-01 n 176 net 2971.7 pf 1.128
+ by side: {-1: {'size': 71, 'sum': -766.9, 'mean': -10.8}, 1: {'size': 105, 'sum': 3738.5, 'mean': 35.6}}
+ by reason: {'flat': {'size': 36, 'sum': 1460.1, 'mean': 40.6}, 'stop': {'size': 75, 'sum': -21235.4, 'mean': -283.1}, 'target': {'size': 65, 'sum': 22747.0, 'mean': 350.0}}
+ months pos 11 / 21 | worst -1499.0 best 1285.0 | largest share 0.43
+2023-01-01 n 187 net -1484.7 pf 0.912
+ by side: {-1: {'size': 77, 'sum': -2065.3, 'mean': -26.8}, 1: {'size': 110, 'sum': 580.6, 'mean': 5.3}}
+ by reason: {'flat': {'size': 44, 'sum': 2190.3, 'mean': 49.8}, 'stop': {'size': 84, 'sum': -15789.3, 'mean': -188.0}, 'target': {'size': 59, 'sum': 12114.4, 'mean': 205.3}}
+ months pos 10 / 20 | worst -1138.0 best 674.0 | largest share 674.0
